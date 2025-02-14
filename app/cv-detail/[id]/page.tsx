@@ -787,7 +787,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
               </div>
             </div>
 
-            {/* Like DisLike & Save */}
+            {/* Salary Based & Save */}
             <div className="flex justify-between">
               <div>
                 <div>

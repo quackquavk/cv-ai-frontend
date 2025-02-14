@@ -18,6 +18,12 @@ export const initialData = {
   prompt: "",
   foldersToSearch: [""],
   sort_order: "",
+  availability: "",
+  time_of_day: "",
+  star_rating: 0,
+  current_salary: [],
+  estimated_salary: [],
+  paid_by: "",
 };
 
 // Context Provider to fetch and provide the data

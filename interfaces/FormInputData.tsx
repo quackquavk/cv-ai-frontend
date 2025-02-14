@@ -4,4 +4,10 @@ export interface IFormInputData {
   prompt: string;
   foldersToSearch: string[];
   sort_order: string;
+  availability: string;
+  time_of_day: string;
+  star_rating: number;
+  current_salary: string[];
+  estimated_salary: string[];
+  paid_by: string;
 }

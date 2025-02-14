@@ -14,7 +14,6 @@ export const SearchContext = createContext<{
 export const SearchProvider = ({ children }: { children: React.ReactNode }) => {
   const [searchData, setSearchData] = useState<IFormInputData | null>(null);
 
-  console.log("SearchData", searchData?.sort_order);
   const [previousSortOrder, setPreviousSortOrder] = useState(
     searchData?.sort_order
   );
