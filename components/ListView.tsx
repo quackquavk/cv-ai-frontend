@@ -44,35 +44,33 @@ const ListView = ({ data, searchData }: ListViewProps) => {
     isLoading,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ["documents", selectFolderId, searchData],
+    queryKey: ["documents", selectFolderId, searchData], // Ensures refetch when folder changes
     queryFn: async ({ pageParam = 0 }: { pageParam: any }) => {
-      let documentsToFetch;
+      let documentsToFetch: string[] = [];
 
       if (searchData) {
-        // Fetch search results
         const searchResponse = await axiosInstance.post(
           "/document/search_by_query",
           searchData
         );
         const searchDocIds = searchResponse.data.map((item) => item.doc_id);
         documentsToFetch = searchDocIds;
-      } else if (selectFolderId) {
-        // Fetch folder documents
+      }
+
+      if (!searchData && selectFolderId) {
         const folderResponse = await axiosInstance.get(
           `/folder/getFiles/${selectFolderId}`
         );
-        const folderDocIds = folderResponse.data.map((folder) => folder.doc_id);
-        documentsToFetch = folderDocIds;
-      } else {
-        // Use initial data for first load
-        documentsToFetch = data.map((item) => item.doc_id);
+        documentsToFetch = folderResponse.data.map((folder) => folder.doc_id);
       }
 
-      // Implement client-side pagination
+      if (!searchData && !selectFolderId) {
+        documentsToFetch = data?.map((item) => item.doc_id) ?? [];
+      }
+
       const start = pageParam * ITEMS_PER_PAGE;
       const end = start + ITEMS_PER_PAGE;
       const pageDocIds = documentsToFetch.slice(start, end);
-
       const documents = await fetchDocumentsByIds(pageDocIds);
 
       return {
@@ -82,9 +80,21 @@ const ListView = ({ data, searchData }: ListViewProps) => {
       };
     },
     getNextPageParam: (lastPage: any) => lastPage.nextPage,
-    initialPageParam: ITEMS_PER_PAGE,
-    enabled: data.length > 0, // Only run query if we have initial data
+    initialPageParam: 0, // Reset pagination
+    placeholderData: { pages: [], pageParams: [] },
   });
+
+  useEffect(() => {
+    queryClient.removeQueries({ queryKey: ["documents"] });
+  }, [selectFolderId]);
+
+  // Reset Data
+  useEffect(() => {
+    queryClient.setQueryData(["documents", selectFolderId, searchData], {
+      pages: [],
+      pageParams: [0],
+    });
+  }, [selectFolderId, queryClient, searchData]);
 
   // Prefetch initial data
   useEffect(() => {
