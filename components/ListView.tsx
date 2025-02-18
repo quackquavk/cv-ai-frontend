@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { Card } from "./ui/card";
 import { FaUser, FaPhoneAlt, FaLinkedin, FaGithub } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
-import { IoConstructOutline, IoLocation } from "react-icons/io5";
+import { IoLocation } from "react-icons/io5";
 import { IDocumentData } from "@/interfaces/DocumentData";
 import axiosInstance from "@/utils/axiosConfig";
 import Link from "next/link";
