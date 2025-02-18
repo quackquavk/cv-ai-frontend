@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { Card } from "./ui/card";
 import { FaUser, FaPhoneAlt, FaLinkedin, FaGithub } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
-import { IoLocation } from "react-icons/io5";
+import { IoConstructOutline, IoLocation } from "react-icons/io5";
 import { IDocumentData } from "@/interfaces/DocumentData";
 import axiosInstance from "@/utils/axiosConfig";
 import Link from "next/link";
@@ -43,79 +43,102 @@ const ListView = ({ data, searchData }: ListViewProps) => {
     hasNextPage,
     isLoading,
     isFetchingNextPage,
+    refetch,
   } = useInfiniteQuery({
     queryKey: ["documents", selectFolderId, searchData], // Ensures refetch when folder changes
     queryFn: async ({ pageParam = 0 }: { pageParam: any }) => {
-      let documentsToFetch: string[] = [];
+      try {
+        let documentsToFetch: string[] = [];
 
-      if (searchData) {
-        const searchResponse = await axiosInstance.post(
-          "/document/search_by_query",
-          searchData
-        );
-        const searchDocIds = searchResponse.data.map((item) => item.doc_id);
-        documentsToFetch = searchDocIds;
+        if (searchData) {
+          const searchResponse = await axiosInstance.post(
+            "/document/search_by_query",
+            searchData
+          );
+          documentsToFetch = searchResponse.data.map((item) => item.doc_id);
+        } else if (!searchData && selectFolderId) {
+          const folderResponse = await axiosInstance.get(
+            `/folder/getFiles/${selectFolderId}`
+          );
+          documentsToFetch = folderResponse.data.map((folder) => folder.doc_id);
+        } else if (!searchData && !selectFolderId) {
+          documentsToFetch = data?.map((item) => item.doc_id) ?? [];
+        }
+
+        if (documentsToFetch.length === 0) {
+          return {
+            documents: [],
+            nextPage: undefined,
+            totalDocs: 0,
+          };
+        }
+
+        const start = pageParam * ITEMS_PER_PAGE;
+        const end = start + ITEMS_PER_PAGE;
+        const pageDocIds = documentsToFetch.slice(start, end);
+        const documents = await fetchDocumentsByIds(pageDocIds);
+
+        return {
+          documents,
+          nextPage: end < documentsToFetch.length ? pageParam + 1 : undefined,
+          totalDocs: documentsToFetch.length,
+        };
+      } catch (error) {
+        console.error("Error fetching documents:", error);
+        return {
+          documents: [],
+          nextPage: undefined,
+          totalDocs: 0,
+        };
       }
-
-      if (!searchData && selectFolderId) {
-        const folderResponse = await axiosInstance.get(
-          `/folder/getFiles/${selectFolderId}`
-        );
-        documentsToFetch = folderResponse.data.map((folder) => folder.doc_id);
-      }
-
-      if (!searchData && !selectFolderId) {
-        documentsToFetch = data?.map((item) => item.doc_id) ?? [];
-      }
-
-      const start = pageParam * ITEMS_PER_PAGE;
-      const end = start + ITEMS_PER_PAGE;
-      const pageDocIds = documentsToFetch.slice(start, end);
-      const documents = await fetchDocumentsByIds(pageDocIds);
-
-      return {
-        documents,
-        nextPage: end < documentsToFetch.length ? pageParam + 1 : undefined,
-        totalDocs: documentsToFetch.length,
-      };
     },
     getNextPageParam: (lastPage: any) => lastPage.nextPage,
     initialPageParam: 0, // Reset pagination
-    placeholderData: { pages: [], pageParams: [] },
+    // placeholderData: { pages: [], pageParams: [] },
+    enabled: true,
   });
 
+  // Clear cache and refetch when folder selection changes
   useEffect(() => {
-    queryClient.removeQueries({ queryKey: ["documents"] });
-  }, [selectFolderId]);
+    const clearAndRefetch = async () => {
+      await queryClient.cancelQueries({ queryKey: ["documents"] });
+      await queryClient.resetQueries({ queryKey: ["documents"] });
+      refetch();
+    };
 
-  // Reset Data
-  useEffect(() => {
-    queryClient.setQueryData(["documents", selectFolderId, searchData], {
-      pages: [],
-      pageParams: [0],
-    });
-  }, [selectFolderId, queryClient, searchData]);
+    clearAndRefetch();
+  }, [selectFolderId, queryClient, refetch]);
 
-  // Prefetch initial data
+  // Prefetch initial data when component mounts or data prop changes
   useEffect(() => {
-    if (data.length > 0) {
-      const initialDocIds = data
-        .slice(0, ITEMS_PER_PAGE)
-        .map((item) => item.doc_id);
-      fetchDocumentsByIds(initialDocIds).then((initialDocuments) => {
-        queryClient.setQueryData(["documents", selectFolderId, searchData], {
-          pages: [
-            {
-              documents: initialDocuments,
-              nextPage: data.length > ITEMS_PER_PAGE ? 1 : undefined,
-              totalDocs: data.length,
-            },
-          ],
-          pageParams: [0],
-        });
-      });
-    }
+    const prefetchInitialData = async () => {
+      if (data && data.length > 0 && !selectFolderId && !searchData) {
+        const initialDocIds = data
+          .slice(0, ITEMS_PER_PAGE)
+          .map((item) => item.doc_id);
+
+        try {
+          const initialDocuments = await fetchDocumentsByIds(initialDocIds);
+          queryClient.setQueryData(["documents", selectFolderId, searchData], {
+            pages: [
+              {
+                documents: initialDocuments,
+                nextPage: data.length > ITEMS_PER_PAGE ? 1 : undefined,
+                totalDocs: data.length,
+              },
+            ],
+            pageParams: [0],
+          });
+        } catch (error) {
+          console.error("Error prefetching initial data:", error);
+        }
+      }
+    };
+
+    prefetchInitialData();
   }, [data, queryClient, selectFolderId, searchData]);
+
+  console.log(`FolderSelected`, selectFolderId);
 
   // Load more when scrolling to the bottom
   useEffect(() => {
@@ -191,7 +214,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                       </p>
                     </div>
 
-                    <p>
+                    <div>
                       {item?.parsed_cv?.name && (
                         <div className="flex items-center gap-2 mt-0">
                           <FaUser className="text-sm" />
@@ -200,7 +223,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                           </span>
                         </div>
                       )}
-                    </p>
+                    </div>
 
                     {/* Contact Information */}
                     {item?.parsed_cv?.phone_number && (
