@@ -10,7 +10,7 @@ import Link from "next/link";
 import { IFormInputData } from "@/interfaces/FormInputData";
 import ListViewSkeletion from "./ui/Skeleton/ListViewSkeleton";
 import { folderSelectStore } from "@/app/dashboard/store";
-// import { useSearchContext } from "@/app/dashboard/context/SearchContext";
+import { useSearchContext } from "@/app/dashboard/context/SearchContext";
 import EmblaCarousel from "../app/dashboard/components/EmblaCarousel";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useInView } from "react-intersection-observer";
@@ -24,7 +24,7 @@ const ITEMS_PER_PAGE: number = 10;
 
 const ListView = ({ data, searchData }: ListViewProps) => {
   const { ref, inView } = useInView();
-  // const { resetSearch } = useSearchContext();
+  const { resetSearch } = useSearchContext();
   const { selectFolderId } = folderSelectStore();
   const queryClient = useQueryClient();
 
@@ -101,6 +101,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
   // Clear cache and refetch when folder selection changes
   useEffect(() => {
     const clearAndRefetch = async () => {
+      resetSearch();
       await queryClient.cancelQueries({ queryKey: ["documents"] });
       await queryClient.resetQueries({ queryKey: ["documents"] });
       refetch();
@@ -138,7 +139,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
     prefetchInitialData();
   }, [data, queryClient, selectFolderId, searchData]);
 
-  console.log(`FolderSelected`, selectFolderId);
+  console.log(`SearchField`, searchData);
 
   // Load more when scrolling to the bottom
   useEffect(() => {
@@ -296,12 +297,12 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                       </div>
                       {item?.parsed_cv?.work_experience?.length > 0 && (
                         <div>
-                          <p className="font-semibold">
+                          <p className="font-semibold capitalize">
                             {item?.parsed_cv.work_experience[0]?.job_title}
                           </p>
                           <p className="text-sm text-gray-500">
                             {item?.parsed_cv.work_experience[0]?.company_name}
-                            <span className="text-gray-400">
+                            <span>
                               {" "}
                               {`${item?.parsed_cv.work_experience[0]?.start_date} - 
                                ${item?.parsed_cv.work_experience[0]?.end_date}`}
@@ -314,7 +315,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                     <div>
                       <h1 className="font-bold text-base">Education</h1>
                       {item?.parsed_cv.education?.length > 0 ? (
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-gray-500 capitalize">
                           {item.parsed_cv.education[0].degree}
                         </span>
                       ) : (

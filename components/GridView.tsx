@@ -11,7 +11,7 @@ import GridViewSkeleton from "./ui/Skeleton/GridViewSkeleton";
 // import { CiLinkedin } from "react-icons/ci";
 import Masonry from "react-masonry-css";
 import { folderSelectStore } from "@/app/dashboard/store";
-// import { useSearchContext } from "@/app/dashboard/context/SearchContext";
+import { useSearchContext } from "@/app/dashboard/context/SearchContext";
 
 interface GridViewProps {
   data: IDocumentData[];
@@ -28,7 +28,7 @@ function GridView({ data, searchData }: GridViewProps) {
   const [folderFilteredData, setFolderFilteredData] = useState<any[]>([]);
   // const [hoveredUser, setHoveredUser] = useState<any>(null);
 
-  // const { resetSearch } = useSearchContext();
+  const { resetSearch } = useSearchContext();
   const { selectFolderId } = folderSelectStore();
 
   useEffect(() => {
@@ -77,8 +77,9 @@ function GridView({ data, searchData }: GridViewProps) {
   useEffect(() => {
     if (selectFolderId) {
       fetchFolderFiles();
+      resetSearch();
     }
-  }, [data, selectFolderId]);
+  }, [selectFolderId]);
 
   const fetchSearchResults = async (searchData: IFormInputData) => {
     try {

@@ -8,7 +8,7 @@ export const SearchContext = createContext<{
   setSearchData: React.Dispatch<React.SetStateAction<IFormInputData | null>>;
   // searchResults: any[];
   // setSearchResults: React.Dispatch<React.SetStateAction<any[]>>;
-  // resetSearch: () => void;
+  resetSearch: () => void;
 } | null>(null);
 
 export const SearchProvider = ({ children }: { children: React.ReactNode }) => {
@@ -35,12 +35,16 @@ export const SearchProvider = ({ children }: { children: React.ReactNode }) => {
   //   }
   // }, [searchData?.sort_order, previousSortOrder]);
 
+  const resetSearch = () => {
+    setSearchData(null);
+  };
+
   return (
     <SearchContext.Provider
       value={{
         searchData,
         setSearchData,
-        // resetSearch,
+        resetSearch,
       }}
     >
       {children}

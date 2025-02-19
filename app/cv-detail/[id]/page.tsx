@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { IAvailability } from "@/interfaces/Availability";
 import { LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
-import { GrDocumentNotes } from "react-icons/gr";
+import { PiNotePencilBold } from "react-icons/pi";
 import {
   Select,
   SelectContent,
@@ -217,7 +217,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
 
   return (
     <div className="flex h-[100vh] space-x-4 w-full">
-      <Card className="w-[70%] bg-gray-100">
+      <Card className="w-[70%]">
         <div className="h-[100vh] ">
           {/* Embed PDF viewer */}
           <iframe
@@ -234,11 +234,11 @@ const CVDetailPage = ({ params }: { params: any }) => {
           <DetailViewSkeleton />
         </div>
       ) : (
-        <Card className="px-3 py-3 w-[40%] h-full bg-gray-100 flex flex-col gap-3">
+        <Card className="px-3 py-3 w-[40%] h-full flex flex-col gap-3">
           {/* Scrollable */}
           <div className="pb-3 overflow-y-auto scrollbar-thin flex flex-col gap-3">
             {/* First Part */}
-            <div className=" top-0 bg-gray-100">
+            <div className=" top-0">
               <div className="flex justify-between w-[100%] items-start">
                 <div className="flex flex-col w-max-[60%] flex-wrap pr-3 ">
                   <h1 className="font-bold text-xl">
@@ -363,59 +363,72 @@ const CVDetailPage = ({ params }: { params: any }) => {
               </div>
             </div>
 
+            <div className="mr-4">
+              <hr className="w-full h-[2px] opacity-40 bg-black" />
+            </div>
+
             {/* Second Part*/}
             <div className="flex-grow flex-col space-y-3">
               {/* Skills */}
               <div>
                 {data?.skills?.length > 0 && (
-                  <span className="flex flex-col gap-1 pb-2">
-                    <span className="font-semibold">Skills</span>
-                    <span className="flex flex-wrap gap-2 text-sm max-w-3xl">
+                  <div className="flex flex-col gap-1 pb-2">
+                    <p className="font-semibold">Skills</p>
+                    <div className="flex flex-wrap gap-3 text-sm max-w-3xl">
                       {data?.skills?.map((item: any, index: number) => (
-                        <span key={index}>
-                          <span className="flex shadow-md px-2 py-3 bg-[#f7f9fc] text-gray-700 font-sans rounded-md w-fit font-semibold">
+                        <div key={index}>
+                          <Card className="p-2 bg-[#f7f9fc] text-gray-700 font-sans rounded-md w-fit font-semibold">
                             {item}
-                          </span>
-                        </span>
+                          </Card>
+                        </div>
                       ))}
-                    </span>
-                  </span>
+                    </div>
+                  </div>
                 )}
+              </div>
+
+              <div className="mr-4">
+                <hr className="w-full h-[2px] opacity-40 bg-black" />
               </div>
 
               {/* Programming Language */}
               <div>
                 {data?.programming_languages?.length > 0 && (
-                  <span className="flex flex-col gap-1 pb-2">
-                    <span className="font-semibold">Progamming Language</span>
-                    <span className="flex flex-wrap gap-2 text-sm max-w-3xl">
+                  <div className="flex flex-col gap-1 pb-2">
+                    <p className="font-semibold">Progamming Language</p>
+                    <div className="flex flex-wrap gap-3 text-sm max-w-3xl">
                       {data?.programming_languages?.map(
                         (item: any, idx: number) => (
-                          <span key={idx}>
-                            <span className="flex shadow-md px-2 py-3 text-gray-700 font-sans bg-[#f7f9fc] rounded-md w-fit font-semibold">
+                          <div key={idx}>
+                            <Card className="flex p-2 text-gray-700 font-sans bg-[#f7f9fc] rounded-md w-fit font-semibold">
                               {item}
-                            </span>
-                          </span>
+                            </Card>
+                          </div>
                         )
                       )}
-                    </span>
-                  </span>
+                    </div>
+                  </div>
                 )}
               </div>
+
+              <div className="mr-4">
+                <hr className="w-full h-[2px] opacity-40 bg-black" />
+              </div>
+
               {/* Experience */}
               <div className="flex flex-col gap-2">
                 <p className="font-semibold flex items-center gap-4 ">
                   Experiences
-                  <span className="text-sm">
+                  <span className="text-sm text-gray-500">
                     {data?.years_of_experience &&
-                      "(" + data?.years_of_experience + " years" + ")"}
+                      +data?.years_of_experience + " years"}
                   </span>
                 </p>
                 <div className="flex flex-col gap-3">
                   {data?.work_experience.length > 0 &&
                     data?.work_experience.map((item: any, index: number) => (
                       <div key={index}>
-                        <span className="font-semibold">
+                        <span className="font-semibold capitalize">
                           {index + 1 + ". " + item?.job_title}
                         </span>
                         <span className="flex items-center gap-3">
@@ -430,7 +443,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                               ")"}
                           </span>
                         </span>
-                        <span className="flex flex-col text-sm max-w-3xl mr-4 ">
+                        <span className="flex flex-col text-sm max-w-3xl mr-4">
                           {item.responsibilities.length > 0 &&
                             item.responsibilities.map(
                               (el: any, index: number) => (
@@ -451,62 +464,69 @@ const CVDetailPage = ({ params }: { params: any }) => {
                 </div>
               </div>
 
+              <div className="mr-4">
+                <hr className="w-full h-[2px] opacity-40 bg-black" />
+              </div>
+
               {/* Project */}
               <div>
-                {data?.technical_projects?.length > 0 && (
-                  <div className="flex flex-col gap-1">
-                    <p className="font-semibold ">Projects</p>
-                    <div className="flex gap-4 flex-col">
-                      {data?.technical_projects?.length > 0 &&
-                        data?.technical_projects.map(
-                          (data: any, index: number) => (
-                            <div key={index}>
-                              <div className="flex flex-col gap-2 text-gray-700">
-                                <div className="flex justify-between items-center">
-                                  <div className="text-gray-700 font-semibold">
-                                    {index + 1 + ". " + data.project_name}
-                                  </div>
-                                  {data.project_link && (
-                                    <Link
-                                      href={
-                                        data.project_link.startsWith("http")
-                                          ? data.project_link
-                                          : `https://${data.project_link}`
-                                      }
-                                      target="_blank"
-                                      className=" mr-4 hover:opacity-50"
-                                    >
-                                      <SquareArrowOutUpRight size={16} />
-                                    </Link>
-                                  )}
+                <div className="flex flex-col gap-1">
+                  <p className="font-semibold ">Projects</p>
+                  <div className="flex gap-4 flex-col">
+                    {data?.technical_projects?.length > 0 &&
+                      data?.technical_projects.map(
+                        (data: any, index: number) => (
+                          <div key={index}>
+                            <div className="flex flex-col gap-2 text-gray-700">
+                              <div className="flex justify-between items-center">
+                                <div className="text-gray-700 font-semibold capitalize">
+                                  {index + 1 + ". " + data.project_name}
                                 </div>
-                                {data.programming_language?.length > 0 && (
-                                  <div className="flex gap-3 items-center text-sm mr-4 ">
-                                    {/* <p>Technology Used : </p> */}
-                                    {data.programming_language.map(
-                                      (el, index) => (
-                                        <div key={index}>
-                                          <p className="shadow-md px-2 py-3 bg-[#f7f9fc]  font-sans rounded-md w-fit font-semibold">
-                                            {el}
-                                          </p>
-                                        </div>
-                                      )
-                                    )}
-                                  </div>
-                                )}
-                                {data.description && (
-                                  <p className="text-sm mr-4">
-                                    {data.description}
-                                  </p>
+                                {data.project_link && (
+                                  <Link
+                                    href={
+                                      data.project_link.startsWith("http")
+                                        ? data.project_link
+                                        : `https://${data.project_link}`
+                                    }
+                                    target="_blank"
+                                    className=" mr-4 hover:opacity-50"
+                                  >
+                                    <SquareArrowOutUpRight size={16} />
+                                  </Link>
                                 )}
                               </div>
+                              {data.programming_language?.length > 0 && (
+                                <div className="flex gap-3 items-center text-sm mr-4 ">
+                                  {/* <p>Technology Used : </p> */}
+                                  {data.programming_language.map(
+                                    (el, index) => (
+                                      <div key={index}>
+                                        <Card className="p-2 bg-[#f7f9fc]  font-sans rounded-md w-fit font-semibold">
+                                          {el}
+                                        </Card>
+                                      </div>
+                                    )
+                                  )}
+                                </div>
+                              )}
+                              {data.description && (
+                                <p className="text-sm mr-4">
+                                  {data.description}
+                                </p>
+                              )}
                             </div>
-                          )
-                        )}
-                    </div>
+                          </div>
+                        )
+                      )}
                   </div>
-                )}
+                </div>
               </div>
+
+              <div className="mr-4">
+                <hr className="w-full h-[2px] opacity-40 bg-black" />
+              </div>
+
               {/* Education */}
               <div>
                 <span className="flex flex-col gap-1">
@@ -515,11 +535,13 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     {data?.education?.length > 0 &&
                       data?.education.map((el: any, index: number) => (
                         <div key={index}>
-                          <p className="font-semibold">
+                          <p className="font-semibold capitalize">
                             {index + 1 + ". " + el.degree}
                           </p>
                           <div className="flex gap-1 items-center text-gray-700 text-sm">
-                            <span>{el?.institution}</span>
+                            <span className="capitalize">
+                              {el?.institution}
+                            </span>
                             <span>
                               {"(" +
                                 el?.start_date +
@@ -534,26 +556,26 @@ const CVDetailPage = ({ params }: { params: any }) => {
                 </span>
               </div>
 
+              <div className="mr-4">
+                <hr className="w-full h-[2px] opacity-40 bg-black" />
+              </div>
+
               {/* Certificate */}
               <div>
-                {data?.certifications?.length > 0 && (
-                  <>
-                    <p className="font-semibold text-xl">Certification</p>
-                    {data.certifications.map((el: any, index: number) => (
-                      <div className="flex flex-col" key={index}>
-                        <p className="text-sm flex">
-                          {index + 1 + ". " + el?.certification_name}
-                        </p>
-                      </div>
-                    ))}
-                  </>
-                )}
+                <p className="font-semibold">Certification</p>
+                {data?.certifications?.map((el: any, index: number) => (
+                  <div className="flex flex-col" key={index}>
+                    <p className="text-sm flex">
+                      {index + 1 + ". " + el?.certification_name}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
           {/* Availability Section */}
-          <div className="sticky z-10 border-t-2 rounded-md border-slate-700 pt-3 flex flex-col gap-3">
+          <div className="sticky z-10 border-t-2 border-slate-700 pt-3 flex flex-col gap-3">
             {/* Stars & Like / DisLike */}
             <div className="flex justify-between items-center">
               {/* stars */}
@@ -589,11 +611,19 @@ const CVDetailPage = ({ params }: { params: any }) => {
                   <SheetTrigger>
                     <TooltipProvider>
                       <Tooltip>
-                        <TooltipTrigger className="cursor-pointer shadow-2xl shadow-gray-600 hover:scale-110 transition-transform bg-slate-300 h-fit w-fit p-2 rounded-md duration-300 ease-in-out">
-                          <GrDocumentNotes />
+                        <TooltipTrigger className="cursor-pointer transition-transform rounded-md duration-300 ease-in-out">
+                          <Button className="flex gap-1 items-center w-22 h-8 px-2 text-xs">
+                            <span>
+                              <PiNotePencilBold
+                                className="text-[2px]"
+                                // size={12}
+                              />
+                            </span>
+                            <span>Notes</span>
+                          </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Note</p>
+                          <p>Add Notes to the CV</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -638,7 +668,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all
                     ${
                       userChoice === "like"
-                        ? "bg-blue-100 text-blue-600"
+                        ? "bg-blue-100 text-green-600"
                         : "hover:bg-gray-100"
                     }`}
                   >

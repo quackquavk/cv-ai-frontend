@@ -41,7 +41,7 @@ const EmblaCarousel = ({ skills }: { skills: string[] }) => {
           {skills.map((skill, index) => (
             <div key={index} className="flex-shrink-0  px-1">
               <Card
-                className="h-10 w-fit p-2 bg-slate-100 shadow-4xl rounded-lg text-sm text-center  whitespace-nowrap text-ellipsis"
+                className="h-10 w-fit p-2 bg-[#f7f9fc]  rounded-lg text-sm text-center  whitespace-nowrap text-ellipsis"
                 title={skill}
               >
                 {skill}
