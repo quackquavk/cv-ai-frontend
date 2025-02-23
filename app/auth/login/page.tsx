@@ -48,7 +48,12 @@ const LoginPage = () => {
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     try {
-      const response = await axiosInstance.post(`/user/login`, data);
+      console.log("Data", data);
+      const response = await axiosInstance.post(`/user/login`, data, {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      });
       setLoader(true);
 
       // Store tokens in session storage
@@ -63,14 +68,13 @@ const LoginPage = () => {
       });
       router.push("/dashboard");
     } catch (error) {
-      if (error.response) {
-        toast(`${error.response.data.detail} !!!`, {
-          style: {
-            backgroundColor: "black",
-            color: "white",
-          },
-        });
-      }
+      console.log("Error", error);
+      toast(`${error.response.data.detail} !!!`, {
+        style: {
+          backgroundColor: "black",
+          color: "white",
+        },
+      });
     } finally {
       setLoader(false);
     }
@@ -85,7 +89,7 @@ const LoginPage = () => {
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
           <div>
-            <div className="flex flex-col gap-3">
+            {/* <div className="flex flex-col gap-3">
               <div className="flex flex-col gap-4">
                 <Button variant="outline" className="w-full flex gap-3">
                   <svg
@@ -106,6 +110,15 @@ const LoginPage = () => {
                   Or continue with
                 </span>
               </div>
+            </div> */}
+            <div>
+              <Button variant="outline" className="w-full flex gap-3">
+                <Link href={"../../dashboard"}>
+                  <p>
+                    {`Click here to see publicly available cv's without login`}
+                  </p>
+                </Link>
+              </Button>
             </div>
             <Form {...form}>
               <form

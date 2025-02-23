@@ -36,16 +36,14 @@ const ListView = ({ data, searchData }: ListViewProps) => {
     return Promise.all(promises);
   };
 
-  // Main query for all documents
   const {
     data: infiniteData,
     fetchNextPage,
     hasNextPage,
     isLoading,
     isFetchingNextPage,
-    refetch,
   } = useInfiniteQuery({
-    queryKey: ["documents", selectFolderId, searchData], // Ensures refetch when folder changes
+    queryKey: ["documents", selectFolderId, searchData],
     queryFn: async ({ pageParam = 0 }: { pageParam: any }) => {
       try {
         let documentsToFetch: string[] = [];
@@ -93,22 +91,21 @@ const ListView = ({ data, searchData }: ListViewProps) => {
       }
     },
     getNextPageParam: (lastPage: any) => lastPage.nextPage,
-    initialPageParam: 0, // Reset pagination
-    // placeholderData: { pages: [], pageParams: [] },
+    initialPageParam: 0, // Ensures pagination starts correctly
+    staleTime: 1000 * 60 * 5, // Cache results for 5 minutes
+    refetchOnWindowFocus: false, // Prevent refetch on tab switch
+    refetchOnReconnect: false, // Prevent refetch on internet reconnect
     enabled: true,
   });
 
-  // Clear cache and refetch when folder selection changes
   useEffect(() => {
-    const clearAndRefetch = async () => {
-      resetSearch();
-      await queryClient.cancelQueries({ queryKey: ["documents"] });
-      await queryClient.resetQueries({ queryKey: ["documents"] });
-      refetch();
-    };
+    resetSearch();
+  }, [selectFolderId]);
 
-    clearAndRefetch();
-  }, [selectFolderId, queryClient, refetch]);
+  useEffect(() => {
+    // resetSearch();
+    queryClient.invalidateQueries({ queryKey: ["documents"] });
+  }, [selectFolderId, searchData]);
 
   // Prefetch initial data when component mounts or data prop changes
   useEffect(() => {
@@ -139,7 +136,13 @@ const ListView = ({ data, searchData }: ListViewProps) => {
     prefetchInitialData();
   }, [data, queryClient, selectFolderId, searchData]);
 
-  console.log(`SearchField`, searchData);
+  // console.log(`SearchField`, searchData);
+
+  useEffect(() => {
+    return () => {
+      queryClient.cancelQueries({ queryKey: ["documents"] });
+    };
+  }, [queryClient]);
 
   // Load more when scrolling to the bottom
   useEffect(() => {

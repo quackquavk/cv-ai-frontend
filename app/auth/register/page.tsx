@@ -25,7 +25,7 @@ import { z } from "zod";
 import axiosInstance from "@/utils/axiosConfig";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
+// import Cookies from "js-cookie";
 
 const FormSchema = z.object({
   full_name: z.string().min(1, "FullName is required."),
@@ -58,27 +58,16 @@ const SignUpPage = () => {
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     try {
       // Register the user
-      await axiosInstance.post(`/user/create_user`, data);
       setLoader(true);
-
-      // Login the user
-      const loginData = {
-        username: data.username,
-        password: data.password,
-      };
-      const loginResponse = await axiosInstance.post(`/user/login`, loginData);
-
-      // Store tokens in session storage
-      const { access_token, refresh_token } = loginResponse.data;
-      Cookies.set("access_token", access_token, {
-        secure: true,
-        sameSite: "Strict",
-      }); // Secure and SameSite options for security
-      Cookies.set("refresh_token", refresh_token, {
-        secure: true,
-        sameSite: "Strict",
+      await axiosInstance.post(`/user/create_user`, data);
+      router.push("/auth/login");
+      toast("Succcesfully created user", {
+        style: {
+          backgroundColor: "white",
+          color: "white",
+        },
       });
-      router.push("/dashboard");
+      console.log("Loader", loader);
     } catch (error) {
       if (error.response) {
         toast(`${error.response.data.detail} !!!`, {
@@ -90,6 +79,7 @@ const SignUpPage = () => {
       }
     } finally {
       setLoader(false);
+      console.log("Loader", loader);
     }
   };
 
@@ -105,7 +95,7 @@ const SignUpPage = () => {
         <CardContent className="flex flex-col gap-2">
           <div>
             <div className="grid gap-4">
-              <div>
+              {/* <div>
                 <Button variant="outline" className="w-full flex gap-3">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -119,11 +109,20 @@ const SignUpPage = () => {
                   </svg>
                   <span>Login with Google</span>
                 </Button>
-              </div>
-              <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
+              </div> */}
+              {/* <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
                 <span className="relative z-10 bg-background px-2 text-muted-foreground">
                   Or continue with
                 </span>
+              </div> */}
+              <div>
+                <Button variant="outline" className="w-full flex gap-3">
+                  <Link href={"../../dashboard"}>
+                    <p>
+                      {`Click here to see publicly available cv's without signUp`}
+                    </p>
+                  </Link>
+                </Button>
               </div>
               <Form {...form}>
                 <form
@@ -189,9 +188,9 @@ const SignUpPage = () => {
                     )}
                   />
 
-                  <Button type="submit" className="w-full">
+                  <Button type="submit" className="w-full" disabled={loader}>
                     {loader ? (
-                      <LoaderCircle className="h-4 animate-spin" />
+                      <LoaderCircle className="h-5 w-5 animate-spin" />
                     ) : (
                       <span>Create account</span>
                     )}

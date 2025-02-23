@@ -19,6 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogClose,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const SearchFields = () => {
   const searchContext = useContext(SearchContext);
@@ -196,24 +202,52 @@ const SearchFields = () => {
               />
             </div>
             <div className="flex items-center gap-4">
+              {/* Search Field */}
+              <div>
+                <Button type="submit" className="group">
+                  <span className="">Search</span>
+                  <FaSearch
+                    // size="20px"
+                    className="text-md transform transition-transform duration-300 ease-in-out group-hover:translate-y-[-3px]"
+                  />
+                </Button>
+              </div>
+
               {/* Clear Field */}
               <div>
-                <RxCrossCircled
-                  color="red"
-                  size="28px"
-                  className="hover:cursor-pointer hover:opacity-50"
-                  onClick={() => handleClear()}
-                />
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="group">
+                      <span>Clear</span>
+                      <RxCrossCircled
+                        color="red"
+                        size={30}
+                        className="text-2xl transform transition-transform duration-300 ease-in-out group-hover:translate-y-[-3px]"
+                      />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <div className="px-4 py-5 space-y-5 ">
+                      <h1 className="text-2xl font-semibold  ">
+                        Are you sure you want to clear all search fields ?
+                      </h1>
+                      <p className="text-gray-600">
+                        The action will clear all the search fields.
+                      </p>
+                      <section className="w-full flex space-x-7  justify-end  ">
+                        <DialogClose asChild>
+                          <button className="hover:opacity-70">Cancel</button>
+                        </DialogClose>
+                        <DialogClose asChild>
+                          <Button className=" " onClick={() => handleClear()}>
+                            Clear
+                          </Button>
+                        </DialogClose>
+                      </section>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
-              {/* Search Field */}
-              <Button
-                type="submit"
-                className=" bg-white rounded-3xl group hover:bg-inherit"
-              >
-                <span className="transform transition-transform duration-300 ease-in-out group-hover:translate-y-[-3px]">
-                  <FaSearch size="24px" className="text-black" />
-                </span>
-              </Button>
             </div>
           </div>
           {/* </div> */}

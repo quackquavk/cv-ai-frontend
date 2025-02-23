@@ -69,6 +69,9 @@ const CVDetailPage = ({ params }: { params: any }) => {
   const closeButtonRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false); // Use state for reactivity
 
+  const accessToken = document.cookie.includes("access_token");
+
+  console.log("Access_Token", accessToken);
   useEffect(() => {
     fetchFullCV();
   }, []);
@@ -393,22 +396,20 @@ const CVDetailPage = ({ params }: { params: any }) => {
 
               {/* Programming Language */}
               <div>
-                {data?.programming_languages?.length > 0 && (
-                  <div className="flex flex-col gap-1 pb-2">
-                    <p className="font-semibold">Progamming Language</p>
-                    <div className="flex flex-wrap gap-3 text-sm max-w-3xl">
-                      {data?.programming_languages?.map(
-                        (item: any, idx: number) => (
-                          <div key={idx}>
-                            <Card className="flex p-2 text-gray-700 font-sans bg-[#f7f9fc] rounded-md w-fit font-semibold">
-                              {item}
-                            </Card>
-                          </div>
-                        )
-                      )}
-                    </div>
+                <div className="flex flex-col gap-1 pb-2">
+                  <p className="font-semibold">Progamming Language</p>
+                  <div className="flex flex-wrap gap-3 text-sm max-w-3xl">
+                    {data?.programming_languages?.map(
+                      (item: any, idx: number) => (
+                        <div key={idx}>
+                          <Card className="flex p-2 text-gray-700 font-sans bg-[#f7f9fc] rounded-md w-fit font-semibold">
+                            {item}
+                          </Card>
+                        </div>
+                      )
+                    )}
                   </div>
-                )}
+                </div>
               </div>
 
               <div className="mr-4">
@@ -574,8 +575,20 @@ const CVDetailPage = ({ params }: { params: any }) => {
             </div>
           </div>
 
+          {/* Conditional Login Message */}
+          {!accessToken && (
+            <div className="text-center">
+              <p className="text-sm text-red-500">
+                You need to login to use this feature
+              </p>
+            </div>
+          )}
           {/* Availability Section */}
-          <div className="sticky z-10 border-t-2 border-slate-700 pt-3 flex flex-col gap-3">
+          <div
+            className={`sticky z-10 border-t-2 border-slate-700 pt-3 flex flex-col gap-3 ${
+              !accessToken && "blur-[1px] cursor-not-allowed"
+            }`}
+          >
             {/* Stars & Like / DisLike */}
             <div className="flex justify-between items-center">
               {/* stars */}
@@ -583,10 +596,13 @@ const CVDetailPage = ({ params }: { params: any }) => {
                 {[1, 2, 3, 4, 5].map((index) => (
                   <button
                     key={index}
-                    className="p-1 hover:scale-110 transition-transform"
+                    className={`p-1 hover:scale-110 transition-transform  ${
+                      !accessToken && "cursor-not-allowed"
+                    }`}
                     onMouseEnter={() => handleMouseEnter(index)}
                     onMouseLeave={handleMouseLeave}
                     onClick={() => handleClick(index)}
+                    disabled={!accessToken}
                   >
                     <Star
                       size={14}
@@ -608,16 +624,24 @@ const CVDetailPage = ({ params }: { params: any }) => {
               {/* Notes */}
               <div>
                 <Sheet>
-                  <SheetTrigger>
+                  <SheetTrigger
+                    disabled={!accessToken}
+                    className={` ${!accessToken && "cursor-not-allowed"}`}
+                  >
                     <TooltipProvider>
                       <Tooltip>
-                        <TooltipTrigger className="cursor-pointer transition-transform rounded-md duration-300 ease-in-out">
-                          <Button className="flex gap-1 items-center w-22 h-8 px-2 text-xs">
+                        <TooltipTrigger
+                          className={`cursor-pointer transition-transform rounded-md duration-300 ease-in-out ${
+                            !accessToken && "pointer-events-none"
+                          } `}
+                        >
+                          <Button
+                            className={`flex gap-1 items-center w-22 h-8 px-2 text-xs ${
+                              !accessToken && "pointer-events-none"
+                            } `}
+                          >
                             <span>
-                              <PiNotePencilBold
-                                className="text-[2px]"
-                                // size={12}
-                              />
+                              <PiNotePencilBold className="text-[2px]" />
                             </span>
                             <span>Notes</span>
                           </Button>
@@ -650,6 +674,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                           type="submit"
                           onClick={handleSave}
                           ref={closeButtonRef}
+                          disabled={!accessToken}
                         >
                           Save
                         </Button>
@@ -670,7 +695,8 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       userChoice === "like"
                         ? "bg-blue-100 text-green-600"
                         : "hover:bg-gray-100"
-                    }`}
+                    } ${!accessToken && "cursor-not-allowed"}`}
+                    disabled={!accessToken}
                   >
                     <ThumbsUp
                       size={16}
@@ -686,7 +712,8 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       userChoice === "dislike"
                         ? "bg-red-100 text-red-600"
                         : "hover:bg-gray-100"
-                    }`}
+                    } ${!accessToken && "cursor-not-allowed"}`}
+                    disabled={!accessToken}
                   >
                     <ThumbsDown
                       size={16}
@@ -706,7 +733,10 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     setInputData({ ...inputData, availability: value })
                   }
                 >
-                  <SelectTrigger className="w-[120px] h-[34px] text-xs">
+                  <SelectTrigger
+                    className="w-[120px] h-[34px] text-xs"
+                    disabled={!accessToken}
+                  >
                     <SelectValue
                       className="text-xs"
                       placeholder="Availability"
@@ -734,6 +764,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                   onValueChange={(value) =>
                     setInputData({ ...inputData, time_of_day: value })
                   }
+                  disabled={!accessToken}
                 >
                   <SelectTrigger className="w-[120px] text-xs h-[34px]">
                     <SelectValue placeholder="Time" className="text-xs" />
@@ -758,7 +789,11 @@ const CVDetailPage = ({ params }: { params: any }) => {
             {/* Salary */}
             <div className="flex mt-1 justify-between">
               {/* Current Salary */}
-              <div className="w-40 relative">
+              <div
+                className={`w-40 relative ${
+                  !accessToken && "cursor-not-allowed"
+                } `}
+              >
                 {/* Label */}
                 <label
                   htmlFor="currentSalary"
@@ -766,7 +801,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     inputData.current_salary !== null
                       ? "-top-2 bg-white"
                       : "top-2.5 text-gray-500"
-                  }`}
+                  } ${!accessToken && "cursor-not-allowed"} `}
                 >
                   Current Salary (USD)
                 </label>
@@ -774,7 +809,9 @@ const CVDetailPage = ({ params }: { params: any }) => {
                 <input
                   type="text"
                   id="currentSalary"
-                  className=" peer block w-full rounded-md border border-gray-300 transition-all duration-100 bg-white py-2 px-3 text-xs shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
+                  className={`peer block w-full rounded-md border border-gray-300 transition-all duration-100 bg-white py-2 px-3 text-xs shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black ${
+                    !accessToken && "cursor-not-allowed"
+                  } `}
                   value={
                     inputData.current_salary !== null
                       ? inputData.current_salary.toString()
@@ -783,6 +820,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                   onChange={(event) =>
                     validatePositiveNumber(event, "current_salary")
                   }
+                  disabled={!accessToken}
                 />
               </div>
               {/* Estimated Salary */}
@@ -795,7 +833,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       inputData.estimated_salary !== null
                         ? "-top-2 bg-white"
                         : "top-2.5 text-gray-500"
-                    }`}
+                    } ${!accessToken && "cursor-not-allowed"}`}
                   >
                     Estimated Salary (USD)
                   </label>
@@ -803,7 +841,9 @@ const CVDetailPage = ({ params }: { params: any }) => {
                   <input
                     type="text"
                     id="estimatedSalary"
-                    className="block w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-xs shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
+                    className={`block w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-xs shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black ${
+                      !accessToken && "cursor-not-allowed"
+                    } `}
                     value={
                       inputData.estimated_salary !== null
                         ? inputData.estimated_salary.toString()
@@ -812,6 +852,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     onChange={(event) =>
                       validatePositiveNumber(event, "estimated_salary")
                     }
+                    disabled={!accessToken}
                   />
                 </div>
               </div>
@@ -827,7 +868,12 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       setInputData({ ...inputData, paid_by: value })
                     }
                   >
-                    <SelectTrigger className="w-[120px] h-[34px] text-xs">
+                    <SelectTrigger
+                      className={`w-[120px] h-[34px] text-xs ${
+                        !accessToken && "cursor-not-allowed"
+                      } `}
+                      disabled={!accessToken}
+                    >
                       <SelectValue
                         className="text-xs"
                         placeholder="Salary Based"
@@ -851,9 +897,11 @@ const CVDetailPage = ({ params }: { params: any }) => {
               </div>
               <div>
                 <Button
-                  className="w-22 h-8"
+                  className={`w-22 h-8 ${
+                    !accessToken && "cursor-not-allowed"
+                  } `}
                   onClick={handleSave}
-                  disabled={loader}
+                  disabled={loader || !accessToken}
                 >
                   <span className="flex items-center justify-center w-full">
                     {loader ? (

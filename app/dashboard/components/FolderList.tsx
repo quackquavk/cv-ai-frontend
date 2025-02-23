@@ -13,6 +13,7 @@ import DialogueComponent from "./DialogueComponent";
 import { BsThreeDots } from "react-icons/bs";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { folderSelectStore } from "../store";
+import { FaRegFolder, FaRegFolderOpen } from "react-icons/fa";
 
 const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
   const [folders, setFolders] = useState([]);
@@ -267,7 +268,11 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                 onClick={() => toggleDropDown(folder.folder_id)}
               >
                 <span>
-                  <RxHamburgerMenu />
+                  {selectFolderId === folder.folder_id ? (
+                    <FaRegFolderOpen />
+                  ) : (
+                    <FaRegFolder />
+                  )}
                 </span>
                 <span className="ml-5">{folder.folder_name}</span>
               </div>
@@ -339,25 +344,28 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
           </div>
 
           {selectFolderId === folder.folder_id && (
-            <div className="mt-2 ml-6  border-l  border-gray-600 pl-4 max-w-full truncate">
+            <div className="mt-2 ml-6 border-l  border-gray-600 pl-4 max-w-full truncate">
               {folderContents[folder.folder_id]?.length ? (
                 folderContents[folder.folder_id].map((file) => (
                   <div
                     key={file.doc_id}
-                    className="relative flex items-center justify-between p-1 text-gray-300 ease-in-out duration-150 delay-75 rounded truncate "
+                    className="relative flex items-center justify-between p-1 text-gray-300 ease-in-out duration-150 delay-75 rounded w-full "
                   >
                     <Link
                       key={file.doc_id}
                       href={`/cv-detail/${file.doc_id}`}
                       target="_blank"
-                      className="truncate"
+                      className="w-full hover:opacity-60 truncate flex items-center space-x-[1px] "
                       draggable
                       onDragStart={() =>
                         handleDragStart(file, folder.folder_id)
                       }
                       onDragEnd={handleDragEnd}
                     >
-                      <span className=" px-2 py-1 w-8  hover:opacity-60 max-w-12 text-sm truncate">
+                      <span>
+                        <RxHamburgerMenu />
+                      </span>
+                      <span className="px-2  py-1 text-sm truncate">
                         {file.doc_name.replace(".pdf", "")}
                       </span>
                     </Link>
