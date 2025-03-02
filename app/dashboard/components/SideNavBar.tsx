@@ -64,11 +64,17 @@ const SideNavBar = () => {
     setSelectedFolderId(selectFolderId);
   }, [selectFolderId]);
 
+  // useEffect(() => {});
+
   const handleValueChange = (value: string) => {
     setLocalFolderId(value);
     setSelectedFolderId(value); // Update the local state to reflect manual selection
     // setSelectFolderId(value); // Update the external state
   };
+
+  useEffect(() => {
+    setLocalFolderId(null);
+  }, [isFolderListOpen]);
 
   const displayedFolderName =
     localFolderId &&

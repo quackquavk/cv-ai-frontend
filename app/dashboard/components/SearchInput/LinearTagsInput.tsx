@@ -10,16 +10,16 @@ const LinearTagsInput = ({ tags, setTags }) => {
 
   // Sample suggestions list - replace with your own data source
   const allSuggestions = [
-    "next.js",
-    "node.js",
+    "nextjs",
+    "node",
     "react",
     "typescript",
     "javascript",
     "python",
     "angular",
-    "vue.js",
+    "vuejs",
     "java",
-    "nest.js",
+    "nestjs",
     "aws",
     "kafka",
     "devops",
@@ -32,9 +32,22 @@ const LinearTagsInput = ({ tags, setTags }) => {
     "machine learning",
     "golang",
     "email marketing",
-    "express.js",
-    "springboot",
+    "express",
+    "spring boot",
     "ci/cd",
+    "kubernetes",
+    "php",
+    "mongodb",
+    "postgres",
+    "git",
+    "docker",
+    "android",
+    "flutter",
+    "c++",
+    "spark",
+    "hive",
+    "jira",
+    "machine learning",
   ];
 
   useEffect(() => {
@@ -146,8 +159,12 @@ const LinearTagsInput = ({ tags, setTags }) => {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="flex-1 outline-none bg-transparent min-w-[120px]"
-              placeholder={tags.length === 0 ? "Add tags to search..." : ""}
+              className="flex-1 outline-none bg-transparent w-[20rem]"
+              placeholder={
+                tags.length === 0
+                  ? "Tags to search... e.g.nodejs nextjs python "
+                  : ""
+              }
             />
           </div>
           {suggestions.length > 0 && (

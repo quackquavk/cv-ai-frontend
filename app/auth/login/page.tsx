@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { LoaderCircle } from "lucide-react";
-import Link from "next/link";
 import {
   Form,
   FormControl,
@@ -35,7 +34,19 @@ const FormSchema = z.object({
 const LoginPage = () => {
   const [loader, setLoader] = useState<boolean>(false);
 
+  const [isPageLoading, setIsPageLoading] = useState<boolean>(false);
+
   const router = useRouter();
+
+  const handleClick = (e, target) => {
+    e.preventDefault();
+    setIsPageLoading(true);
+    if (target == "dashboard") {
+      router.push("../../dashboard");
+    } else if (target == "signUp") {
+      router.push("../../auth/register");
+    }
+  };
 
   //Define your form
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -48,7 +59,6 @@ const LoginPage = () => {
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     try {
-      console.log("Data", data);
       const response = await axiosInstance.post(`/user/login`, data, {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
@@ -112,12 +122,14 @@ const LoginPage = () => {
               </div>
             </div> */}
             <div>
-              <Button variant="outline" className="w-full flex gap-3">
-                <Link href={"../../dashboard"}>
-                  <p>
-                    {`Click here to see publicly available cv's without login`}
-                  </p>
-                </Link>
+              <Button
+                variant="outline"
+                className="w-full flex gap-3"
+                onClick={(e) => handleClick(e, "dashboard")}
+              >
+                <p>
+                  {`Click here to see publicly available cv's without login`}
+                </p>
               </Button>
             </div>
             <Form {...form}>
@@ -179,12 +191,12 @@ const LoginPage = () => {
           </div>
           <div className="text-center text-sm">
             Don&apos;t have an account?{" "}
-            <Link
-              href="../../auth/register"
-              className="underline underline-offset-4"
+            <p
+              className="underline cursor-pointer underline-offset-4"
+              onClick={(e) => handleClick(e, "signUp")}
             >
               Sign up
-            </Link>
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -192,6 +204,13 @@ const LoginPage = () => {
         By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
         and <a href="#">Privacy Policy</a>.
       </div>
+
+      {/* Loader (shown when isLoading is true) */}
+      {isPageLoading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
+          <div className="loader border-t-4 border-white border-solid rounded-full w-12 h-12 animate-spin"></div>
+        </div>
+      )}
     </div>
   );
 };

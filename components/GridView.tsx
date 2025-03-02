@@ -12,6 +12,7 @@ import GridViewSkeleton from "./ui/Skeleton/GridViewSkeleton";
 import Masonry from "react-masonry-css";
 import { folderSelectStore } from "@/app/dashboard/store";
 import { useSearchContext } from "@/app/dashboard/context/SearchContext";
+import { publicFolderStore } from "@/app/dashboard/store";
 
 interface GridViewProps {
   data: IDocumentData[];
@@ -30,6 +31,7 @@ function GridView({ data, searchData }: GridViewProps) {
 
   const { resetSearch } = useSearchContext();
   const { selectFolderId } = folderSelectStore();
+  const { isFolderListOpen } = publicFolderStore();
 
   useEffect(() => {
     if (!searchData) {
@@ -196,7 +198,7 @@ function GridView({ data, searchData }: GridViewProps) {
             <GridViewSkeleton key={index} />
           ))}
         </div>
-      ) : displayedData.length > 0 ? (
+      ) : displayedData.length > 0 && isFolderListOpen ? (
         <Masonry
           breakpointCols={breakpointColumnsObj}
           className="masonry-grid"

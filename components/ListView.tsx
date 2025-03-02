@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useRef, useEffect } from "react";
 import { Card } from "./ui/card";
 import { FaUser, FaPhoneAlt, FaLinkedin, FaGithub } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
@@ -14,6 +14,7 @@ import { useSearchContext } from "@/app/dashboard/context/SearchContext";
 import EmblaCarousel from "../app/dashboard/components/EmblaCarousel";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useInView } from "react-intersection-observer";
+import { publicFolderStore } from "@/app/dashboard/store";
 
 interface ListViewProps {
   data: IDocumentData[] | any;
@@ -26,7 +27,10 @@ const ListView = ({ data, searchData }: ListViewProps) => {
   const { ref, inView } = useInView();
   const { resetSearch } = useSearchContext();
   const { selectFolderId } = folderSelectStore();
+  const { isFolderListOpen } = publicFolderStore();
   const queryClient = useQueryClient();
+
+  const hasMounted = useRef(false);
 
   // Function to fetch documents by IDs
   const fetchDocumentsByIds = async (docIds: string[]) => {
@@ -59,7 +63,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
             `/folder/getFiles/${selectFolderId}`
           );
           documentsToFetch = folderResponse.data.map((folder) => folder.doc_id);
-        } else if (!searchData && !selectFolderId) {
+        } else {
           documentsToFetch = data?.map((item) => item.doc_id) ?? [];
         }
 
@@ -99,13 +103,23 @@ const ListView = ({ data, searchData }: ListViewProps) => {
   });
 
   useEffect(() => {
-    resetSearch();
+    if (hasMounted.current) {
+      resetSearch();
+    } else {
+      hasMounted.current = true;
+    }
   }, [selectFolderId]);
 
   useEffect(() => {
-    // resetSearch();
     queryClient.invalidateQueries({ queryKey: ["documents"] });
   }, [selectFolderId, searchData]);
+
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      queryClient.cancelQueries({ queryKey: ["documents"] });
+    };
+  }, [queryClient]);
 
   // Prefetch initial data when component mounts or data prop changes
   useEffect(() => {
@@ -137,12 +151,6 @@ const ListView = ({ data, searchData }: ListViewProps) => {
   }, [data, queryClient, selectFolderId, searchData]);
 
   // console.log(`SearchField`, searchData);
-
-  useEffect(() => {
-    return () => {
-      queryClient.cancelQueries({ queryKey: ["documents"] });
-    };
-  }, [queryClient]);
 
   // Load more when scrolling to the bottom
   useEffect(() => {
@@ -183,8 +191,8 @@ const ListView = ({ data, searchData }: ListViewProps) => {
     infiniteData?.pages.flatMap((page: any) => page.documents) ?? [];
 
   return (
-    <div className="flex flex-col max-w-screen p-4 rounded-md gap-5">
-      {allDocuments.length === 0 ? (
+    <div className="flex flex-col max-w-[100vw] p-4 rounded-md gap-5">
+      {allDocuments.length === 0 || !isFolderListOpen ? (
         <p>No Document Available</p>
       ) : (
         <>
@@ -194,10 +202,10 @@ const ListView = ({ data, searchData }: ListViewProps) => {
               key={item._id}
               href={`/cv-detail/${item._id}`}
               target="_blank"
-              className="flex flex-col shadow-lg transform mb-3 hover:scale-x-[1.01] hover:scale-y-[1.02] hover:cursor-pointer transition duration-500 ease-in-out w-full"
+              className="shadow-lg transform mb-3 hover:scale-x-[1.01] hover:scale-y-[1.02] hover:cursor-pointer transition duration-500 ease-in-out w-full overflow-hidden"
             >
-              <Card className="flex flex-col gap-2 w-[100%] px-5 py-8 z-0 relative">
-                <div className="flex justify-between">
+              <Card className="relative gap-2 max-w-full px-5 py-8 pb-20">
+                <div className="flex z-0 justify-between w-full">
                   {/* Basic Information */}
                   <div className="flex flex-col gap-1 w-[25%] overflow-clip">
                     <div className="flex mb-0 flex-col">
@@ -390,7 +398,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                 {/* Skills */}
                 <div
                   onClick={handleCarouselClick}
-                  className="overflow-hidden flex justify-between max-w-full z-10"
+                  className="absolute inset-x-0 z-50 overflow-hidden bottom-3 w-full  px-5"
                 >
                   <EmblaCarousel skills={item?.parsed_cv?.skills || []} />
                 </div>

@@ -23,15 +23,17 @@ export default function DashboardLayout({
             <ApiDataProvider>
               <SpinnerProvider>
                 <Spinner />
-                <div className="w-full flex space-x-6">
+                <div className="w-[100%] flex gap-6">
                   <div className="w-[20%]">
                     <SideNavBar />
                   </div>
                   <SidebarInset className="w-[80%]">
                     {/* <header className="flex pt-2 justify-start shrink-0 items-center gap-2 "></header> */}
                     <div className="pr-6 flex flex-col gap-8">
-                      <SearchFields />
-                      <div>{children}</div>
+                      <div>
+                        <SearchFields />
+                      </div>
+                      <div className="max-w-full">{children}</div>
                     </div>
                   </SidebarInset>
                 </div>

@@ -9,6 +9,7 @@ import { SquareArrowOutUpRight } from "lucide-react";
 import { Star } from "lucide-react";
 import { FaLinkedin, FaGithub } from "react-icons/fa";
 import { PiGlobeLight } from "react-icons/pi";
+import { IoLocation } from "react-icons/io5";
 import { MdEmail } from "react-icons/md";
 import { ThumbsUp, ThumbsDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,8 @@ import { IAvailability } from "@/interfaces/Availability";
 import { LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import { PiNotePencilBold } from "react-icons/pi";
+import { useRouter } from "next/navigation";
+import { FaPhoneAlt } from "react-icons/fa";
 import {
   Select,
   SelectContent,
@@ -46,6 +49,8 @@ const CVDetailPage = ({ params }: { params: any }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [loader, setLoader] = useState<boolean>(false);
 
+  const [isPageLoading, setIsPageLoading] = useState<boolean>(false);
+
   // For Star
   // const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
@@ -70,6 +75,15 @@ const CVDetailPage = ({ params }: { params: any }) => {
   const [isSubmitting, setIsSubmitting] = useState(false); // Use state for reactivity
 
   const accessToken = document.cookie.includes("access_token");
+
+  const router = useRouter();
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    setIsPageLoading(true);
+
+    router.push("../../auth/login");
+  };
 
   console.log("Access_Token", accessToken);
   useEffect(() => {
@@ -219,7 +233,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
   };
 
   return (
-    <div className="flex h-[100vh] space-x-4 w-full">
+    <div className="flex h-[100vh] w-full">
       <Card className="w-[70%]">
         <div className="h-[100vh] ">
           {/* Embed PDF viewer */}
@@ -341,19 +355,27 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     )}
                   </p>
 
-                  <p>
+                  <p className="flex gap-2 items-center">
                     {data?.phone_number && (
                       <>
-                        <span className=" font-semibold text-gray-700 text-sm">
+                        <span>
+                          <FaPhoneAlt size={14} />
+                        </span>
+
+                        <span className="font-semibold text-gray-700 text-sm">
                           {data?.phone_number}
                         </span>
                       </>
                     )}
                   </p>
 
-                  <p>
+                  <p className="flex gap-2 items-center">
                     {data?.address && (
                       <>
+                        <span>
+                          <IoLocation />
+                        </span>
+
                         <span className="font-semibold text-gray-700 text-sm">
                           {data?.address}
                         </span>
@@ -367,33 +389,11 @@ const CVDetailPage = ({ params }: { params: any }) => {
             </div>
 
             <div className="mr-4">
-              <hr className="w-full h-[2px] opacity-40 bg-black" />
+              <hr className="w-full h-[2px] opacity-10 bg-black" />
             </div>
 
             {/* Second Part*/}
             <div className="flex-grow flex-col space-y-3">
-              {/* Skills */}
-              <div>
-                {data?.skills?.length > 0 && (
-                  <div className="flex flex-col gap-1 pb-2">
-                    <p className="font-semibold">Skills</p>
-                    <div className="flex flex-wrap gap-3 text-sm max-w-3xl">
-                      {data?.skills?.map((item: any, index: number) => (
-                        <div key={index}>
-                          <Card className="p-2 bg-[#f7f9fc] text-gray-700 font-sans rounded-md w-fit font-semibold">
-                            {item}
-                          </Card>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="mr-4">
-                <hr className="w-full h-[2px] opacity-40 bg-black" />
-              </div>
-
               {/* Programming Language */}
               <div>
                 <div className="flex flex-col gap-1 pb-2">
@@ -413,7 +413,29 @@ const CVDetailPage = ({ params }: { params: any }) => {
               </div>
 
               <div className="mr-4">
-                <hr className="w-full h-[2px] opacity-40 bg-black" />
+                <hr className="w-full h-[2px] opacity-10 bg-black" />
+              </div>
+
+              {/* Skills */}
+              <div>
+                {data?.skills?.length > 0 && (
+                  <div className="flex flex-col gap-1 pb-2">
+                    <p className="font-semibold">Skills</p>
+                    <div className="flex flex-wrap gap-3 text-sm max-w-3xl">
+                      {data?.skills?.map((item: any, index: number) => (
+                        <div key={index}>
+                          <Card className="p-2 bg-[#f7f9fc] text-gray-700 font-sans rounded-md w-fit font-semibold">
+                            {item}
+                          </Card>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="mr-4">
+                <hr className="w-full h-[2px] opacity-10 bg-black" />
               </div>
 
               {/* Experience */}
@@ -433,16 +455,18 @@ const CVDetailPage = ({ params }: { params: any }) => {
                           {index + 1 + ". " + item?.job_title}
                         </span>
                         <span className="flex items-center gap-3">
-                          <span className="font-semibold">
+                          <span className="font-semibold capitalize">
                             {item?.company_name}
                           </span>
-                          <span className="text-sm">
-                            {"(" +
-                              item?.start_date +
-                              " - " +
-                              item?.end_date +
-                              ")"}
-                          </span>
+                          {item?.start_date && item?.end_date && (
+                            <span className="text-sm text-gray-500">
+                              {"(" +
+                                item.start_date +
+                                " - " +
+                                item.end_date +
+                                ")"}
+                            </span>
+                          )}
                         </span>
                         <span className="flex flex-col text-sm max-w-3xl mr-4">
                           {item.responsibilities.length > 0 &&
@@ -466,12 +490,12 @@ const CVDetailPage = ({ params }: { params: any }) => {
               </div>
 
               <div className="mr-4">
-                <hr className="w-full h-[2px] opacity-40 bg-black" />
+                <hr className="w-full h-[2px] opacity-10 bg-black" />
               </div>
 
               {/* Project */}
               <div>
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 max-w-3xl">
                   <p className="font-semibold ">Projects</p>
                   <div className="flex gap-4 flex-col">
                     {data?.technical_projects?.length > 0 &&
@@ -498,7 +522,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                 )}
                               </div>
                               {data.programming_language?.length > 0 && (
-                                <div className="flex gap-3 items-center text-sm mr-4 ">
+                                <div className="flex flex-wrap gap-3 items-center text-sm mr-4 max-w-3xl">
                                   {/* <p>Technology Used : </p> */}
                                   {data.programming_language.map(
                                     (el, index) => (
@@ -525,7 +549,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
               </div>
 
               <div className="mr-4">
-                <hr className="w-full h-[2px] opacity-40 bg-black" />
+                <hr className="w-full h-[2px] opacity-10 bg-black" />
               </div>
 
               {/* Education */}
@@ -558,7 +582,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
               </div>
 
               <div className="mr-4">
-                <hr className="w-full h-[2px] opacity-40 bg-black" />
+                <hr className="w-full h-[2px] opacity-10 bg-black" />
               </div>
 
               {/* Certificate */}
@@ -566,7 +590,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                 <p className="font-semibold">Certification</p>
                 {data?.certifications?.map((el: any, index: number) => (
                   <div className="flex flex-col" key={index}>
-                    <p className="text-sm flex">
+                    <p className="text-sm flex capitalize">
                       {index + 1 + ". " + el?.certification_name}
                     </p>
                   </div>
@@ -575,344 +599,367 @@ const CVDetailPage = ({ params }: { params: any }) => {
             </div>
           </div>
 
-          {/* Conditional Login Message */}
-          {!accessToken && (
-            <div className="text-center">
-              <p className="text-sm text-red-500">
-                You need to login to use this feature
-              </p>
-            </div>
-          )}
           {/* Availability Section */}
-          <div
-            className={`sticky z-10 border-t-2 border-slate-700 pt-3 flex flex-col gap-3 ${
-              !accessToken && "blur-[1px] cursor-not-allowed"
-            }`}
-          >
-            {/* Stars & Like / DisLike */}
-            <div className="flex justify-between items-center">
-              {/* stars */}
-              <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map((index) => (
-                  <button
-                    key={index}
-                    className={`p-1 hover:scale-110 transition-transform  ${
-                      !accessToken && "cursor-not-allowed"
-                    }`}
-                    onMouseEnter={() => handleMouseEnter(index)}
-                    onMouseLeave={handleMouseLeave}
-                    onClick={() => handleClick(index)}
-                    disabled={!accessToken}
-                  >
-                    <Star
-                      size={14}
-                      fill={
-                        index <= (hoveredRating || inputData.star_rating)
-                          ? "#f59e0b"
-                          : "none"
-                      }
-                      stroke={
-                        index <= (hoveredRating || inputData.star_rating)
-                          ? "#f59e0b"
-                          : "#4b5563"
-                      }
-                    />
-                  </button>
-                ))}
-              </div>
+          <div className="relative">
+            <div
+              className={`sticky z-10 border-t-2 border-slate-700 pt-3 flex flex-col gap-3 ${
+                !accessToken && "blur-[2px] cursor-not-allowed"
+              }`}
+            >
+              {/* Stars & Like / DisLike */}
+              <div className="flex justify-between items-center">
+                {/* stars */}
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((index) => (
+                    <button
+                      key={index}
+                      className={`p-1 hover:scale-110 transition-transform  ${
+                        !accessToken && "cursor-not-allowed"
+                      }`}
+                      onMouseEnter={() => handleMouseEnter(index)}
+                      onMouseLeave={handleMouseLeave}
+                      onClick={() => handleClick(index)}
+                      disabled={!accessToken}
+                    >
+                      <Star
+                        size={14}
+                        fill={
+                          index <= (hoveredRating || inputData.star_rating)
+                            ? "#f59e0b"
+                            : "none"
+                        }
+                        stroke={
+                          index <= (hoveredRating || inputData.star_rating)
+                            ? "#f59e0b"
+                            : "#4b5563"
+                        }
+                      />
+                    </button>
+                  ))}
+                </div>
 
-              {/* Notes */}
-              <div>
-                <Sheet>
-                  <SheetTrigger
-                    disabled={!accessToken}
-                    className={` ${!accessToken && "cursor-not-allowed"}`}
-                  >
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger
-                          className={`cursor-pointer transition-transform rounded-md duration-300 ease-in-out ${
-                            !accessToken && "pointer-events-none"
-                          } `}
-                        >
-                          <Button
-                            className={`flex gap-1 items-center w-22 h-8 px-2 text-xs ${
+                {/* Notes */}
+                <div>
+                  <Sheet>
+                    <SheetTrigger
+                      disabled={!accessToken}
+                      className={` ${!accessToken && "cursor-not-allowed"}`}
+                    >
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger
+                            className={`cursor-pointer transition-transform rounded-md duration-300 ease-in-out ${
                               !accessToken && "pointer-events-none"
                             } `}
                           >
-                            <span>
-                              <PiNotePencilBold className="text-[2px]" />
-                            </span>
-                            <span>Notes</span>
+                            <Button
+                              className={`flex gap-1 items-center w-22 h-8 px-2 text-xs ${
+                                !accessToken && "pointer-events-none"
+                              } `}
+                            >
+                              <span>
+                                <PiNotePencilBold className="text-[2px]" />
+                              </span>
+                              <span>Notes</span>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Add Notes to the CV</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </SheetTrigger>
+                    <SheetContent className="flex flex-col gap-3">
+                      <SheetHeader>
+                        <SheetTitle>Note</SheetTitle>
+                      </SheetHeader>
+                      <div>
+                        <Textarea
+                          className="h-48"
+                          placeholder="Add notes..."
+                          value={inputData.note}
+                          onChange={(e) =>
+                            setInputData({ ...inputData, note: e.target.value })
+                          }
+                          onKeyDown={handleKeyDown}
+                        />
+                      </div>
+                      <SheetFooter>
+                        <SheetClose asChild>
+                          <Button
+                            className="w-22 h-8"
+                            type="submit"
+                            onClick={handleSave}
+                            ref={closeButtonRef}
+                            disabled={!accessToken}
+                          >
+                            Save
                           </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Add Notes to the CV</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </SheetTrigger>
-                  <SheetContent className="flex flex-col gap-3">
-                    <SheetHeader>
-                      <SheetTitle>Note</SheetTitle>
-                    </SheetHeader>
-                    <div>
-                      <Textarea
-                        className="h-48"
-                        placeholder="Add notes..."
-                        value={inputData.note}
-                        onChange={(e) =>
-                          setInputData({ ...inputData, note: e.target.value })
-                        }
-                        onKeyDown={handleKeyDown}
-                      />
-                    </div>
-                    <SheetFooter>
-                      <SheetClose asChild>
-                        <Button
-                          className="w-22 h-8"
-                          type="submit"
-                          onClick={handleSave}
-                          ref={closeButtonRef}
-                          disabled={!accessToken}
-                        >
-                          Save
-                        </Button>
-                      </SheetClose>
-                    </SheetFooter>
-                  </SheetContent>
-                </Sheet>
-              </div>
+                        </SheetClose>
+                      </SheetFooter>
+                    </SheetContent>
+                  </Sheet>
+                </div>
 
-              {/* Like / DisLike */}
-              <div>
-                <div className="flex items-center">
-                  <button
-                    // onClick={handleLike}
-                    onClick={() => handleChoice("like")}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all
+                {/* Like / DisLike */}
+                <div>
+                  <div className="flex items-center">
+                    <button
+                      // onClick={handleLike}
+                      onClick={() => handleChoice("like")}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all
                     ${
                       userChoice === "like"
                         ? "bg-blue-100 text-green-600"
                         : "hover:bg-gray-100"
                     } ${!accessToken && "cursor-not-allowed"}`}
-                    disabled={!accessToken}
-                  >
-                    <ThumbsUp
-                      size={16}
-                      fill={userChoice === "like" ? "currentColor" : "none"}
-                    />
-                  </button>
+                      disabled={!accessToken}
+                    >
+                      <ThumbsUp
+                        size={16}
+                        fill={userChoice === "like" ? "currentColor" : "none"}
+                      />
+                    </button>
 
-                  <button
-                    // onClick={handleDislike}
-                    onClick={() => handleChoice("dislike")}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all
+                    <button
+                      // onClick={handleDislike}
+                      onClick={() => handleChoice("dislike")}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all
                     ${
                       userChoice === "dislike"
                         ? "bg-red-100 text-red-600"
                         : "hover:bg-gray-100"
                     } ${!accessToken && "cursor-not-allowed"}`}
-                    disabled={!accessToken}
-                  >
-                    <ThumbsDown
-                      size={16}
-                      fill={userChoice === "dislike" ? "currentColor" : "none"}
-                    />
-                  </button>
+                      disabled={!accessToken}
+                    >
+                      <ThumbsDown
+                        size={16}
+                        fill={
+                          userChoice === "dislike" ? "currentColor" : "none"
+                        }
+                      />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Availability */}
-            <div className="flex justify-between items-center">
-              <div>
-                <Select
-                  value={inputData.availability || ""}
-                  onValueChange={(value) =>
-                    setInputData({ ...inputData, availability: value })
-                  }
-                >
-                  <SelectTrigger
-                    className="w-[120px] h-[34px] text-xs"
-                    disabled={!accessToken}
-                  >
-                    <SelectValue
-                      className="text-xs"
-                      placeholder="Availability"
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="remote" className="text-xs">
-                        Remote
-                      </SelectItem>
-                      <SelectItem value="onsite" className="text-xs">
-                        Onsite
-                      </SelectItem>
-                      <SelectItem value="hybrid" className="text-xs">
-                        Hybrid
-                      </SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Select
-                  value={inputData.time_of_day || ""}
-                  onValueChange={(value) =>
-                    setInputData({ ...inputData, time_of_day: value })
-                  }
-                  disabled={!accessToken}
-                >
-                  <SelectTrigger className="w-[120px] text-xs h-[34px]">
-                    <SelectValue placeholder="Time" className="text-xs" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="day" className="text-xs">
-                        Day
-                      </SelectItem>
-                      <SelectItem value="night" className="text-xs">
-                        Night
-                      </SelectItem>
-                      <SelectItem value="flexible" className="text-xs">
-                        Flexible
-                      </SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Salary */}
-            <div className="flex mt-1 justify-between">
-              {/* Current Salary */}
-              <div
-                className={`w-40 relative ${
-                  !accessToken && "cursor-not-allowed"
-                } `}
-              >
-                {/* Label */}
-                <label
-                  htmlFor="currentSalary"
-                  className={`absolute left-3 px-1 text-xs font-medium text-gray-700 ${
-                    inputData.current_salary !== null
-                      ? "-top-2 bg-white"
-                      : "top-2.5 text-gray-500"
-                  } ${!accessToken && "cursor-not-allowed"} `}
-                >
-                  Current Salary (USD)
-                </label>
-                {/* Input Field */}
-                <input
-                  type="text"
-                  id="currentSalary"
-                  className={`peer block w-full rounded-md border border-gray-300 transition-all duration-100 bg-white py-2 px-3 text-xs shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black ${
-                    !accessToken && "cursor-not-allowed"
-                  } `}
-                  value={
-                    inputData.current_salary !== null
-                      ? inputData.current_salary.toString()
-                      : ""
-                  }
-                  onChange={(event) =>
-                    validatePositiveNumber(event, "current_salary")
-                  }
-                  disabled={!accessToken}
-                />
-              </div>
-              {/* Estimated Salary */}
-              <div>
-                <div className="w-40 relative">
-                  {/* Label */}
-                  <label
-                    htmlFor="estimatedSalary"
-                    className={`absolute left-3 px-1 text-xs font-medium transition-all duration-100 text-gray-700 ${
-                      inputData.estimated_salary !== null
-                        ? "-top-2 bg-white"
-                        : "top-2.5 text-gray-500"
-                    } ${!accessToken && "cursor-not-allowed"}`}
-                  >
-                    Estimated Salary (USD)
-                  </label>
-                  {/* Input Field */}
-                  <input
-                    type="text"
-                    id="estimatedSalary"
-                    className={`block w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-xs shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black ${
-                      !accessToken && "cursor-not-allowed"
-                    } `}
-                    value={
-                      inputData.estimated_salary !== null
-                        ? inputData.estimated_salary.toString()
-                        : ""
-                    }
-                    onChange={(event) =>
-                      validatePositiveNumber(event, "estimated_salary")
-                    }
-                    disabled={!accessToken}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Salary Based & Save */}
-            <div className="flex justify-between">
-              <div>
+              {/* Availability */}
+              <div className="flex justify-between items-center">
                 <div>
                   <Select
-                    value={inputData.paid_by || ""}
+                    value={inputData.availability || ""}
                     onValueChange={(value) =>
-                      setInputData({ ...inputData, paid_by: value })
+                      setInputData({ ...inputData, availability: value })
                     }
                   >
                     <SelectTrigger
-                      className={`w-[120px] h-[34px] text-xs ${
-                        !accessToken && "cursor-not-allowed"
-                      } `}
+                      className="w-[120px] h-[34px] text-xs"
                       disabled={!accessToken}
                     >
                       <SelectValue
                         className="text-xs"
-                        placeholder="Salary Based"
+                        placeholder="Availability"
                       />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem value="hourly" className="text-xs">
-                          Hourly
+                        <SelectItem value="remote" className="text-xs">
+                          Remote
                         </SelectItem>
-                        <SelectItem value="monthly" className="text-xs">
-                          Monthly
+                        <SelectItem value="onsite" className="text-xs">
+                          Onsite
                         </SelectItem>
-                        <SelectItem value="annually" className="text-xs">
-                          Annually
+                        <SelectItem value="hybrid" className="text-xs">
+                          Hybrid
+                        </SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Select
+                    value={inputData.time_of_day || ""}
+                    onValueChange={(value) =>
+                      setInputData({ ...inputData, time_of_day: value })
+                    }
+                    disabled={!accessToken}
+                  >
+                    <SelectTrigger className="w-[120px] text-xs h-[34px]">
+                      <SelectValue placeholder="Time" className="text-xs" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="day" className="text-xs">
+                          Day
+                        </SelectItem>
+                        <SelectItem value="night" className="text-xs">
+                          Night
+                        </SelectItem>
+                        <SelectItem value="flexible" className="text-xs">
+                          Flexible
                         </SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-              <div>
-                <Button
-                  className={`w-22 h-8 ${
+
+              {/* Salary */}
+              <div className="flex mt-1 justify-between">
+                {/* Current Salary */}
+                <div
+                  className={`w-40 relative ${
                     !accessToken && "cursor-not-allowed"
                   } `}
-                  onClick={handleSave}
-                  disabled={loader || !accessToken}
                 >
-                  <span className="flex items-center justify-center w-full">
-                    {loader ? (
-                      <LoaderCircle className="h-4 animate-spin" />
-                    ) : (
-                      <span className="text-xs h-4">Save</span>
-                    )}
-                  </span>
-                </Button>
+                  {/* Label */}
+                  <label
+                    htmlFor="currentSalary"
+                    className={`absolute left-3 px-1 text-xs font-medium text-gray-700 ${
+                      inputData.current_salary !== null
+                        ? "-top-2 bg-white"
+                        : "top-2.5 text-gray-500"
+                    } ${!accessToken && "cursor-not-allowed"} `}
+                  >
+                    Current Salary (USD)
+                  </label>
+                  {/* Input Field */}
+                  <input
+                    type="text"
+                    id="currentSalary"
+                    className={`peer block w-full rounded-md border border-gray-300 transition-all duration-100 bg-white py-2 px-3 text-xs shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black ${
+                      !accessToken && "cursor-not-allowed"
+                    } `}
+                    value={
+                      inputData.current_salary !== null
+                        ? inputData.current_salary.toString()
+                        : ""
+                    }
+                    onChange={(event) =>
+                      validatePositiveNumber(event, "current_salary")
+                    }
+                    disabled={!accessToken}
+                  />
+                </div>
+                {/* Estimated Salary */}
+                <div>
+                  <div className="w-40 relative">
+                    {/* Label */}
+                    <label
+                      htmlFor="estimatedSalary"
+                      className={`absolute left-3 px-1 text-xs font-medium transition-all duration-100 text-gray-700 ${
+                        inputData.estimated_salary !== null
+                          ? "-top-2 bg-white"
+                          : "top-2.5 text-gray-500"
+                      } ${!accessToken && "cursor-not-allowed"}`}
+                    >
+                      Expected Salary (USD)
+                    </label>
+                    {/* Input Field */}
+                    <input
+                      type="text"
+                      id="estimatedSalary"
+                      className={`block w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-xs shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black ${
+                        !accessToken && "cursor-not-allowed"
+                      } `}
+                      value={
+                        inputData.estimated_salary !== null
+                          ? inputData.estimated_salary.toString()
+                          : ""
+                      }
+                      onChange={(event) =>
+                        validatePositiveNumber(event, "estimated_salary")
+                      }
+                      disabled={!accessToken}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Salary Based & Save */}
+              <div className="flex justify-between">
+                <div>
+                  <div>
+                    <Select
+                      value={inputData.paid_by || ""}
+                      onValueChange={(value) =>
+                        setInputData({ ...inputData, paid_by: value })
+                      }
+                    >
+                      <SelectTrigger
+                        className={`w-[120px] h-[34px] text-xs ${
+                          !accessToken && "cursor-not-allowed"
+                        } `}
+                        disabled={!accessToken}
+                      >
+                        <SelectValue
+                          className="text-xs"
+                          placeholder="Salary Based"
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectItem value="hourly" className="text-xs">
+                            Hourly
+                          </SelectItem>
+                          <SelectItem value="monthly" className="text-xs">
+                            Monthly
+                          </SelectItem>
+                          <SelectItem value="annually" className="text-xs">
+                            Annually
+                          </SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div>
+                  <Button
+                    className={`w-22 h-8 ${
+                      !accessToken && "cursor-not-allowed"
+                    } `}
+                    onClick={handleSave}
+                    disabled={loader || !accessToken}
+                  >
+                    <span className="flex items-center justify-center w-full">
+                      {loader ? (
+                        <LoaderCircle className="h-4 animate-spin" />
+                      ) : (
+                        <span className="text-xs h-4">Save</span>
+                      )}
+                    </span>
+                  </Button>
+                </div>
               </div>
             </div>
+            {/* Login Message (Only when there's no accessToken) */}
+
+            {!accessToken && (
+              <div className="text-center">
+                <p className="text-sm text-red-500">
+                  You need to login to use this feature
+                </p>
+              </div>
+            )}
+            {!accessToken && (
+              <div className="absolute inset-0 flex items-center justify-center z-20">
+                <Button
+                  className="font-bold px-6 py-3 rounded-lg shadow-lg"
+                  onClick={handleLogin}
+                >
+                  {/* <Link href={"../../auth/login"}>Login</Link> */}
+                  Login
+                </Button>
+              </div>
+            )}
+
+            {/* Loader (shown when isLoading is true) */}
+            {isPageLoading && (
+              <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
+                <div className="loader border-t-4 border-white border-solid rounded-full w-12 h-12 animate-spin"></div>
+              </div>
+            )}
           </div>
         </Card>
       )}

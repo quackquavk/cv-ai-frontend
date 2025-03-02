@@ -3,17 +3,28 @@ import { FaChevronDown } from "react-icons/fa";
 import { RxHamburgerMenu } from "react-icons/rx";
 import axiosInstance from "@/utils/axiosConfig";
 import Link from "next/link";
+import { Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { toast } from "sonner";
 import DialogueComponent from "./DialogueComponent";
 import { BsThreeDots } from "react-icons/bs";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { folderSelectStore } from "../store";
 import { FaRegFolder, FaRegFolderOpen } from "react-icons/fa";
+import { publicFolderStore } from "../store";
 
 const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
   const [folders, setFolders] = useState([]);
@@ -29,11 +40,13 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
     folder_id: "",
     file_id: "",
   });
+  const [value, setValue] = useState("");
   const [selectedFolder, setSelectedFolder] = useState("");
   const [name, setName] = useState("");
   const [dialogAlertFile, setDialogueAlertFile] = useState(false);
-
+  const [folderId, setFolderId] = useState("");
   const { selectFolderId, setSelectFolderId } = folderSelectStore();
+  const { isFolderListOpen } = publicFolderStore();
 
   const inputRefs = useRef({});
   useEffect(() => {
@@ -41,6 +54,10 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
       inputRefs.current[editingFolder].focus();
     }
   }, [editingFolder]);
+
+  useEffect(() => {
+    setSelectFolderId("");
+  }, [isFolderListOpen]);
 
   useEffect(() => {
     const fetchFoldersAndContents = async () => {
@@ -81,6 +98,8 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
 
     fetchFoldersAndContents();
   }, [updateFolderList]);
+
+  console.log("FOlderContents", folderContents);
 
   const handleDialogue = (state: boolean) => {
     setDialogueOpen(state);
@@ -195,6 +214,33 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
     }
   };
 
+  const handleMove = async (file) => {
+    try {
+      await axiosInstance.post(`/folder/moveFiles`, {
+        from_folder: selectFolderId,
+        to_folder: folderId,
+        document_id: [file.doc_id],
+      });
+      setFolderContents((prevFolderContents) => {
+        const updatedFromFolder = prevFolderContents[selectFolderId].filter(
+          (f) => f.doc_id !== file.doc_id
+        );
+
+        const updatedToFolder = [...prevFolderContents[folderId], file];
+
+        return {
+          ...prevFolderContents,
+          [selectFolderId]: updatedFromFolder,
+          [folderId]: updatedToFolder,
+        };
+      });
+      toast.success("File moved successfully!");
+    } catch (error) {
+      console.error("Error !!");
+      toast.error("Failed to move the file. Please try again.");
+    }
+  };
+
   return (
     <div className="text-white w-full">
       {/* Dailogue on clikcing Select */}
@@ -249,6 +295,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                   e.preventDefault();
                   handleRename(folder.folder_id);
                 }}
+                className="flex-1 ml-12"
               >
                 <input
                   type="text"
@@ -292,8 +339,6 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                 >
                   <FaChevronDown />
                 </span>
-
-                {/* Hamburger */}
               </div>
 
               <div>
@@ -309,34 +354,34 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                   </PopoverTrigger>
                   <PopoverContent className="w-32 p-1 text-center cursor-pointer ml-36">
                     <p
-                      className="py-1 hover:opacity-50"
+                      className="py-1 w-full hover:opacity-50"
                       onClick={() => {
                         setEditingFolder(folder.folder_id);
                         setNewFolderName(folder.folder_name);
                       }}
                     >
-                      Edit
+                      Rename
                     </p>
                     <hr />
-                    <button
+                    <p
                       onClick={() => {
                         handleDialogue(true);
                         // setEditingFolder(folder.folder_id);
                         setName(folder.folder_name);
                       }}
-                      className="py-1 hover:opacity-50"
+                      className="py-1 w-full hover:opacity-50"
                     >
                       Select
-                    </button>
+                    </p>
                     <hr />
-                    <button
+                    <p
                       onClick={() => {
                         handleAlert(true);
                       }}
-                      className="py-1 hover:opacity-50"
+                      className="py-1 w-full hover:opacity-50"
                     >
                       Archive
-                    </button>
+                    </p>
                   </PopoverContent>
                 </Popover>
               </div>
@@ -369,6 +414,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                         {file.doc_name.replace(".pdf", "")}
                       </span>
                     </Link>
+
                     <Popover>
                       <PopoverTrigger asChild>
                         <button>
@@ -378,9 +424,9 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                           />
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-20 p-0  ">
-                        <span
-                          className="flex items-center p-1 hover:cursor-pointer hover:opacity-50 justify-center"
+                      <PopoverContent className="w-28 p-1 ml-32">
+                        <p
+                          className="flex items-center py-1 hover:cursor-pointer hover:opacity-50 justify-center"
                           onClick={() => {
                             handleAlertFile(true);
                             setSelectedFile({
@@ -390,8 +436,68 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                           }}
                         >
                           Archive
-                        </span>
+                        </p>
                         <hr />
+                        {/* Nested Popover for "Move to" */}
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <p className="flex items-center py-1 hover:cursor-pointer hover:opacity-50 justify-center">
+                              Move to
+                            </p>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            className="p-2 w-[200px]"
+                            side="right"
+                            align="start"
+                          >
+                            <Command>
+                              <CommandInput
+                                placeholder="Search folder..."
+                                className="h-4"
+                              />
+                              <CommandList className="max-h-48">
+                                <CommandEmpty>No folders found.</CommandEmpty>
+                                <CommandGroup>
+                                  {folders?.map((folder) => (
+                                    <CommandItem
+                                      key={folder.folder_id}
+                                      value={folder.folder_name}
+                                      onSelect={(currentValue) => {
+                                        setValue(
+                                          currentValue === value
+                                            ? ""
+                                            : currentValue
+                                        );
+                                        setFolderId(folder.folder_id);
+                                      }}
+                                    >
+                                      {folder.folder_name}
+                                      <Check
+                                        className={cn(
+                                          "ml-auto",
+                                          value === folder.folder_name
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                        )}
+                                      />
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+
+                            <div className="w-full flex justify-end mt-2">
+                              <button
+                                className="text-sm bg-black text-white rounded-lg px-4 py-1"
+                                onClick={() => {
+                                  handleMove(file);
+                                }}
+                              >
+                                Move
+                              </button>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
                       </PopoverContent>
                     </Popover>
                   </div>

@@ -11,6 +11,7 @@ import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { folderSelectStore } from "../store";
 import ToogleView from "./ToogleView";
+import { IoMdHelpCircleOutline } from "react-icons/io";
 import {
   Select,
   SelectContent,
@@ -175,23 +176,28 @@ const SearchFields = () => {
               />
             </div>
           </div>
-          <div className="flex justify-between items-center  text-center">
-            <div className="w-[60%] flex justify-start">
-              <input
-                className="placeholder:text-gray-400 border-2 w-full py-2 px-2  rounded-md "
-                type="string"
-                name="prompt"
-                value={formData.prompt}
-                onChange={handleChange}
-                placeholder="Enter Prompt (skills)"
-                onKeyDown={handleKeyDown}
-              />
+          <div className="flex w-full justify-between items-start text-center">
+            <div className="w-3/6 flex items-center gap-1">
+              <div className="w-full">
+                <Input
+                  className="placeholder:text-gray-400 w-full py-2 px-2 h-10 rounded-lg  items-center gap-2 focus:outline-none focus:ring-black focus:ring-opacity-75"
+                  type="string"
+                  name="prompt"
+                  value={formData.prompt}
+                  onChange={handleChange}
+                  placeholder="Enter Prompt (skills)"
+                  onKeyDown={handleKeyDown}
+                />
+              </div>
+              <div>
+                <IoMdHelpCircleOutline size={22} />
+              </div>
             </div>
 
             {/* <div className="flex items-center w-[35%]  justify-around flex-shrink-0 "> */}
-            <div className="flex items-center border-2 rounded-lg">
+            <div className="flex items-center border-1 rounded-lg">
               <Input
-                className="w-[12rem] border-none"
+                className="w-[12rem]"
                 type="text"
                 name="address"
                 value={formData.address}
@@ -330,17 +336,17 @@ const SearchFields = () => {
         </div>
 
         {/* Estimsated Salary */}
-        <div className="w-[11rem] relative">
+        <div className="w-[184px] relative">
           <label
             htmlFor="estimatedSalary"
-            className="absolute truncate left-1 px-1 text-xs font-medium  text-gray-700 -top-2 bg-white"
+            className="absolute truncate left-2 px-1 text-center text-xs font-medium  text-gray-700 -top-2 bg-white"
           >
-            Estimated Salary(USD) Range
+            Expected Salary(USD) Range
           </label>
           <input
             type="text"
             id="estimatedSalary"
-            className="peer block w-full rounded-md border border-gray-300 transition-all duration-100 bg-white py-2 px-3 text-xs shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black "
+            className="peer block h-10 w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-xs  focus-within:ring-1 ring-inset focus:outline-none focus:ring-black focus:ring-opacity-80 "
             value={formData.estimated_salary.join(" - ")}
             onChange={(event) =>
               validateInput(event, "estimated_salary", setFormData)
@@ -360,7 +366,7 @@ const SearchFields = () => {
           <input
             type="text"
             id="currentSalary"
-            className="peer block w-full rounded-md border border-gray-300 transition-all duration-100 bg-white py-2 px-3 text-xs shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black "
+            className="peer block w-full h-10 rounded-md border border-gray-300  bg-white py-2 px-3 text-xs focus-within:ring-1 ring-inset focus:outline-none focus:ring-black focus:ring-opacity-80"
             value={formData.current_salary.join(" - ")}
             onChange={(event) =>
               validateInput(event, "current_salary", setFormData)

@@ -34,7 +34,7 @@ const EmblaCarousel = ({ skills }: { skills: string[] }) => {
   }, [emblaApi]);
 
   return (
-    <div className="relative p-2 overflow-hidden">
+    <div className="relative p-2 max-w-full overflow-hidden z-30">
       {/* Carousel Viewport */}
       <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex gap-3 w-full">
@@ -54,7 +54,7 @@ const EmblaCarousel = ({ skills }: { skills: string[] }) => {
       {/* Navigation Buttons */}
       {canScrollPrev && (
         <button
-          className="absolute left-0 top-1/2 -translate-y-1/2 bg-gray-300 h-10 w-fit p-2 rounded-full shadow-md"
+          className="absolute left-0 top-1/2 -translate-y-1/2 bg-gray-300 h-10 w-fit p-2 rounded-full shadow-md z-50"
           onClick={scrollPrev}
         >
           <HiChevronLeft />
@@ -62,7 +62,7 @@ const EmblaCarousel = ({ skills }: { skills: string[] }) => {
       )}
       {canScrollNext && (
         <button
-          className="absolute right-0 top-1/2 -translate-y-1/2 bg-gray-300 h-10 w-fit p-2 rounded-full shadow-md"
+          className="absolute right-0 top-1/2 -translate-y-1/2 bg-gray-300 h-10 w-fit p-2 rounded-full shadow-md z-50"
           onClick={scrollNext}
         >
           <HiChevronRight />
