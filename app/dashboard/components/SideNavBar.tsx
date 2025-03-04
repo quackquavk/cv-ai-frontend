@@ -106,8 +106,8 @@ const SideNavBar = () => {
 
     try {
       if (!selectedFolderId) {
-        toast("No files selected", {
-          description: "Please select a file first and then upload files",
+        toast("No Folder selected", {
+          description: "Please select a Folder first and then upload files",
         });
         return;
       }

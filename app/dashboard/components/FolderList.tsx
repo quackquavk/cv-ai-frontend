@@ -99,8 +99,6 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
     fetchFoldersAndContents();
   }, [updateFolderList]);
 
-  console.log("FOlderContents", folderContents);
-
   const handleDialogue = (state: boolean) => {
     setDialogueOpen(state);
   };
@@ -236,7 +234,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
       });
       toast.success("File moved successfully!");
     } catch (error) {
-      console.error("Error !!");
+      console.error("Error !!", error);
       toast.error("Failed to move the file. Please try again.");
     }
   };
