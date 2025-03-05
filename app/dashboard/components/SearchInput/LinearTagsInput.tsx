@@ -2,7 +2,7 @@ import React, { useState, useEffect, KeyboardEvent, useRef } from "react";
 import { X } from "lucide-react";
 import { PiPlusCircleThin } from "react-icons/pi";
 
-const LinearTagsInput = ({ tags, setTags }) => {
+const LinearTagsInput = ({ tags, setTags, onShiftEnter }) => {
   const [inputValue, setInputValue] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -73,6 +73,7 @@ const LinearTagsInput = ({ tags, setTags }) => {
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    // Handle suggestions for ArrowUp, ArrowDown, and Enter keys
     if (suggestions.length > 0) {
       if (e.key === "ArrowDown") {
         e.preventDefault();
@@ -96,16 +97,16 @@ const LinearTagsInput = ({ tags, setTags }) => {
     } else if (e.key === "Backspace" && !inputValue && tags.length > 0) {
       setTags(tags.slice(0, -1));
     }
-  };
 
-  // const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-  //   if (e.key === "Enter" || e.key === ",") {
-  //     e.preventDefault();
-  //     handleAddTag(inputValue);
-  //   } else if (e.key === "Backspace" && !inputValue && tags.length > 0) {
-  //     setTags(tags.slice(0, -1));
-  //   }
-  // };
+    // Handling Shift + Enter combination
+    if (e.shiftKey && e.key === "Enter") {
+      e.preventDefault();
+      console.log("Shift + Enter detected !!");
+      if (onShiftEnter) {
+        onShiftEnter(e); // Call the handleSubmit (onShiftEnter) passed from the parent
+      }
+    }
+  };
 
   const removeTag = (indexToRemove: number) => {
     setTags(tags.filter((_, index) => index !== indexToRemove));

@@ -173,6 +173,7 @@ const SearchFields = () => {
                 // handleClear={handleClear}
                 tags={tags}
                 setTags={setTags}
+                onShiftEnter={handleSubmit}
               />
             </div>
           </div>
