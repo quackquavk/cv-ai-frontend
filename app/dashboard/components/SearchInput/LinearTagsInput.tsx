@@ -101,7 +101,6 @@ const LinearTagsInput = ({ tags, setTags, onShiftEnter }) => {
     // Handling Shift + Enter combination
     if (e.shiftKey && e.key === "Enter") {
       e.preventDefault();
-      console.log("Shift + Enter detected !!");
       if (onShiftEnter) {
         onShiftEnter(e); // Call the handleSubmit (onShiftEnter) passed from the parent
       }
@@ -119,7 +118,7 @@ const LinearTagsInput = ({ tags, setTags, onShiftEnter }) => {
   return (
     <div className="w-full relative ">
       <div
-        className="min-h-10 w-full p-[0.4rem] border-2 border-#CCCC rounded-lg flex flex-wrap items-center gap-2 focus-within:ring-1 focus-within:ring-gray-900 cursor-text"
+        className="min-h-100 w-full p-[0.4rem] border-2 border-#CCCC rounded-lg flex flex-wrap items-center gap-2 focus-within:ring-1 focus-within:ring-gray-900 cursor-text"
         onClick={handleClick}
       >
         <button
@@ -169,12 +168,14 @@ const LinearTagsInput = ({ tags, setTags, onShiftEnter }) => {
             />
           </div>
           {suggestions.length > 0 && (
-            <div className="absolute w-fit top-0 mt-12 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto z-10 scrollbar-thin">
+            <div className="absolute w-fit top-0 mt-12 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto z-10 scrollbar-thin dark:bg-gray-500">
               {suggestions.map((suggestion, index) => (
                 <div
                   key={index}
                   className={`px-4 py-2 cursor-pointer ${
-                    index === selectedIndex ? "bg-gray-100" : "hover:bg-gray-50"
+                    index === selectedIndex
+                      ? "bg-gray-100 dark:bg-gray-600"
+                      : "hover:bg-gray-50 dark:bg-gray-500"
                   }`}
                   onClick={() => handleAddTag(suggestion)}
                 >

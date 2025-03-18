@@ -41,7 +41,7 @@ const EmblaCarousel = ({ skills }: { skills: string[] }) => {
           {skills.map((skill, index) => (
             <div key={index} className="flex-shrink-0  px-1">
               <Card
-                className="h-10 w-fit p-2 bg-[#f7f9fc]  rounded-lg text-sm text-center  whitespace-nowrap text-ellipsis"
+                className="h-10 w-fit p-2 text-gray-600 rounded-lg text-sm text-center whitespace-nowrap text-ellipsis dark:text-gray-400 capitalize"
                 title={skill}
               >
                 {skill}
@@ -54,7 +54,7 @@ const EmblaCarousel = ({ skills }: { skills: string[] }) => {
       {/* Navigation Buttons */}
       {canScrollPrev && (
         <button
-          className="absolute left-0 top-1/2 -translate-y-1/2 bg-gray-300 h-10 w-fit p-2 rounded-full shadow-md z-50"
+          className="absolute left-0 top-1/2 -translate-y-1/2 bg-gray-200 h-10 w-fit p-2 rounded-full shadow-md z-50 dark:bg-[#333332]"
           onClick={scrollPrev}
         >
           <HiChevronLeft />
@@ -62,7 +62,7 @@ const EmblaCarousel = ({ skills }: { skills: string[] }) => {
       )}
       {canScrollNext && (
         <button
-          className="absolute right-0 top-1/2 -translate-y-1/2 bg-gray-300 h-10 w-fit p-2 rounded-full shadow-md z-50"
+          className="absolute right-0 top-1/2 -translate-y-1/2 bg-gray-200 h-10 w-fit p-2 rounded-full shadow-md z-50 dark:bg-[#333332]"
           onClick={scrollNext}
         >
           <HiChevronRight />

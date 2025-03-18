@@ -1,128 +1,129 @@
-import React from "react";
-import { Card } from "../card";
+"use client";
 
-const ListViewSkeleton = ({ variant }) => {
-  if (variant === "listView") {
-    return (
-      <Card
-        key="skeleton"
-        className="px-5 py-6 flex justify-between w-full shadow-lg transform mb-3 bg-gray-100 animate-pulse"
-      >
-        {/* Basic Information Skeleton */}
-        <div className="flex flex-col gap-2 w-[25%]">
-          <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
-          <div className="flex items-center gap-2">
-            <div className="h-4 w-5 bg-gray-300 rounded-full"></div>
-            <div className="h-4 bg-gray-300 rounded w-1/2"></div>
-          </div>
-          <div className="h-4 bg-gray-300 rounded w-1/2 mb-1"></div>
-          <div className="h-4 bg-gray-300 rounded w-1/3 mb-1"></div>
-          <div className="flex gap-2">
-            <div className="h-5 w-5 bg-gray-300 rounded-full"></div>
-            <div className="h-5 w-5 bg-gray-300 rounded-full"></div>
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useEffect, useState } from "react";
+
+export default function ListViewSkeleton() {
+  // Optional animation for the carousel
+  const [currentSkillIndex, setCurrentSkillIndex] = useState(0);
+  const skillCount = 10;
+
+  // Simple animation for the skills carousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSkillIndex((prev) => (prev + 1) % skillCount);
+    }, 1500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="transform mb-3 w-full overflow-hidden">
+      <Card className="relative gap-2 max-w-full px-3 py-4 sm:px-5 sm:py-8 pb-16 sm:pb-20">
+        <div className="flex justify-between">
+          <div className="flex flex-col lg:flex-row z-0 lg:justify-between w-full gap-4">
+            {/* Basic Information Skeleton */}
+            <div className="flex flex-col gap-1 w-full lg:w-[25%] overflow-clip">
+              <div className="flex mb-0 flex-col">
+                <Skeleton className="bg-gray-300 dark:bg-gray-800 h-5 w-32 mb-2 sm:mb-3" />
+                <div className="flex items-center gap-2">
+                  <Skeleton className="bg-gray-300 dark:bg-gray-800 h-4 w-4 rounded-full" />
+                  <Skeleton className="bg-gray-300 dark:bg-gray-800 h-4 w-24" />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center gap-2 mt-0">
+                  <Skeleton className="bg-gray-300 dark:bg-gray-800 h-4 w-4 rounded-full" />
+                  <Skeleton className="bg-gray-300 dark:bg-gray-800 h-4 w-28" />
+                </div>
+              </div>
+
+              {/* Contact Information Skeleton */}
+              {/* <div className="flex items-center gap-2">
+                <Skeleton className="bg-gray-300 dark:bg-gray-800 h-4 w-4 rounded-full" />
+                <Skeleton className="bg-gray-300 dark:bg-gray-800 h-4 w-32" />
+              </div> */}
+
+              <div className="flex items-center gap-2">
+                <Skeleton className="bg-gray-300 dark:bg-gray-800 h-4 w-4 rounded-full" />
+                <Skeleton className="bg-gray-300 dark:bg-gray-800 h-4 w-40" />
+              </div>
+
+              {/* Social Links Skeleton */}
+              {/* <div className="flex items-center gap-2">
+                <Skeleton className="bg-gray-300 dark:bg-gray-800 h-4 w-4 rounded-full" />
+                <Skeleton className="bg-gray-300 dark:bg-gray-800 h-4 w-36" />
+              </div> */}
+
+              <div className="flex items-center gap-2">
+                <Skeleton className="bg-gray-300 dark:bg-gray-800 h-4 w-4 rounded-full" />
+                <Skeleton className="bg-gray-300 dark:bg-gray-800 h-4 w-32" />
+              </div>
+            </div>
+
+            {/* Experience Section Skeleton */}
+            <div className="flex flex-col gap-4 sm:gap-6 w-full lg:w-[30%] overflow-clip">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="bg-gray-300 dark:bg-gray-800 h-5 w-24" />
+                  <Skeleton className="bg-gray-300 dark:bg-gray-800 h-4 w-16" />
+                </div>
+                <div>
+                  <Skeleton className="bg-gray-300 dark:bg-gray-800 h-5 w-32 mt-1" />
+                  <Skeleton className="bg-gray-300 dark:bg-gray-800 h-4 w-40 mt-1" />
+                </div>
+              </div>
+
+              <div>
+                <Skeleton className="bg-gray-300 dark:bg-gray-800 h-5 w-24 mb-1" />
+                <Skeleton className="bg-gray-300 dark:bg-gray-800 h-4 w-36" />
+              </div>
+            </div>
+
+            {/* Availability Section Skeleton */}
+            <div className="flex flex-col gap-4 sm:gap-6 w-full lg:w-[30%]">
+              <div className="flex flex-wrap gap-4 sm:gap-6">
+                <div className="flex flex-col gap-2">
+                  <div className="flex flex-col">
+                    <Skeleton className="bg-gray-300 dark:bg-gray-800 h-5 w-28 mb-1" />
+                    <Skeleton className="bg-gray-300 dark:bg-gray-800 h-4 w-24" />
+                  </div>
+                  <Skeleton className="bg-gray-300 dark:bg-gray-800 h-6 w-24 rounded-md" />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <div className="flex flex-col">
+                    <Skeleton className="bg-gray-300 dark:bg-gray-800 h-5 w-32 mb-1" />
+                    <Skeleton className="bg-gray-300 dark:bg-gray-800 h-4 w-28" />
+                  </div>
+                  <Skeleton className="bg-gray-300 dark:bg-gray-800 h-6 w-20 rounded-md" />
+                </div>
+              </div>
+
+              {/* Notes Section Skeleton */}
+              <div className="flex flex-col gap-1">
+                <Skeleton className="bg-gray-300 dark:bg-gray-800 h-5 w-16" />
+                <Skeleton className="bg-gray-300 dark:bg-gray-800 h-4 w-full" />
+                <Skeleton className="bg-gray-300 dark:bg-gray-800 h-4 w-3/4" />
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Previous Experience Skeleton */}
-        <div className="flex flex-col gap-4 w-[40%]">
-          <div className="flex items-center gap-2">
-            <div className="h-4 bg-gray-300 rounded w-1/4"></div>
-            <div className="h-4 bg-gray-300 rounded w-1/4"></div>
+        {/* Skills Carousel Skeleton */}
+        <div className="absolute inset-x-0 z-50 overflow-hidden bottom-1 sm:bottom-3 w-full px-2 sm:px-5">
+          <div className="flex gap-2 overflow-hidden">
+            {Array.from({ length: skillCount }).map((_, index) => (
+              <Skeleton
+                key={index}
+                className={`bg-gray-300 dark:bg-gray-800 h-8 w-20 rounded-md
+                `}
+              />
+            ))}
           </div>
-          <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
-          <div className="h-4 bg-gray-300 rounded w-1/2"></div>
-          <div className="h-4 bg-gray-300 rounded w-full mb-1"></div>
-        </div>
-
-        {/* Education, Certifications, Skills Skeleton */}
-        <div className="flex flex-col gap-2 w-[25%]">
-          <div className="h-4 bg-gray-300 rounded w-1/4"></div>
-          <div className="h-4 bg-gray-300 rounded w-3/4 mb-1"></div>
-
-          <div className="h-4 bg-gray-300 rounded w-1/3 mt-4"></div>
-          <div className="h-4 bg-gray-300 rounded w-2/3 mb-1"></div>
-
-          <div className="h-4 bg-gray-300 rounded w-1/4 mt-4"></div>
-          <div className="flex space-x-2">
-            <div className="h-6 w-16 bg-gray-300 rounded-lg"></div>
-            <div className="h-6 w-16 bg-gray-300 rounded-lg"></div>
-            <div className="h-6 w-16 bg-gray-300 rounded-lg"></div>
-          </div>
-          <div className="h-4 bg-gray-300 rounded w-1/3"></div>
         </div>
       </Card>
-    );
-  } else if (variant === "hover") {
-    return (
-      <>
-        <div className="h-6 bg-gray-300 rounded w-3/4 my-5"></div>
-
-        {/* Phone Section Skeleton */}
-        <div className="flex space-x-4 items-center mb-4">
-          <div className="bg-gray-300 rounded-full p-4 w-10 h-10"></div>
-          <div className="h-4 bg-gray-300 rounded w-1/2"></div>
-        </div>
-
-        {/* LinkedIn/GitHub Section Skeleton */}
-        <div className="flex space-x-4 items-center mb-4">
-          <div className="bg-gray-300 rounded-full p-4 w-10 h-10"></div>
-          <div className="h-3 bg-gray-300 rounded w-1/2"></div>
-        </div>
-
-        {/* Experience Section Skeleton */}
-        <div className="mb-4">
-          <div className="h-5 bg-gray-300 rounded w-1/4 mb-2"></div>
-          {[...Array(2)].map((_, index) => (
-            <div
-              key={index}
-              className="h-3 bg-gray-300 rounded w-3/4 my-2 ml-3"
-            ></div>
-          ))}
-        </div>
-
-        {/* Skills Section Skeleton */}
-        <div className="mb-4">
-          <div className="h-5 bg-gray-300 rounded w-1/4 mb-2"></div>
-          {[...Array(3)].map((_, index) => (
-            <div
-              key={index}
-              className="h-3 bg-gray-300 rounded w-1/2 my-2 ml-3"
-            ></div>
-          ))}
-        </div>
-
-        {/* Education Section Skeleton */}
-        <div>
-          <div className="h-5 bg-gray-300 rounded w-1/4 mb-2"></div>
-          {[...Array(3)].map((_, index) => (
-            <div
-              key={index}
-              className="h-3 bg-gray-300 rounded w-3/4 my-2 ml-3"
-            ></div>
-          ))}
-        </div>
-      </>
-    );
-  } else if (variant === "archive") {
-    return (
-      <div>
-        {Array(3)
-          .fill(null)
-          .map((_, index) => (
-            <div
-              key={index}
-              className="flex justify-between mt-5 animate-pulse"
-            >
-              {/* Folder Name Skeleton */}
-              <div className="w-1/3 h-5 bg-gray-300 rounded"></div>
-
-              {/* Button Skeleton */}
-              <div className="w-20 h-5 bg-gray-300 rounded"></div>
-            </div>
-          ))}
-      </div>
-    );
-  }
-};
-
-export default ListViewSkeleton;
+    </div>
+  );
+}

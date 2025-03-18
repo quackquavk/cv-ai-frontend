@@ -13,6 +13,7 @@ import Masonry from "react-masonry-css";
 import { folderSelectStore } from "@/app/dashboard/store";
 import { useSearchContext } from "@/app/dashboard/context/SearchContext";
 import { publicFolderStore } from "@/app/dashboard/store";
+import { Card } from "./ui/card";
 
 interface GridViewProps {
   data: IDocumentData[];
@@ -191,7 +192,7 @@ function GridView({ data, searchData }: GridViewProps) {
   //     : data;
 
   return (
-    <div className="overflow-hidden max-w-[100vw] p-4">
+    <div className="overflow-hidden max-w-[100vw]">
       {loading ? (
         <div>
           {Array.from({ length: 1 }).map((_, index) => (
@@ -205,9 +206,9 @@ function GridView({ data, searchData }: GridViewProps) {
           columnClassName="masonry-grid_column"
         >
           {displayedData.map((item, index) => (
-            <div
+            <Card
               key={item.doc_id}
-              className="masonry-item mb-6 cursor-pointer transition-transform duration-300 relative"
+              className="masonry-item mb-6 cursor-pointer relative hover:border-blue-600 border-2 transition duration-500 ease-in-out"
             >
               <Link href={`/cv-detail/${item.doc_id}`} target="_blank">
                 <Image
@@ -215,12 +216,12 @@ function GridView({ data, searchData }: GridViewProps) {
                   alt={`Image ${index + 1}`}
                   height={500}
                   width={700}
-                  className="rounded-lg object-cover shadow-lg w-full h-auto"
+                  className="rounded-lg object-cover w-full h-auto"
                   loading="lazy"
                   layout="responsive"
                 />
               </Link>
-            </div>
+            </Card>
           ))}
         </Masonry>
       ) : (

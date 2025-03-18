@@ -1,5 +1,5 @@
 "use client";
-import React, { useContext } from "react";
+import React, { useContext, useRef } from "react";
 import ListView from "@/components/ListView";
 import GridView from "@/components/GridView";
 import { ViewContext } from "./context/ViewContext";
@@ -29,7 +29,7 @@ function Dashboard() {
 
   const { view } = context;
   return (
-    <div className="bg-gray-100 w-full overflow-hidden">
+    <div className="h-full w-full overflow-hidden">
       {view === "grid" ? (
         <GridView searchData={searchData} data={apiData} />
       ) : (

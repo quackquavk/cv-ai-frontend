@@ -2,6 +2,7 @@
 import React, { useRef, useEffect } from "react";
 import { Card } from "./ui/card";
 import { FaUser, FaPhoneAlt, FaLinkedin, FaGithub } from "react-icons/fa";
+import { Dot } from "lucide-react";
 import { MdEmail } from "react-icons/md";
 import { IoLocation } from "react-icons/io5";
 import { IDocumentData } from "@/interfaces/DocumentData";
@@ -15,6 +16,12 @@ import EmblaCarousel from "../app/dashboard/components/EmblaCarousel";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useInView } from "react-intersection-observer";
 import { publicFolderStore } from "@/app/dashboard/store";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ListViewProps {
   data: IDocumentData[] | any;
@@ -181,8 +188,8 @@ const ListView = ({ data, searchData }: ListViewProps) => {
   if (isLoading) {
     return (
       <div className="flex flex-col gap-3">
-        <ListViewSkeletion variant="listView" />
-        <ListViewSkeletion variant="listView" />
+        <ListViewSkeletion />
+        <ListViewSkeletion />
       </div>
     );
   }
@@ -191,7 +198,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
     infiniteData?.pages.flatMap((page: any) => page.documents) ?? [];
 
   return (
-    <div className="flex flex-col max-w-[100vw] p-4 rounded-md gap-5">
+    <div className="flex flex-col w-full max-w-[100vw] rounded-md sm:p-2 gap-3 sm:gap-5">
       {allDocuments.length === 0 || !isFolderListOpen ? (
         <p>No Document Available</p>
       ) : (
@@ -202,203 +209,245 @@ const ListView = ({ data, searchData }: ListViewProps) => {
               key={item._id}
               href={`/cv-detail/${item._id}`}
               target="_blank"
-              className="shadow-lg transform mb-3 hover:scale-x-[1.01] hover:scale-y-[1.02] hover:cursor-pointer transition duration-500 ease-in-out w-full overflow-hidden"
+              className="transform mb-3 hover:scale-x-[1.01] hover:scale-y-[1.02] hover:cursor-pointer transition duration-500 ease-in-out w-full overflow-hidden"
             >
-              <Card className="relative gap-2 max-w-full px-5 py-8 pb-20">
-                <div className="flex z-0 justify-between w-full">
-                  {/* Basic Information */}
-                  <div className="flex flex-col gap-1 w-[25%] overflow-clip">
-                    <div className="flex mb-0 flex-col">
-                      <h1 className="mb-3 text-base underline underline-offset-4 font-bold">
-                        {item?.parsed_cv?.position
-                          ? item?.parsed_cv.position.toUpperCase()
-                          : ""}
-                      </h1>
-                      <p className="flex items-center gap-2">
-                        {item?.parsed_cv?.address && (
-                          <span className="flex items-center">
-                            <IoLocation className="text-base mr-2" />
-                            <span className="text-gray-500 text-sm">
-                              {item?.parsed_cv.address}
-                            </span>
-                          </span>
-                        )}
-                      </p>
-                    </div>
-
-                    <div>
-                      {item?.parsed_cv?.name && (
-                        <div className="flex items-center gap-2 mt-0">
-                          <FaUser className="text-sm" />
-                          <span className="text-gray-500 font-normal text-sm">
-                            {item?.parsed_cv?.name}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Contact Information */}
-                    {item?.parsed_cv?.phone_number && (
-                      <div className="flex items-center gap-2">
-                        <FaPhoneAlt className="text-sm" />
-                        <span className="text-gray-500 text-sm">
-                          {item?.parsed_cv.phone_number}
-                        </span>
-                      </div>
-                    )}
-
-                    {item?.parsed_cv?.email && (
-                      <div className="flex items-center gap-2">
-                        <MdEmail className="text-sm" />
-                        <span
-                          onClick={(event) =>
-                            handleEmailClick(event, item?.parsed_cv.email)
-                          }
-                          className="text-sm text-blue-800 underline hover:opacity-80"
-                        >
-                          {item?.parsed_cv.email}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Social Links */}
-                    {item?.parsed_cv?.linkedin_url && (
-                      <div className="flex items-center gap-2">
-                        <FaLinkedin className="cursor-pointer" />
-                        <span
-                          onClick={(event) =>
-                            handleLinkedin(event, item?.parsed_cv.linkedin_url)
-                          }
-                          className="text-sm text-blue-800 underline hover:opacity-80"
-                        >
-                          {item?.parsed_cv?.linkedin_url}
-                        </span>
-                      </div>
-                    )}
-
-                    {item?.parsed_cv?.github_url && (
-                      <div className="flex items-center gap-2">
-                        <FaGithub className="cursor-pointer" />
-                        <Link
-                          href={
-                            item?.parsed_cv.github_url.startsWith("http")
-                              ? item.parsed_cv.github_url
-                              : `https://${item.parsed_cv.github_url}`
-                          }
-                          onClick={(e) => e.stopPropagation()}
-                          target="_blank"
-                          className="text-sm text-blue-800 underline hover:opacity-80"
-                        >
-                          {item?.parsed_cv?.github_url}
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Experience Section */}
-                  <div className="flex flex-col gap-6 w-[30%] overflow-clip">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <h1 className="font-bold text-base">Experience:</h1>
-                        <p className="text-gray-500 text-sm">
-                          {item?.parsed_cv?.years_of_experience
-                            ? `${item?.parsed_cv.years_of_experience} years`
+              <Card className="relative gap-2 max-w-full px-3 py-4 sm:px-5 sm:py-8 pb-16 sm:pb-20 hover:border-blue-600 transition duration-500 ease-in-out ">
+                <div className="flex justify-between">
+                  <div className="flex flex-col lg:flex-row z-0 lg:justify-between w-full gap-4">
+                    {/* Basic Information */}
+                    <div className="flex flex-col gap-1 w-full lg:w-[25%] overflow-clip ">
+                      <div className="flex mb-0 flex-col">
+                        <h1 className="mb-2 sm:mb-3 text-sm sm:text-base underline underline-offset-4 font-bold">
+                          {item?.parsed_cv?.position
+                            ? item?.parsed_cv.position.toUpperCase()
                             : ""}
+                        </h1>
+                        <p className="flex items-center gap-2 capitalize">
+                          {item?.parsed_cv?.address && (
+                            <span className="flex items-center">
+                              <IoLocation className="text-base mr-2" />
+                              <span className="text-gray-500 text-sm dark:text-gray-400">
+                                {item?.parsed_cv.address}
+                              </span>
+                            </span>
+                          )}
                         </p>
                       </div>
-                      {item?.parsed_cv?.work_experience?.length > 0 && (
-                        <div>
-                          <p className="font-semibold capitalize">
-                            {item?.parsed_cv.work_experience[0]?.job_title}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {item?.parsed_cv.work_experience[0]?.company_name}
-                            <span>
-                              {" "}
-                              {`${item?.parsed_cv.work_experience[0]?.start_date} - 
-                               ${item?.parsed_cv.work_experience[0]?.end_date}`}
+
+                      <div>
+                        {item?.parsed_cv?.name && (
+                          <div className="flex items-center gap-2 mt-0 capitalize">
+                            <FaUser className="text-sm" />
+                            <span className="text-gray-500 font-normal text-sm dark:text-gray-400">
+                              {item?.parsed_cv?.name}
                             </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Contact Information */}
+                      {item?.parsed_cv?.phone_number && (
+                        <div className="flex items-center gap-2">
+                          <FaPhoneAlt className="text-sm" />
+                          <span className="text-gray-500 text-sm dark:text-gray-400">
+                            {item?.parsed_cv.phone_number}
+                          </span>
+                        </div>
+                      )}
+
+                      {item?.parsed_cv?.email && (
+                        <div className="flex items-center gap-2">
+                          <MdEmail className="text-sm" />
+                          <span
+                            onClick={(event) =>
+                              handleEmailClick(event, item?.parsed_cv.email)
+                            }
+                            className="text-sm text-blue-800 underline hover:opacity-80 truncate"
+                          >
+                            {item?.parsed_cv.email}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Social Links */}
+                      {item?.parsed_cv?.linkedin_url && (
+                        <div className="flex items-center gap-2">
+                          <FaLinkedin className="cursor-pointer" />
+                          <span
+                            onClick={(event) =>
+                              handleLinkedin(
+                                event,
+                                item?.parsed_cv.linkedin_url
+                              )
+                            }
+                            className="text-xs sm:text-sm text-blue-800 underline hover:opacity-80 truncate"
+                          >
+                            {item?.parsed_cv?.linkedin_url}
+                          </span>
+                        </div>
+                      )}
+
+                      {item?.parsed_cv?.github_url && (
+                        <div className="flex items-center gap-2">
+                          <FaGithub className="cursor-pointer" />
+                          <Link
+                            href={
+                              item?.parsed_cv.github_url.startsWith("http")
+                                ? item.parsed_cv.github_url
+                                : `https://${item.parsed_cv.github_url}`
+                            }
+                            onClick={(e) => e.stopPropagation()}
+                            target="_blank"
+                            className="text-xs sm:text-sm text-blue-800 underline hover:opacity-80 truncate"
+                          >
+                            {item?.parsed_cv?.github_url}
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Experience Section */}
+                    <div className="flex flex-col gap-4 sm:gap-6 w-full lg:w-[30%] overflow-clip">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <h1 className="font-bold text-base">Experience:</h1>
+                          <p className="text-gray-500 text-sm dark:text-gray-400">
+                            {item?.parsed_cv?.years_of_experience
+                              ? `${item?.parsed_cv.years_of_experience} Years`
+                              : ""}
+                          </p>
+                        </div>
+                        {item?.parsed_cv?.work_experience?.length > 0 && (
+                          <div>
+                            <p className="font-semibold capitalize">
+                              {item?.parsed_cv.work_experience[0]?.job_title}
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">
+                              {item?.parsed_cv.work_experience[0]?.company_name}
+                              <span>
+                                {" "}
+                                {`${item?.parsed_cv.work_experience[0]?.start_date} - 
+                               ${item?.parsed_cv.work_experience[0]?.end_date}`}
+                              </span>
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <h1 className="font-bold text-base">Education</h1>
+                        {item?.parsed_cv.education?.length > 0 ? (
+                          <span className="text-sm text-gray-500 capitalize dark:text-gray-400">
+                            {item.parsed_cv.education[0].degree}
+                          </span>
+                        ) : (
+                          <span className="text-sm text-red-700">
+                            Education details not available
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Availability Section */}
+                    <div className="flex flex-col gap-4 sm:gap-6 w-full lg:w-[30%]">
+                      <div className="flex flex-wrap gap-4 sm:gap-6">
+                        <div className="flex flex-col gap-2">
+                          {item?.parsed_cv?.current_salary !== undefined &&
+                            item?.parsed_cv?.current_salary !== null && (
+                              <div className="flex flex-col">
+                                <div className="font-bold text-base">
+                                  Current Salary
+                                </div>
+                                <div className="text-gray-500 dark:text-gray-400">
+                                  ${item?.parsed_cv?.current_salary}
+                                  {item?.parsed_cv?.paid_by &&
+                                    ` / ${item?.parsed_cv?.paid_by}`}
+                                </div>
+                              </div>
+                            )}
+                          {item?.parsed_cv?.availability && (
+                            <Card className="px-2 py-1 text-sm text-gray-600 w-fit h- dark:text-gray-400 capitalize">
+                              {item?.parsed_cv?.availability}
+                            </Card>
+                          )}
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                          {item?.parsed_cv?.estimated_salary !== undefined &&
+                            item?.parsed_cv?.estimated_salary !== null && (
+                              <div className="flex flex-col">
+                                <div className="font-bold text-base">
+                                  Estimated Salary
+                                </div>
+                                <div className="text-gray-500 dark:text-gray-400">
+                                  ${item?.parsed_cv?.estimated_salary}
+                                  {item?.parsed_cv?.paid_by &&
+                                    ` / ${item?.parsed_cv?.paid_by}`}
+                                </div>
+                              </div>
+                            )}
+                          {item?.parsed_cv?.time_of_day && (
+                            <Card className="px-2 py-1 text-sm text-gray-600 w-fit h-fit dark:text-gray-400 capitalize">
+                              {item?.parsed_cv?.time_of_day}
+                            </Card>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Notes Section */}
+                      {item?.parsed_cv?.note && (
+                        <div className="flex flex-col gap-1">
+                          <h1 className="font-bold">Note</h1>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {item.parsed_cv.note.length > 100
+                              ? `${item.parsed_cv.note.substring(0, 100)}...`
+                              : item.parsed_cv.note}
                           </p>
                         </div>
                       )}
                     </div>
 
-                    <div>
-                      <h1 className="font-bold text-base">Education</h1>
-                      {item?.parsed_cv.education?.length > 0 ? (
-                        <span className="text-sm text-gray-500 capitalize">
-                          {item.parsed_cv.education[0].degree}
-                        </span>
-                      ) : (
-                        <span className="text-sm text-red-700">
-                          Education details not available
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Availability Section */}
-                  <div className="flex flex-col gap-6 w-[30%]">
-                    <div className="flex gap-6">
-                      <div className="flex flex-col gap-2">
-                        {item?.parsed_cv?.current_salary && (
-                          <div className="flex flex-col">
-                            <div className="font-bold text-base">
-                              Current Salary
-                            </div>
-                            <div className="text-gray-500">
-                              ${item?.parsed_cv?.current_salary}
-                              {item?.parsed_cv?.paid_by &&
-                                ` / ${item?.parsed_cv?.paid_by}`}
-                            </div>
-                          </div>
-                        )}
-                        {item?.parsed_cv?.availability && (
-                          <Card className="px-2 py-1 text-sm text-gray-600 w-fit h-fit">
-                            {item?.parsed_cv?.availability}
-                          </Card>
-                        )}
-                      </div>
-
-                      <div className="flex flex-col gap-2">
-                        {item?.parsed_cv?.estimated_salary && (
-                          <div className="flex flex-col">
-                            <div className="font-bold text-base">
-                              Estimated Salary
-                            </div>
-                            <div className="text-gray-500">
-                              ${item?.parsed_cv?.estimated_salary}
-                              {item?.parsed_cv?.paid_by &&
-                                ` / ${item?.parsed_cv?.paid_by}`}
-                            </div>
-                          </div>
-                        )}
-                        {item?.parsed_cv?.time_of_day && (
-                          <Card className="px-2 py-1 text-sm text-gray-600 w-fit h-fit">
-                            {item?.parsed_cv?.time_of_day}
-                          </Card>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Notes Section */}
-                    {item?.parsed_cv?.note && (
-                      <div className="flex flex-col gap-1">
-                        <h1 className="font-bold">Note</h1>
-                        <p className="text-sm text-gray-600">
-                          {item.parsed_cv.note.length > 100
-                            ? `${item.parsed_cv.note.substring(0, 100)}...`
-                            : item.parsed_cv.note}
-                        </p>
+                    {/* Edited status check */}
+                    {!item?.parsed_cv?.edited && (
+                      <div className="hidden lg:flex mt-[-3px]">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Dot color="red" size={28} />
+                            </TooltipTrigger>
+                            <TooltipContent className="mb-[-2px]p-1 text-xs">
+                              <p>Not Edited</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                     )}
                   </div>
+                  {/* Edited status check */}
+                  {!item?.parsed_cv?.edited && (
+                    <div className="flex lg:hidden mt-[-3px] text-3xl">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Dot color="red" size={28} />
+                          </TooltipTrigger>
+                          <TooltipContent
+                            side="top"
+                            sideOffset={0}
+                            className="translate-y-1 p-1 text-[10px] max-w-[80px] z-50"
+                          >
+                            <p>Not Edited</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  )}
                 </div>
 
                 {/* Skills */}
                 <div
                   onClick={handleCarouselClick}
-                  className="absolute inset-x-0 z-50 overflow-hidden bottom-3 w-full  px-5"
+                  className="absolute inset-x-0 z-50 overflow-hidden bottom-1 sm:bottom-3 w-full px-2 sm:px-5"
                 >
                   <EmblaCarousel skills={item?.parsed_cv?.skills || []} />
                 </div>
@@ -411,7 +460,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
             ref={ref}
             className="w-full mt-24 h-20 flex items-center justify-center"
           >
-            {isFetchingNextPage && <ListViewSkeletion variant="listView" />}
+            {isFetchingNextPage && <ListViewSkeletion />}
           </div>
         </>
       )}

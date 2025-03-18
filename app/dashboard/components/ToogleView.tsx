@@ -40,8 +40,8 @@ const ToogleView = () => {
                 onClick={() => setView("list")}
                 className={`p-2 rounded-md ${
                   loadedView === "list"
-                    ? "bg-gray-400 hover:bg-gray-300"
-                    : "hover:bg-gray-200"
+                    ? "bg-gray-200 dark:bg-[#333332]"
+                    : "hover:bg-gray-100 dark:hover:bg-[#242323]"
                 }`}
               >
                 <FaListUl />
@@ -58,8 +58,8 @@ const ToogleView = () => {
                 onClick={() => setView("grid")}
                 className={`p-2 rounded-md ${
                   loadedView === "grid"
-                    ? "bg-gray-400 hover:bg-gray-300"
-                    : "hover:bg-gray-200"
+                    ? "bg-gray-200 dark:bg-[#333332]"
+                    : "hover:bg-gray-100 dark:hover:bg-[#242323]"
                 }`}
               >
                 <BsFillGridFill />

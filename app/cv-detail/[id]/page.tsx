@@ -45,6 +45,8 @@ import {
 } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 const CVDetailPage = ({ params }: { params: any }) => {
   const [data, setData] = useState<any>();
@@ -242,10 +244,10 @@ const CVDetailPage = ({ params }: { params: any }) => {
           {/* Fixed TabsTrigger heading */}
           <TabsList className="sticky rounded-none top-0 z-10 grid w-full bg-black opacity-85 grid-cols-2">
             <TabsTrigger value="pdfcv" className=" text-white">
-              PDF CV
+              RESUME.PDF
             </TabsTrigger>
             <TabsTrigger value="parsedcv" className=" text-white">
-              AI PARSED CV
+              AI PARSED
             </TabsTrigger>
           </TabsList>
 
@@ -272,9 +274,9 @@ const CVDetailPage = ({ params }: { params: any }) => {
                 <DetailViewSkeleton />
               </div>
             ) : (
-              <Card className="px-3 rounded-none flex py-3 w-full h-full flex-col">
+              <Card className="px-3 rounded-none flex py-3 w-full h-full flex-col gap-9">
                 {/* Main content - scrollable */}
-                <div className="flex-grow overflow-y-auto scrollbar-thin">
+                <div className="flex-grow overflow-y-auto scrollbar-thin pb-3">
                   <div className="flex flex-col gap-3">
                     {/* First Part */}
                     <div className="top-0">
@@ -384,7 +386,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                   <FaPhoneAlt size={14} />
                                 </span>
 
-                                <span className="font-semibold text-gray-700 text-sm">
+                                <span className="font-semibold text-gray-700 dark:text-gray-400 text-sm">
                                   {data?.phone_number}
                                 </span>
                               </>
@@ -398,20 +400,18 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                   <IoLocation />
                                 </span>
 
-                                <span className="font-semibold text-gray-700 text-sm">
+                                <span className="font-semibold text-gray-700 dark:text-gray-400 text-sm capitalize">
                                   {data?.address}
                                 </span>
                               </>
                             )}
                           </p>
                         </div>
-
-                        <div className="flex w-max-[40%] mr-4 flex-wrap flex-col gap-2 justify-end"></div>
                       </div>
                     </div>
 
                     <div className="mr-4">
-                      <hr className="w-full h-[2px] opacity-10 bg-black" />
+                      <hr className="w-full h-[2px] opacity-20 bg-black dark:bg-white dark:opacity-50" />
                     </div>
 
                     {/* Second Part*/}
@@ -424,7 +424,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                             {data?.programming_languages?.map(
                               (item: any, idx: number) => (
                                 <div key={idx}>
-                                  <Card className="flex px-2 py-1 text-gray-700 font-sans bg-[#f7f9fc] rounded-md w-fit font-semibold">
+                                  <Card className="flex px-2 py-1 text-gray-600 font-sans rounded-md w-fit font-semibold dark:text-gray-400 capitalize">
                                     {item}
                                   </Card>
                                 </div>
@@ -435,7 +435,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       </div>
 
                       <div className="mr-4">
-                        <hr className="w-full h-[2px] opacity-10 bg-black" />
+                        <hr className="w-full h-[2px] opacity-20 bg-black dark:bg-white dark:opacity-50" />
                       </div>
 
                       {/* Skills */}
@@ -452,7 +452,9 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                   <span className="text-gray-600">
                                     <GoDotFill />
                                   </span>
-                                  <span className="text-sm">{item}</span>
+                                  <span className="text-sm dark:text-gray-400 capitalize">
+                                    {item}
+                                  </span>
                                 </div>
                               ))}
                             </div>
@@ -461,16 +463,16 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       </div>
 
                       <div className="mr-4">
-                        <hr className="w-full h-[2px] opacity-10 bg-black" />
+                        <hr className="w-full h-[2px] opacity-20 bg-black dark:bg-white dark:opacity-50" />
                       </div>
 
                       {/* Experience */}
                       <div className="flex flex-col gap-2">
                         <p className="font-semibold flex items-center gap-4 ">
                           Experiences
-                          <span className="text-sm text-gray-500">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">
                             {data?.years_of_experience &&
-                              +data?.years_of_experience + " years"}
+                              +data?.years_of_experience + " Years"}
                           </span>
                         </p>
                         <div className="flex flex-col gap-3">
@@ -486,7 +488,10 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                       {item?.company_name}
                                     </span>
                                     {item?.start_date && item?.end_date && (
-                                      <span className="text-sm text-gray-500">
+                                      <span
+                                        className="text-sm text-gray-500
+                                      dark:text-gray-400 capitalize"
+                                      >
                                         {"(" +
                                           item.start_date +
                                           " - " +
@@ -506,7 +511,9 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                             <span className="mt-[3px]">
                                               <GoDotFill />
                                             </span>
-                                            <span>{el}</span>
+                                            <span className="dark:text-gray-400 capitalize">
+                                              {el}
+                                            </span>
                                           </span>
                                         )
                                       )}
@@ -518,7 +525,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       </div>
 
                       <div className="mr-4">
-                        <hr className="w-full h-[2px] opacity-10 bg-black" />
+                        <hr className="w-full h-[2px] opacity-20 bg-black dark:bg-white dark:opacity-50" />
                       </div>
 
                       {/* Project */}
@@ -532,7 +539,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                   <div key={index}>
                                     <div className="flex flex-col gap-2 text-gray-700">
                                       <div className="flex justify-between items-center">
-                                        <div className="text-gray-700 font-semibold capitalize">
+                                        <div className="text-gray-700 font-semibold capitalize dark:text-white">
                                           {index + 1 + ". " + data.project_name}
                                         </div>
                                         {data.project_link && (
@@ -545,7 +552,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                                 : `https://${data.project_link}`
                                             }
                                             target="_blank"
-                                            className=" mr-4 hover:opacity-50"
+                                            className=" mr-4 hover:opacity-50 dark:text-white"
                                           >
                                             <SquareArrowOutUpRight size={16} />
                                           </Link>
@@ -554,11 +561,10 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                       {data.programming_language?.length >
                                         0 && (
                                         <div className="flex flex-wrap gap-3 items-center text-sm mr-4 max-w-3xl">
-                                          {/* <p>Technology Used : </p> */}
                                           {data.programming_language.map(
                                             (el, index) => (
                                               <div key={index}>
-                                                <Card className="p-2 bg-[#f7f9fc]  font-sans rounded-md w-fit font-semibold">
+                                                <Card className="p-2 font-sans rounded-md w-fit font-semibold dark:text-gray-400 capitalize">
                                                   {el}
                                                 </Card>
                                               </div>
@@ -567,7 +573,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                         </div>
                                       )}
                                       {data.description && (
-                                        <p className="text-sm mr-4">
+                                        <p className="text-sm mr-4 dark:text-gray-400 capitalize">
                                           {data.description}
                                         </p>
                                       )}
@@ -580,7 +586,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       </div>
 
                       <div className="mr-4">
-                        <hr className="w-full h-[2px] opacity-10 bg-black" />
+                        <hr className="w-full h-[2px] opacity-20 bg-black dark:bg-white dark:opacity-50" />
                       </div>
 
                       {/* Education */}
@@ -594,7 +600,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                   <p className="font-semibold capitalize">
                                     {index + 1 + ". " + el.degree}
                                   </p>
-                                  <div className="flex gap-1 items-center text-gray-700 text-sm">
+                                  <div className="flex gap-1 items-center text-gray-700 text-sm dark:text-gray-400">
                                     <span className="capitalize">
                                       {el?.institution}
                                     </span>
@@ -613,26 +619,31 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       </div>
 
                       <div className="mr-4">
-                        <hr className="w-full h-[2px] opacity-10 bg-black" />
+                        <hr className="w-full h-[2px] opacity-20 bg-black dark:bg-white dark:opacity-50" />
                       </div>
 
                       {/* Certificate */}
-                      <div className="flex flex-col gap-1">
+                      <div>
                         <p className="font-semibold">Certification</p>
-                        {data?.certifications?.map((el: any, index: number) => (
-                          <div className="flex flex-col gap-2" key={index}>
-                            <p className="text-sm flex capitalize mb-12">
-                              {index + 1 + ". " + el?.certification_name}
-                            </p>
-                          </div>
-                        ))}
+                        <div className="flex flex-col space-y-2">
+                          {data?.certifications?.map(
+                            (el: any, index: number) => (
+                              <p
+                                className="text-sm flex capitalize"
+                                key={index}
+                              >
+                                {index + 1 + ". " + el?.certification_name}
+                              </p>
+                            )
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Availability Section - Fixed */}
-                <div className="sticky bottom-0 z-10 bg-white border-t-2 border-slate-700 py-3 flex flex-col gap-3">
+                <div className="sticky bottom-0 z-10 border-t-2 border-slate-700 py-3 flex flex-col gap-3">
                   {/* Stars & Like / DisLike */}
                   <div className="flex justify-between items-start">
                     {/* stars */}
@@ -821,7 +832,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       {/* Label */}
                       <label
                         htmlFor="currentSalary"
-                        className={`absolute left-3 px-1 text-center text-xs font-medium text-gray-700 ${
+                        className={`absolute left-3 px-1 text-center text-[9px] font-medium text-gray-700 ${
                           inputData.current_salary !== null
                             ? "-top-2 bg-white"
                             : "top-2.5 text-gray-500"
@@ -833,7 +844,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       <input
                         type="text"
                         id="currentSalary"
-                        className="peer block w-full rounded-md border border-gray-300 transition-all duration-100 bg-white py-2 px-3 text-xs shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
+                        className="peer block w-auto rounded-md border border-gray-300 transition-all duration-100 bg-white py-2 px-3 text-[9px] shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
                         value={
                           inputData.current_salary !== null
                             ? inputData.current_salary.toString()
@@ -850,7 +861,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       {/* Label */}
                       <label
                         htmlFor="estimatedSalary"
-                        className={`absolute left-3 px-1 text-xs font-medium transition-all duration-100 text-gray-700 ${
+                        className={`absolute left-3 px-1 text-[9px] font-medium transition-all duration-100 text-gray-700 ${
                           inputData.estimated_salary !== null
                             ? "-top-2 bg-white"
                             : "top-2.5 text-gray-500"
@@ -862,7 +873,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       <input
                         type="text"
                         id="estimatedSalary"
-                        className="block w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-xs shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
+                        className="block w-auto rounded-md border border-gray-300 bg-white py-2 px-3 text-[9px] shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
                         value={
                           inputData.estimated_salary !== null
                             ? inputData.estimated_salary.toString()
@@ -931,12 +942,12 @@ const CVDetailPage = ({ params }: { params: any }) => {
 
       {/* Desktop View */}
       <div className="hidden md:flex w-full h-[100vh]">
-        <div className="w-[100%]  ">
+        <div className="w-[100%]">
           <div className="h-[100vh] relative">
             {/* Hamburger Menu */}
             {closeParsedData && (
               <div
-                className="absolute hidden md:flex top-3 right-4 z-10 bg-white opacity-90 cursor-pointer p-2 rounded"
+                className="absolute hidden md:flex top-3 right-4 z-10 bg-gray-200 opacity-200 cursor-pointer p-2 rounded dark:bg-[#333332]"
                 onClick={() => setCloseParsedData((prev) => !prev)}
               >
                 <RxHamburgerMenu />
@@ -953,7 +964,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
         </div>
 
         {loading ? (
-          <div className="h-full w-[40%]">
+          <div className="h-full w-[70%]">
             <DetailViewSkeleton />
           </div>
         ) : (
@@ -962,7 +973,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
               closeParsedData
                 ? "hidden  translate-x-full"
                 : "flex  translate-x-0"
-            }  w-[40%] transition-all duration-300 ease-in-out py-3 h-full  flex-col gap-3 rounded-none`}
+            }  w-[70%] transition-all duration-300 ease-in-out py-3 h-full flex-col gap-3 rounded-none`}
           >
             {/* Scrollable */}
             <div className="pb-3 overflow-y-auto scrollbar-thin flex flex-col gap-3">
@@ -1057,7 +1068,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                           <Link
                             href={`mailto:${data?.email}`}
                             target="_blank"
-                            className="max-w-48  truncate"
+                            className="max-w-48 truncate"
                           >
                             <span className="text-blue-800 underline hover:opacity-80 text-sm">
                               {data?.email}
@@ -1074,7 +1085,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                             <FaPhoneAlt size={14} />
                           </span>
 
-                          <span className="font-semibold text-gray-700 text-sm">
+                          <span className="font-semibold text-gray-700 dark:text-gray-400 text-sm">
                             {data?.phone_number}
                           </span>
                         </>
@@ -1088,7 +1099,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                             <IoLocation />
                           </span>
 
-                          <span className="font-semibold text-gray-700 text-sm">
+                          <span className="font-semibold text-gray-700 dark:text-gray-400 text-sm capitalize">
                             {data?.address}
                           </span>
                         </>
@@ -1096,9 +1107,10 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     </p>
                   </div>
 
+                  {/* Close / Open Button */}
                   <div className="flex w-max-[40%] mr-4 flex-wrap flex-col gap-2 justify-end">
                     <div
-                      className="cursor-pointer bg-gray-300 opacity-90 p-2 rounded"
+                      className="cursor-pointer bg-gray-200 opacity-200 p-2 rounded dark:bg-[#333332]"
                       onClick={() => setCloseParsedData((prev) => !prev)}
                     >
                       <RxHamburgerMenu />
@@ -1108,7 +1120,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
               </div>
 
               <div className="mr-4">
-                <hr className="w-full h-[2px] opacity-10 bg-black" />
+                <hr className="w-full h-[2px] opacity-20 bg-black dark:bg-white dark:opacity-50" />
               </div>
 
               {/* Second Part*/}
@@ -1121,7 +1133,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       {data?.programming_languages?.map(
                         (item: any, idx: number) => (
                           <div key={idx}>
-                            <Card className="flex px-2 py-1 text-gray-700 font-sans bg-[#f7f9fc] rounded-md w-fit font-semibold">
+                            <Card className="flex px-2 py-1 text-gray-600 font-sans rounded-md w-fit font-semibold dark:text-gray-400 capitalize">
                               {item}
                             </Card>
                           </div>
@@ -1132,7 +1144,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                 </div>
 
                 <div className="mr-4">
-                  <hr className="w-full h-[2px] opacity-10 bg-black" />
+                  <hr className="w-full h-[2px] opacity-20 bg-black dark:bg-white dark:opacity-50" />
                 </div>
 
                 {/* Skills */}
@@ -1146,7 +1158,9 @@ const CVDetailPage = ({ params }: { params: any }) => {
                             <span className="text-gray-600">
                               <GoDotFill />
                             </span>
-                            <span className="text-sm">{item}</span>
+                            <span className="text-sm dark:text-gray-400 capitalize">
+                              {item}
+                            </span>
                           </div>
                         ))}
                       </div>
@@ -1155,16 +1169,16 @@ const CVDetailPage = ({ params }: { params: any }) => {
                 </div>
 
                 <div className="mr-4">
-                  <hr className="w-full h-[2px] opacity-10 bg-black" />
+                  <hr className="w-full h-[2px] opacity-20 bg-black dark:bg-white dark:opacity-50" />
                 </div>
 
                 {/* Experience */}
                 <div className="flex flex-col gap-2">
                   <p className="font-semibold flex items-center gap-4 ">
                     Experiences
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
                       {data?.years_of_experience &&
-                        +data?.years_of_experience + " years"}
+                        +data?.years_of_experience + " Years"}
                     </span>
                   </p>
                   <div className="flex flex-col gap-3">
@@ -1179,7 +1193,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                               {item?.company_name}
                             </span>
                             {item?.start_date && item?.end_date && (
-                              <span className="text-sm text-gray-500">
+                              <span className="text-sm text-gray-500 dark:text-gray-400 capitalize">
                                 {"(" +
                                   item.start_date +
                                   " - " +
@@ -1199,7 +1213,9 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                     <span className="mt-[3px]">
                                       <GoDotFill />
                                     </span>
-                                    <span>{el}</span>
+                                    <span className="dark:text-gray-400 capitalize">
+                                      {el}
+                                    </span>
                                   </span>
                                 )
                               )}
@@ -1210,7 +1226,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                 </div>
 
                 <div className="mr-4">
-                  <hr className="w-full h-[2px] opacity-10 bg-black" />
+                  <hr className="w-full h-[2px] opacity-20 bg-black dark:bg-white dark:opacity-50" />
                 </div>
 
                 {/* Project */}
@@ -1224,7 +1240,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                             <div key={index}>
                               <div className="flex flex-col gap-2 text-gray-700">
                                 <div className="flex justify-between items-center">
-                                  <div className="text-gray-700 font-semibold capitalize">
+                                  <div className="text-gray-700 font-semibold capitalize dark:text-white">
                                     {index + 1 + ". " + data.project_name}
                                   </div>
                                   {data.project_link && (
@@ -1235,19 +1251,18 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                           : `https://${data.project_link}`
                                       }
                                       target="_blank"
-                                      className=" mr-4 hover:opacity-50"
+                                      className=" mr-4 hover:opacity-50 dark:text-white"
                                     >
                                       <SquareArrowOutUpRight size={16} />
                                     </Link>
                                   )}
                                 </div>
                                 {data.programming_language?.length > 0 && (
-                                  <div className="flex flex-wrap gap-3 items-center text-sm mr-4 max-w-3xl">
-                                    {/* <p>Technology Used : </p> */}
+                                  <div className="flex flex-wrap gap-3 items-center text-sm mr-4 max-w-3xl ">
                                     {data.programming_language.map(
                                       (el, index) => (
                                         <div key={index}>
-                                          <Card className="p-2 bg-[#f7f9fc]  font-sans rounded-md w-fit font-semibold">
+                                          <Card className="p-2  font-sans rounded-md w-fit font-semibold dark:text-gray-400 capitalize">
                                             {el}
                                           </Card>
                                         </div>
@@ -1256,7 +1271,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                   </div>
                                 )}
                                 {data.description && (
-                                  <p className="text-sm mr-4">
+                                  <p className="text-sm mr-4 dark:text-gray-400 capitalize">
                                     {data.description}
                                   </p>
                                 )}
@@ -1269,7 +1284,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                 </div>
 
                 <div className="mr-4">
-                  <hr className="w-full h-[2px] opacity-10 bg-black" />
+                  <hr className="w-full h-[2px] opacity-20 bg-black dark:bg-white dark:opacity-50" />
                 </div>
 
                 {/* Education */}
@@ -1283,7 +1298,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                             <p className="font-semibold capitalize">
                               {index + 1 + ". " + el.degree}
                             </p>
-                            <div className="flex gap-1 items-center text-gray-700 text-sm">
+                            <div className="flex gap-1 items-center text-gray-700 text-sm dark:text-gray-400">
                               <span className="capitalize">
                                 {el?.institution}
                               </span>
@@ -1302,19 +1317,19 @@ const CVDetailPage = ({ params }: { params: any }) => {
                 </div>
 
                 <div className="mr-4">
-                  <hr className="w-full h-[2px] opacity-10 bg-black" />
+                  <hr className="w-full h-[2px] opacity-20 bg-black dark:bg-white dark:opacity-50" />
                 </div>
 
                 {/* Certificate */}
                 <div>
                   <p className="font-semibold">Certification</p>
-                  {data?.certifications?.map((el: any, index: number) => (
-                    <div className="flex flex-col" key={index}>
-                      <p className="text-sm flex capitalize">
+                  <div className="flex flex-col space-y-2">
+                    {data?.certifications?.map((el: any, index: number) => (
+                      <p className="text-sm flex capitalize" key={index}>
                         {index + 1 + ". " + el?.certification_name}
                       </p>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1349,60 +1364,6 @@ const CVDetailPage = ({ params }: { params: any }) => {
                         />
                       </button>
                     ))}
-                  </div>
-
-                  {/* Notes */}
-                  <div className="order-3 sm:order-2">
-                    <Sheet>
-                      <SheetTrigger>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger className="cursor-pointer transition-transform rounded-md duration-300 ease-in-out">
-                              <Button className="flex gap-1 items-center w-22 h-8 px-2 text-xs">
-                                <span>
-                                  <PiNotePencilBold className="text-[2px]" />
-                                </span>
-                                <span>Notes</span>
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Add Notes to the CV</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </SheetTrigger>
-                      <SheetContent className="flex flex-col gap-3 w-full sm:max-w-md">
-                        <SheetHeader>
-                          <SheetTitle>Note</SheetTitle>
-                        </SheetHeader>
-                        <div>
-                          <Textarea
-                            className="h-48"
-                            placeholder="Add notes..."
-                            value={inputData.note}
-                            onChange={(e) =>
-                              setInputData({
-                                ...inputData,
-                                note: e.target.value,
-                              })
-                            }
-                            onKeyDown={handleKeyDown}
-                          />
-                        </div>
-                        <SheetFooter>
-                          <SheetClose asChild>
-                            <Button
-                              className="w-22 h-8"
-                              type="submit"
-                              onClick={handleSave}
-                              ref={closeButtonRef}
-                            >
-                              Save
-                            </Button>
-                          </SheetClose>
-                        </SheetFooter>
-                      </SheetContent>
-                    </Sheet>
                   </div>
 
                   {/* Like / DisLike */}
@@ -1506,21 +1467,21 @@ const CVDetailPage = ({ params }: { params: any }) => {
                   {/* Current Salary */}
                   <div className="w-full md:w-40 relative">
                     {/* Label */}
-                    <label
+                    <Label
                       htmlFor="currentSalary"
-                      className={`absolute left-3 px-1 text-center text-xs font-medium text-gray-700 ${
+                      className={`absolute left-3 px-1 text-center text-xs font-medium text-gray-700 dark:bg-black dark:text-white ${
                         inputData.current_salary !== null
                           ? "-top-2 bg-white"
                           : "top-2.5 text-gray-500"
                       }`}
                     >
                       Current Salary(USD)
-                    </label>
+                    </Label>
                     {/* Input Field */}
-                    <input
+                    <Input
                       type="text"
                       id="currentSalary"
-                      className="peer block w-full rounded-md border border-gray-300 transition-all duration-100 bg-white py-2 px-3 text-xs shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
+                      className="peer block w-full rounded-md border border-gray-300 transition-all duration-100 bg-white py-2 px-3 text-xs shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black dark:bg-black dark:text-white dark:focus:ring-white"
                       value={
                         inputData.current_salary !== null
                           ? inputData.current_salary.toString()
@@ -1535,21 +1496,21 @@ const CVDetailPage = ({ params }: { params: any }) => {
                   {/* Estimated Salary */}
                   <div className="w-full md:w-40 relative">
                     {/* Label */}
-                    <label
+                    <Label
                       htmlFor="estimatedSalary"
-                      className={`absolute left-3 px-1 text-xs font-medium transition-all duration-100 text-gray-700 ${
+                      className={`absolute left-3 px-1 text-xs font-medium transition-all duration-100 text-gray-700 dark:bg-black dark:text-white ${
                         inputData.estimated_salary !== null
                           ? "-top-2 bg-white"
                           : "top-2.5 text-gray-500"
                       }`}
                     >
                       Expected Salary(USD)
-                    </label>
+                    </Label>
                     {/* Input Field */}
-                    <input
+                    <Input
                       type="text"
                       id="estimatedSalary"
-                      className="block w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-xs shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
+                      className="block w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-xs shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black dark:bg-black dark:text-white dark:focus:ring-white"
                       value={
                         inputData.estimated_salary !== null
                           ? inputData.estimated_salary.toString()
@@ -1563,7 +1524,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                 </div>
 
                 {/* Salary Based & Save */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+                <div className="flex justify-between items-center">
                   <div className="w-full sm:w-auto">
                     <Select
                       value={inputData.paid_by || ""}
@@ -1593,13 +1554,68 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     </Select>
                   </div>
 
+                  {/* Notes */}
+                  <div className="">
+                    <Sheet>
+                      <SheetTrigger>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger className="cursor-pointer transition-transform rounded-md duration-300 ease-in-out">
+                              <Button className="flex gap-1 items-center w-22 h-8 px-2 text-xs">
+                                <span>
+                                  <PiNotePencilBold className="text-[2px]" />
+                                </span>
+                                <span>Notes</span>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Add Notes to the CV</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </SheetTrigger>
+                      <SheetContent className="flex flex-col gap-3 w-full sm:max-w-md">
+                        <SheetHeader>
+                          <SheetTitle>Note</SheetTitle>
+                        </SheetHeader>
+                        <div>
+                          <Textarea
+                            className="h-48"
+                            placeholder="Add notes..."
+                            value={inputData.note}
+                            onChange={(e) =>
+                              setInputData({
+                                ...inputData,
+                                note: e.target.value,
+                              })
+                            }
+                            onKeyDown={handleKeyDown}
+                          />
+                        </div>
+                        <SheetFooter>
+                          <SheetClose asChild>
+                            <Button
+                              className="w-22 h-8"
+                              type="submit"
+                              onClick={handleSave}
+                              ref={closeButtonRef}
+                            >
+                              Save
+                            </Button>
+                          </SheetClose>
+                        </SheetFooter>
+                      </SheetContent>
+                    </Sheet>
+                  </div>
+
+                  {/* Save Button */}
                   <div className="w-full sm:w-auto">
                     <Button
                       className="w-full sm:w-22 h-8"
                       onClick={handleSave}
                       disabled={loader}
                     >
-                      <span className="flex items-center justify-center w-full">
+                      <span className="flex items-center  w-full">
                         {loader ? (
                           <LoaderCircle className="h-4 animate-spin" />
                         ) : (

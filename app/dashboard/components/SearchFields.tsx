@@ -1,12 +1,12 @@
 "use client";
 import React, { useState, useContext, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import { FaSearch } from "react-icons/fa";
 import { IFormInputData } from "@/interfaces/FormInputData";
 import { SearchContext } from "../context/SearchContext";
 import { ViewContext } from "../context/ViewContext";
 import LinearTagsInput from "./SearchInput/LinearTagsInput";
-import { RxCrossCircled } from "react-icons/rx";
+import { FaSearch } from "react-icons/fa";
+import { RxCross1 } from "react-icons/rx";
 import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { folderSelectStore } from "../store";
@@ -26,6 +26,7 @@ import {
   DialogClose,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 const SearchFields = () => {
   const searchContext = useContext(SearchContext);
@@ -33,7 +34,7 @@ const SearchFields = () => {
   const viewContext = useContext(ViewContext);
   const [tags, setTags] = useState<string[]>([]);
   // const inputRefs = useRef(null);
-  const addressRef = useRef(null);
+  // const addressRef = useRef(null);
   const [formData, setFormData] = useState<IFormInputData>({
     address: "",
     attribute: [""],
@@ -154,11 +155,15 @@ const SearchFields = () => {
 
   // Disable Enter key for input fields to prevent submission
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
+    // if (e.key === "Enter") {
+    //   e.preventDefault();
+    //   if (e.currentTarget.name === "prompt" && addressRef.current) {
+    //     addressRef.current.focus(); // Move focus to address field
+    //   }
+    // }
+    if (e.shiftKey && e.key === "Enter") {
       e.preventDefault();
-      if (e.currentTarget.name === "prompt" && addressRef.current) {
-        addressRef.current.focus(); // Move focus to address field
-      }
+      setSearchData(formData);
     }
   };
 
@@ -205,18 +210,18 @@ const SearchFields = () => {
                 onChange={handleChange}
                 placeholder="Location"
                 onKeyDown={handleKeyDown}
-                ref={addressRef} // Assign the ref to the Input component
+                // ref={addressRef} // Assign the ref to the Input component
               />
             </div>
             <div className="flex items-center gap-4">
               {/* Search Field */}
               <div>
                 <Button type="submit" className="group">
-                  <span className="">Search</span>
                   <FaSearch
-                    // size="20px"
+                    size={30}
                     className="text-md transform transition-transform duration-300 ease-in-out group-hover:translate-y-[-3px]"
                   />
+                  <span className="">Search</span>
                 </Button>
               </div>
 
@@ -225,12 +230,13 @@ const SearchFields = () => {
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button className="group">
-                      <span>Clear</span>
-                      <RxCrossCircled
-                        color="red"
-                        size={30}
-                        className="text-2xl transform transition-transform duration-300 ease-in-out group-hover:translate-y-[-3px]"
-                      />
+                      <div className="w-fit h-fit rounded-full p-1 bg-white duration-300 ease-in-out  group-hover:translate-y-[-3px]">
+                        <RxCross1
+                          color="red"
+                          size={30}
+                          className="text-2xl transform transition-transform "
+                        />
+                      </div>
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
@@ -338,16 +344,16 @@ const SearchFields = () => {
 
         {/* Estimsated Salary */}
         <div className="w-[184px] relative">
-          <label
+          <Label
             htmlFor="estimatedSalary"
-            className="absolute truncate left-2 px-1 text-center text-xs font-medium  text-gray-700 -top-2 bg-white"
+            className="absolute truncate left-2 px-1 text-center text-xs font-medium  text-gray-700 -top-2 bg-white rounded-md dark:bg-black dark:text-white"
           >
             Expected Salary(USD) Range
-          </label>
-          <input
+          </Label>
+          <Input
             type="text"
             id="estimatedSalary"
-            className="peer block h-10 w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-xs  focus-within:ring-1 ring-inset focus:outline-none focus:ring-black focus:ring-opacity-80 "
+            className="peer block h-10 w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-sm  focus-within:ring-1 ring-inset focus:outline-none focus:ring-black focus:ring-opacity-80 dark:bg-black dark:text-white"
             value={formData.estimated_salary.join(" - ")}
             onChange={(event) =>
               validateInput(event, "estimated_salary", setFormData)
@@ -358,16 +364,16 @@ const SearchFields = () => {
 
         {/* Current Salary */}
         <div className="w-[11rem] relative">
-          <label
+          <Label
             htmlFor="currentSalary"
-            className="absolute left-2 px-1 text-xs font-medium text-gray-700 -top-2 bg-white"
+            className="absolute left-2 px-1 text-xs font-medium text-gray-700 -top-2 bg-white rounded-md dark:bg-black dark:text-white"
           >
             Current Salary(USD) Range
-          </label>
-          <input
+          </Label>
+          <Input
             type="text"
             id="currentSalary"
-            className="peer block w-full h-10 rounded-md border border-gray-300  bg-white py-2 px-3 text-xs focus-within:ring-1 ring-inset focus:outline-none focus:ring-black focus:ring-opacity-80"
+            className="peer block w-full h-10 rounded-md border border-gray-300  bg-white py-2 px-3 text-sm focus-within:ring-1 ring-inset focus:outline-none focus:ring-black focus:ring-opacity-80 dark:bg-black dark:text-white"
             value={formData.current_salary.join(" - ")}
             onChange={(event) =>
               validateInput(event, "current_salary", setFormData)

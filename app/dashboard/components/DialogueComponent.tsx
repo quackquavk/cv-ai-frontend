@@ -929,15 +929,15 @@ function DialogueComponent({
               >
                 Cancel
               </button>
-              <button
-                className="bg-black text-white px-5 py-2 rounded-lg hover:opacity-70 "
+              <Button
+                className="px-5 py-2 rounded-lg hover:opacity-70 "
                 onClick={() => {
                   handleDialogue(false);
                   archiveFile();
                 }}
               >
                 Archive
-              </button>
+              </Button>
             </section>
           </div>
         </DialogContent>

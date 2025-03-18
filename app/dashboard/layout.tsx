@@ -1,4 +1,5 @@
 "use client";
+import { useState, useRef, useMemo } from "react";
 import SideNavBar from "./components/SideNavBar";
 import SearchFields from "./components/SearchFields";
 import { ViewProvider } from "./context/ViewContext";
@@ -15,6 +16,17 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const queryClient = new QueryClient();
+
+  // const isCollapsedRef = useRef(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const handleCollapsedChange = (collapsed: boolean) => {
+    // isCollapsedRef.current = collapsed;
+    setIsCollapsed(collapsed);
+  };
+
+  // const layoutContent = useMemo( () => ())
+
   return (
     <QueryClientProvider client={queryClient}>
       <SidebarProvider>
@@ -23,17 +35,24 @@ export default function DashboardLayout({
             <ApiDataProvider>
               <SpinnerProvider>
                 <Spinner />
-                <div className="w-[100%] flex gap-6">
-                  <div className="w-[20%]">
-                    <SideNavBar />
+                <div className="h-screen flex w-full overflow-hidden">
+                  <div
+                    className={`transition-all ease-in-out duration-300 flex-shrink-0 ${
+                      isCollapsed ? "w-16" : "w-1/5"
+                    }`}
+                  >
+                    <SideNavBar
+                      isCollapsed={isCollapsed}
+                      onCollapsedChange={handleCollapsedChange}
+                    />
                   </div>
-                  <SidebarInset className="w-[80%]">
-                    {/* <header className="flex pt-2 justify-start shrink-0 items-center gap-2 "></header> */}
-                    <div className="pr-6 flex flex-col gap-8">
-                      <div>
+
+                  <SidebarInset className="transition-[width] ease-out duration-200 transform-gpu flex-grow overflow-auto w-full">
+                    <div className="px-6 flex flex-col gap-8 w-full h-full">
+                      <div className="pt-4">
                         <SearchFields />
                       </div>
-                      <div className="max-w-full">{children}</div>
+                      <div className="flex-grow w-full">{children}</div>
                     </div>
                   </SidebarInset>
                 </div>
