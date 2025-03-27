@@ -197,22 +197,37 @@ const ListView = ({ data, searchData }: ListViewProps) => {
   const allDocuments =
     infiniteData?.pages.flatMap((page: any) => page.documents) ?? [];
 
+  const formatName = (name: string | undefined): string => {
+    if (!name) return "undefined";
+    return name.trim().replace(/\s+/g, "-").toLowerCase();
+  };
+
+  const formatLanguages = (languages: string[] | undefined): string => {
+    if (!languages || languages.length === 0) return "undefined";
+    return languages
+      .slice(0, 3)
+      .map((lang) => lang.toLowerCase())
+      .join("-");
+  };
+
   return (
-    <div className="flex flex-col w-full max-w-[100vw] rounded-md sm:p-2 gap-3 sm:gap-5">
+    <div className="flex flex-col w-full max-w-[100vw] rounded-md sm:p-2 gap-3 sm:gap-5 items-center">
       {allDocuments.length === 0 || !isFolderListOpen ? (
-        <p>No Document Available</p>
+        <p className="text-gray-600">No Document Available...</p>
       ) : (
         <>
           {allDocuments.map((item: any) => (
             <Link
               legacyBehavior={false}
               key={item._id}
-              href={`/cv-detail/${item._id}`}
+              href={`/cv-detail/${item._id}/${formatName(
+                item?.parsed_cv?.name
+              )}/${formatLanguages(item?.parsed_cv?.programming_languages)}`}
               target="_blank"
               className="transform mb-3 hover:scale-x-[1.01] hover:scale-y-[1.02] hover:cursor-pointer transition duration-500 ease-in-out w-full overflow-hidden"
             >
-              <Card className="relative gap-2 max-w-full px-3 py-4 sm:px-5 sm:py-8 pb-16 sm:pb-20 hover:border-blue-600 transition duration-500 ease-in-out ">
-                <div className="flex justify-between">
+              <Card className="relative gap-2 max-w-full px-3 py-4 sm:px-5 sm:py-8 pb-16 sm:pb-20 hover:border-[#ff6600] transition duration-500 ease-in-out">
+                <div className="relative flex justify-between">
                   <div className="flex flex-col lg:flex-row z-0 lg:justify-between w-full gap-4">
                     {/* Basic Information */}
                     <div className="flex flex-col gap-1 w-full lg:w-[25%] overflow-clip ">
@@ -226,7 +241,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                           {item?.parsed_cv?.address && (
                             <span className="flex items-center">
                               <IoLocation className="text-base mr-2" />
-                              <span className="text-gray-500 text-sm dark:text-gray-400">
+                              <span className="text-gray-500 text-sm dark:text-white">
                                 {item?.parsed_cv.address}
                               </span>
                             </span>
@@ -262,7 +277,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                             onClick={(event) =>
                               handleEmailClick(event, item?.parsed_cv.email)
                             }
-                            className="text-sm text-blue-800 underline hover:opacity-80 truncate"
+                            className="text-sm text-[#ff6600] underline hover:opacity-80 truncate"
                           >
                             {item?.parsed_cv.email}
                           </span>
@@ -280,7 +295,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                                 item?.parsed_cv.linkedin_url
                               )
                             }
-                            className="text-xs sm:text-sm text-blue-800 underline hover:opacity-80 truncate"
+                            className="text-xs sm:text-sm text-[#ff6600] underline hover:opacity-80 truncate"
                           >
                             {item?.parsed_cv?.linkedin_url}
                           </span>
@@ -298,7 +313,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                             }
                             onClick={(e) => e.stopPropagation()}
                             target="_blank"
-                            className="text-xs sm:text-sm text-blue-800 underline hover:opacity-80 truncate"
+                            className="text-xs sm:text-sm text-[#ff6600] underline hover:opacity-80 truncate"
                           >
                             {item?.parsed_cv?.github_url}
                           </Link>
@@ -409,11 +424,11 @@ const ListView = ({ data, searchData }: ListViewProps) => {
 
                     {/* Edited status check */}
                     {!item?.parsed_cv?.edited && (
-                      <div className="hidden lg:flex mt-[-3px]">
+                      <div className="hidden absolute right-[-20px] top-[-30px] lg:flex">
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Dot color="red" size={28} />
+                              <Dot color="red" size={48} />
                             </TooltipTrigger>
                             <TooltipContent className="mb-[-2px]p-1 text-xs">
                               <p>Not Edited</p>
@@ -425,11 +440,11 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                   </div>
                   {/* Edited status check */}
                   {!item?.parsed_cv?.edited && (
-                    <div className="flex lg:hidden mt-[-3px] text-3xl">
+                    <div className="flex absolute top-[-25px] right-[-20px] lg:hidden  text-3xl">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Dot color="red" size={28} />
+                            <Dot color="red" size={48} />
                           </TooltipTrigger>
                           <TooltipContent
                             side="top"

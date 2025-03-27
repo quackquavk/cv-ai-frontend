@@ -25,6 +25,7 @@ import { BsThreeDotsVertical } from "react-icons/bs";
 import { folderSelectStore } from "../store";
 import { FaRegFolder, FaRegFolderOpen } from "react-icons/fa";
 import { publicFolderStore } from "../store";
+import { Input } from "@/components/ui/input";
 
 const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
   const [folders, setFolders] = useState([]);
@@ -239,8 +240,40 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
     }
   };
 
+  const fetchDocumentsByIds = async (docIds: string[]) => {
+    const promises = docIds.map((docId) =>
+      axiosInstance.get(`/document/cv/${docId}`).then((res) => res.data)
+    );
+    return Promise.all(promises);
+  };
+
+  const formatName = (name: string | undefined): string => {
+    if (!name) return "undefined";
+    return name.trim().replace(/\s+/g, "-").toLowerCase();
+  };
+
+  const formatLanguages = (languages: string[] | undefined): string => {
+    if (!languages || languages.length === 0) return "undefined";
+    return languages
+      .slice(0, 3)
+      .map((lang) => lang.toLowerCase())
+      .join("-");
+  };
+
+  const handleCardClick = async (docId: string) => {
+    try {
+      const [documentData] = await fetchDocumentsByIds([docId]);
+      const url = `/cv-detail/${docId}/${formatName(
+        documentData?.parsed_cv?.name
+      )}/${formatLanguages(documentData?.parsed_cv?.programming_languages)}`;
+      window.open(url, "_blank");
+    } catch (error) {
+      console.error("Error fetching document data:", error);
+    }
+  };
+
   return (
-    <div className="text-white w-full">
+    <div className="w-full">
       {/* Dailogue on clikcing Select */}
       {dialogOpen && (
         <DialogueComponent
@@ -295,12 +328,12 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                 }}
                 className="flex-1 ml-12"
               >
-                <input
+                <Input
                   type="text"
                   value={newFolderName}
                   onChange={(e) => setNewFolderName(e.target.value.trim())}
                   onBlur={() => setEditingFolder(null)}
-                  className="bg-gray-800 w-full text-white rounded p-1"
+                  className="w-full rounded p-1"
                   ref={(el) => {
                     if (el) inputRefs.current[folder.folder_id] = el;
                   }}
@@ -350,7 +383,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                       <BsThreeDotsVertical />
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-32 p-1 text-center cursor-pointer ml-36">
+                  <PopoverContent className="w-32 p-1 px-6 cursor-pointer ml-36">
                     <p
                       className="py-1 w-full hover:opacity-50"
                       onClick={() => {
@@ -360,7 +393,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                     >
                       Rename
                     </p>
-                    <hr />
+                    <hr className=" bg-gray-300 h-[1px] border-0" />
                     <p
                       onClick={() => {
                         handleDialogue(true);
@@ -371,7 +404,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                     >
                       Select
                     </p>
-                    <hr />
+                    <hr className=" bg-gray-300 h-[1px] border-0" />
                     <p
                       onClick={() => {
                         handleAlert(true);
@@ -392,13 +425,12 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                 folderContents[folder.folder_id].map((file) => (
                   <div
                     key={file.doc_id}
-                    className="relative flex items-center justify-between p-1 text-gray-300 ease-in-out duration-150 delay-75 rounded w-full "
+                    className="relative flex items-center justify-between p-1 text-gray-800 dark:text-gray-400 ease-in-out duration-150 delay-75 rounded w-full "
                   >
-                    <Link
+                    <div
                       key={file.doc_id}
-                      href={`/cv-detail/${file.doc_id}`}
-                      target="_blank"
-                      className="w-full hover:opacity-60 truncate flex items-center space-x-[1px] "
+                      onClick={() => handleCardClick(file.doc_id)}
+                      className="w-full hover:opacity-60 truncate flex items-center space-x-[1px] cursor-pointer"
                       draggable
                       onDragStart={() =>
                         handleDragStart(file, folder.folder_id)
@@ -411,13 +443,13 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                       <span className="px-2  py-1 text-sm truncate">
                         {file.doc_name.replace(".pdf", "")}
                       </span>
-                    </Link>
+                    </div>
 
                     <Popover>
                       <PopoverTrigger asChild>
                         <button>
                           <BsThreeDots
-                            className="text-white hover:opacity-60 hover:cursor-pointer"
+                            className="text-gray-800 dark:text-gray-400 hover:opacity-60 hover:cursor-pointer"
                             size={"15px"}
                           />
                         </button>
@@ -486,7 +518,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
 
                             <div className="w-full flex justify-end mt-2">
                               <button
-                                className="text-sm bg-black text-white rounded-lg px-4 py-1"
+                                className="text-sm bg-[#ff6600] text-white hover:bg-[#ff8533] rounded-lg px-4 py-1"
                                 onClick={() => {
                                   handleMove(file);
                                 }}
@@ -501,7 +533,9 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                   </div>
                 ))
               ) : (
-                <div className="text-gray-400 italic">No PDFs uploaded.</div>
+                <div className="text-gray-800 dark:text-gray-400 italic">
+                  No PDF's uploaded.
+                </div>
               )}
             </div>
           )}

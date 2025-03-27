@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PiPlusCircleDuotone } from "react-icons/pi";
+// import { PiPlusCircleDuotone } from "react-icons/pi";
+import { CirclePlus } from "lucide-react";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { FaChevronDown } from "react-icons/fa";
 import { toast } from "sonner";
@@ -67,9 +68,7 @@ function FolderCreation({ onFolderCreated, setUpdateFolderList }) {
 
   return (
     <div className="flex justify-between items-center">
-      <div className="text-lg font-semibold flex-1 text-white">
-        Public Folder
-      </div>
+      <div className="text-lg font-medium flex-1">Public Folder</div>
       {dialogOpen && (
         <DialogueComponent
           variant="selectMultipleFolders"
@@ -82,8 +81,11 @@ function FolderCreation({ onFolderCreated, setUpdateFolderList }) {
         {/* folder creation icon */}
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
-            <button aria-label="Add Folder" className="text-white relative">
-              <PiPlusCircleDuotone size={24} />
+            <button aria-label="Add Folder" className=" relative">
+              <CirclePlus
+                size={20}
+                // className="text-[#ECEBE3] border-black"
+              />
             </button>
           </PopoverTrigger>
           <PopoverContent className="w-[16rem]  absolute">
@@ -125,7 +127,7 @@ function FolderCreation({ onFolderCreated, setUpdateFolderList }) {
         {/* Toggle Folder List Button */}
         <button onClick={toogleFolderList} aria-label="Toggle Folder List">
           <FaChevronDown
-            className={`text-white transform transition-transform duration-300 ${
+            className={`transform transition-transform duration-300 ${
               isFolderListOpen ? "rotate-180" : "rotate-0"
             }`}
           />
@@ -134,7 +136,7 @@ function FolderCreation({ onFolderCreated, setUpdateFolderList }) {
         {/* three dot icons */}
         <Popover>
           <PopoverTrigger asChild>
-            <button aria-label="options" className="text-white">
+            <button aria-label="options" className="">
               <BsThreeDotsVertical />
             </button>
           </PopoverTrigger>

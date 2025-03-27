@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useMemo } from "react";
+import { useState } from "react";
 import SideNavBar from "./components/SideNavBar";
 import SearchFields from "./components/SearchFields";
 import { ViewProvider } from "./context/ViewContext";
@@ -9,6 +9,8 @@ import { SpinnerProvider } from "./context/SpinnerContext";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import Spinner from "@/components/ui/Spinner/Spinner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Menu } from "lucide-react";
 
 export default function DashboardLayout({
   children,
@@ -16,16 +18,16 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const queryClient = new QueryClient();
-
-  // const isCollapsedRef = useRef(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const handleCollapsedChange = (collapsed: boolean) => {
-    // isCollapsedRef.current = collapsed;
     setIsCollapsed(collapsed);
   };
 
-  // const layoutContent = useMemo( () => ())
+  const toggleMobileSidebar = () => {
+    setIsMobileOpen(!isMobileOpen);
+  };
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -35,21 +37,59 @@ export default function DashboardLayout({
             <ApiDataProvider>
               <SpinnerProvider>
                 <Spinner />
-                <div className="h-screen flex w-full overflow-hidden">
+                <div className="h-screen flex w-full overflow-hidden relative">
+                  {/* Desktop Sidebar */}
                   <div
-                    className={`transition-all ease-in-out duration-300 flex-shrink-0 ${
+                    className={`transition-all ease-in-out duration-300 flex-shrink-0 hidden md:block ${
                       isCollapsed ? "w-16" : "w-1/5"
                     }`}
                   >
                     <SideNavBar
                       isCollapsed={isCollapsed}
                       onCollapsedChange={handleCollapsedChange}
+                      isMobile={false}
+                    />
+                  </div>
+
+                  {/* Hamburger menu for mobile - positioned at top left */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="sticky top-[38px] left-4 z-50 md:hidden bg-[#ECEBE2] dark:bg-[#3A3A3A] hover:bg-orange-100"
+                    onClick={toggleMobileSidebar}
+                  >
+                    <Menu className="h-6 w-6" />
+                  </Button>
+
+                  {/* Mobile Sidebar Overlay */}
+                  <div
+                    className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 md:hidden ${
+                      isMobileOpen
+                        ? "opacity-100"
+                        : "opacity-0 pointer-events-none"
+                    }`}
+                    onClick={toggleMobileSidebar}
+                  ></div>
+
+                  {/* Mobile Sidebar */}
+                  <div
+                    className={`fixed top-0 left-0 h-full z-50 transition-transform duration-300 ease-in-out transform md:hidden ${
+                      isMobileOpen ? "translate-x-0" : "-translate-x-full"
+                    }`}
+                    style={{ width: "70%" }}
+                  >
+                    <SideNavBar
+                      isCollapsed={false}
+                      onCollapsedChange={() => {}}
+                      isMobile={true}
+                      onMobileClose={toggleMobileSidebar}
                     />
                   </div>
 
                   <SidebarInset className="transition-[width] ease-out duration-200 transform-gpu flex-grow overflow-auto w-full">
                     <div className="px-6 flex flex-col gap-8 w-full h-full">
                       <div className="pt-4">
+                        {/* Removed hamburger from here and moved to fixed position */}
                         <SearchFields />
                       </div>
                       <div className="flex-grow w-full">{children}</div>

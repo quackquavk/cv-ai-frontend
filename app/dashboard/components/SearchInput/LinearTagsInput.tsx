@@ -118,7 +118,7 @@ const LinearTagsInput = ({ tags, setTags, onShiftEnter }) => {
   return (
     <div className="w-full relative ">
       <div
-        className="min-h-100 w-full p-[0.4rem] border-2 border-#CCCC rounded-lg flex flex-wrap items-center gap-2 focus-within:ring-1 focus-within:ring-gray-900 cursor-text"
+        className="min-h-100 w-full p-[0.4rem] border-2 border-#CCCC rounded-lg flex flex-wrap items-center gap-2 focus-within:ring-1 focus-within:ring-gray-900 cursor-text dark:bg-[#3A3A3A] dark:border-[#505050]"
         onClick={handleClick}
       >
         <button
@@ -161,9 +161,8 @@ const LinearTagsInput = ({ tags, setTags, onShiftEnter }) => {
               onKeyDown={handleKeyDown}
               className="flex-1 outline-none bg-transparent w-[20rem]"
               placeholder={
-                tags.length === 0
-                  ? "Tags to search... e.g.nodejs nextjs python "
-                  : ""
+                tags.length === 0 &&
+                "Tags to search... e.g.nodejs nextjs python"
               }
             />
           </div>

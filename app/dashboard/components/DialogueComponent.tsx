@@ -27,6 +27,8 @@ import { FaTrashAlt } from "react-icons/fa";
 import { BsFolderSymlink } from "react-icons/bs";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import {
   Command,
   CommandEmpty,
@@ -449,19 +451,19 @@ function DialogueComponent({
             <div className=" flex flex-col w-full space-y-6  mb-8 mt-4">
               <h1 className="text-xl">{name}</h1>
               <section className="flex  items-center justify-between ">
-                <input
+                <Input
                   type="text"
-                  className="rounded-md border border-#CCCC px-2 py-1"
+                  className="rounded-md h-8 w-52  px-2 py-1"
                   placeholder="Search"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
-                <article className="space-x-2">
+                <article className="space-x-2 flex">
                   <AlertDialog>
                     <AlertDialogTrigger className="p-0 mt-[1px]" asChild>
-                      <button className="border px-4 py-[0.67rem] hover:backdrop-brightness-95 rounded-md">
-                        <FaTrashAlt className="hover:cursor-pointer" />
-                      </button>
+                      <Card className="border px-4 py-[0.67rem] hover:backdrop-brightness-95 rounded-md items-center hover:cursor-pointer">
+                        <FaTrashAlt />
+                      </Card>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
@@ -479,6 +481,7 @@ function DialogueComponent({
                             handleDocumentArchive();
                             handleDialogue(false);
                           }}
+                          className="dark:text-white"
                         >
                           Archive
                         </AlertDialogAction>
@@ -488,14 +491,14 @@ function DialogueComponent({
 
                   <Popover open={open} onOpenChange={setOpen} modal={true}>
                     <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
+                      <Card
+                        // variant="outline"
                         role="combobox"
                         aria-expanded={open}
-                        className="justify-between"
+                        className="items-center border px-4 py-[0.67rem] hover:backdrop-brightness-95 rounded-md cursor-pointer"
                       >
                         <BsFolderSymlink />
-                      </Button>
+                      </Card>
                     </PopoverTrigger>
                     <PopoverContent
                       className="w-[200px] p-0 max-h-[400px]"
@@ -537,7 +540,7 @@ function DialogueComponent({
                       </Command>
                       <div className="w-full px-2  flex justify-end">
                         <button
-                          className="text-sm bg-black text-white rounded-lg mb-5 px-4 py-1 mt-5 flex justify-end"
+                          className="text-sm bg-[#ff6600] hover:bg-[#ff8533] text-white rounded-lg mb-5 px-4 py-1 mt-5 flex justify-end"
                           onClick={() => {
                             handleMove();
                           }}
@@ -618,9 +621,9 @@ function DialogueComponent({
                 <h1 className="text-lg">Select Folders</h1>
 
                 <section className="flex  items-center space-x-2">
-                  <input
+                  <Input
                     type="text"
-                    className="rounded-md border border-#CCCC px-2 py-1"
+                    className="rounded-md h-8 w-52 px-2 py-1"
                     placeholder="Search"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -701,9 +704,9 @@ function DialogueComponent({
               <div className="flex justify-end">
                 <AlertDialog>
                   <AlertDialogTrigger className="p-0 mt-[1px]" asChild>
-                    <button className="px-5 py-2 border border-#CCCC bg-black text-gray-100 mt-10 rounded-lg">
+                    <Button className="px-5 py-2 mt-10 rounded-lg dark:text-white">
                       Archive
-                    </button>
+                    </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
@@ -721,6 +724,7 @@ function DialogueComponent({
                           handleMultipleFolderArchive();
                           handleDialogue(false);
                         }}
+                        className="dark:text-white"
                       >
                         Archive
                       </AlertDialogAction>
@@ -749,9 +753,9 @@ function DialogueComponent({
           <div className=" flex flex-col w-full space-y-6 mb-5 mt-4">
             <h1 className="text-xl font-semibold">Archive</h1>
             <section className="flex  items-center space-x-2">
-              <input
+              <Input
                 type="text"
-                className="rounded-md border border-#CCCC px-2 py-1"
+                className="rounded-md h-8 w-52 px-2 py-1"
                 placeholder="Search"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -848,14 +852,14 @@ function DialogueComponent({
                   </div>
                 ))}
               <div className="flex justify-end">
-                <button
-                  className="px-5 py-2 border border-#CCCC bg-black text-gray-100 mt-10 rounded-lg"
+                <Button
+                  className="px-5 py-2 border mt-10 rounded-lg"
                   onClick={() => {
                     handleUnarchive();
                   }}
                 >
                   Unarchive
-                </button>
+                </Button>
               </div>
             </section>
           )}
@@ -875,10 +879,10 @@ function DialogueComponent({
             <h1 className="text-2xl font-semibold  ">
               Are you sure you want to archive?
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400">
               The folder you selected will not be visible.
             </p>
-            <section className="w-full   flex space-x-7  justify-end  ">
+            <section className="w-full  flex space-x-7  justify-end  ">
               <button
                 className="hover:opacity-70"
                 onClick={() => {
@@ -887,15 +891,15 @@ function DialogueComponent({
               >
                 Cancel
               </button>
-              <button
-                className="bg-black text-white px-5 py-2 rounded-lg hover:opacity-70 "
+              <Button
+                className="px-5 py-2 rounded-lg hover:opacity-70 "
                 onClick={() => {
                   handleDialogue(false);
                   archiveFolder();
                 }}
               >
                 Archive
-              </button>
+              </Button>
             </section>
           </div>
         </DialogContent>
@@ -917,7 +921,7 @@ function DialogueComponent({
             <h1 className="text-2xl font-semibold  ">
               Are you sure you want to archive?
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400 ">
               The file you selected will not be visible.
             </p>
             <section className="w-full flex space-x-7  justify-end  ">

@@ -92,7 +92,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
 
   useEffect(() => {
     fetchFullCV();
-  }, []);
+  }, [id]);
 
   // For displaying initial availability
   useEffect(() => {
@@ -305,7 +305,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                   rel="noopener noreferrer"
                                   className="max-w-48 truncate"
                                 >
-                                  <span className="text-blue-800 underline hover:opacity-80 text-sm">
+                                  <span className="text-[#e65c00] dark:text-[#ff8533] underline hover:opacity-80 text-sm">
                                     {data.linkedin_url}
                                   </span>
                                 </a>
@@ -328,7 +328,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                   target="_blank"
                                   className="max-w-48 truncate"
                                 >
-                                  <span className="text-blue-800 underline hover:opacity-80 text-sm">
+                                  <span className="text-[#e65c00] dark:text-[#ff8533] underline hover:opacity-80 text-sm">
                                     {data?.git_url}
                                   </span>
                                 </Link>
@@ -351,7 +351,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                   target="_blank"
                                   className="max-w-48 truncate"
                                 >
-                                  <span className="text-blue-800 underline hover:opacity-80 text-sm">
+                                  <span className="text-[#e65c00] dark:text-[#ff8533] underline hover:opacity-80 text-sm">
                                     {data?.website}
                                   </span>
                                 </Link>
@@ -371,7 +371,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                   target="_blank"
                                   className="max-w-48  truncate"
                                 >
-                                  <span className="text-blue-800 underline hover:opacity-80 text-sm">
+                                  <span className="text-[#e65c00] dark:text-[#ff8533] underline hover:opacity-80 text-sm">
                                     {data?.email}
                                   </span>
                                 </Link>
@@ -734,9 +734,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                           onClick={() => handleChoice("like")}
                           className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all
                 ${
-                  userChoice === "like"
-                    ? "bg-blue-100 text-green-600"
-                    : "hover:bg-gray-100"
+                  userChoice === "like" ? "text-green-600" : "hover:bg-gray-100"
                 }`}
                         >
                           <ThumbsUp
@@ -752,7 +750,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                           className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all
                 ${
                   userChoice === "dislike"
-                    ? "bg-red-100 text-red-600"
+                    ? "text-red-600"
                     : "hover:bg-gray-100"
                 }`}
                         >
@@ -830,21 +828,21 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     {/* Current Salary */}
                     <div className="w-auto relative">
                       {/* Label */}
-                      <label
+                      <Label
                         htmlFor="currentSalary"
-                        className={`absolute left-3 px-1 text-center text-[9px] font-medium text-gray-700 ${
+                        className={`absolute left-3 px-1 text-center text-[10px] font-medium text-gray-700 dark:bg-[#3A3A3A] dark:text-white ${
                           inputData.current_salary !== null
                             ? "-top-2 bg-white"
                             : "top-2.5 text-gray-500"
                         }`}
                       >
                         Current Salary(USD)
-                      </label>
+                      </Label>
                       {/* Input Field */}
-                      <input
+                      <Input
                         type="text"
                         id="currentSalary"
-                        className="peer block w-auto rounded-md border border-gray-300 transition-all duration-100 bg-white py-2 px-3 text-[9px] shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
+                        className="peer block w-auto rounded-md border border-gray-300 transition-all duration-100 bg-white py-2 px-3 text-[10px] shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
                         value={
                           inputData.current_salary !== null
                             ? inputData.current_salary.toString()
@@ -859,21 +857,21 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     {/* Estimated Salary */}
                     <div className="w-auto relative">
                       {/* Label */}
-                      <label
+                      <Label
                         htmlFor="estimatedSalary"
-                        className={`absolute left-3 px-1 text-[9px] font-medium transition-all duration-100 text-gray-700 ${
+                        className={`absolute left-3 px-1 text-[10px] font-medium transition-all duration-100 text-gray-700 dark:bg-[#3A3A3A] dark:text-white ${
                           inputData.estimated_salary !== null
                             ? "-top-2 bg-white"
                             : "top-2.5 text-gray-500"
                         }`}
                       >
                         Expected Salary(USD)
-                      </label>
+                      </Label>
                       {/* Input Field */}
-                      <input
+                      <Input
                         type="text"
                         id="estimatedSalary"
-                        className="block w-auto rounded-md border border-gray-300 bg-white py-2 px-3 text-[9px] shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
+                        className="block w-auto rounded-md border border-gray-300 bg-white py-2 px-3 text-[10px] shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
                         value={
                           inputData.estimated_salary !== null
                             ? inputData.estimated_salary.toString()
@@ -946,12 +944,12 @@ const CVDetailPage = ({ params }: { params: any }) => {
           <div className="h-[100vh] relative">
             {/* Hamburger Menu */}
             {closeParsedData && (
-              <div
-                className="absolute hidden md:flex top-3 right-4 z-10 bg-gray-200 opacity-200 cursor-pointer p-2 rounded dark:bg-[#333332]"
+              <Card
+                className="absolute hidden md:flex top-3 right-4 z-10 bg-gray-200 cursor-pointer p-2 rounded dark:bg-[#2C2C2C]"
                 onClick={() => setCloseParsedData((prev) => !prev)}
               >
                 <RxHamburgerMenu />
-              </div>
+              </Card>
             )}
             {/* Embed PDF viewer */}
             <iframe
@@ -1004,7 +1002,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                             rel="noopener noreferrer"
                             className="max-w-48 truncate"
                           >
-                            <span className="text-blue-800 underline hover:opacity-80 text-sm">
+                            <span className="text-[#e65c00] dark:text-[#ff8533] underline hover:opacity-80 text-sm">
                               {data.linkedin_url}
                             </span>
                           </a>
@@ -1027,7 +1025,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                             target="_blank"
                             className="max-w-48 truncate"
                           >
-                            <span className="text-blue-800 underline hover:opacity-80 text-sm">
+                            <span className="text-[#e65c00] dark:text-[#ff8533] underline hover:opacity-80 text-sm">
                               {data?.git_url}
                             </span>
                           </Link>
@@ -1050,7 +1048,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                             target="_blank"
                             className="max-w-48 truncate"
                           >
-                            <span className="text-blue-800 underline hover:opacity-80 text-sm">
+                            <span className="text-[#e65c00] dark:text-[#ff8533] underline hover:opacity-80 text-sm">
                               {data?.website}
                             </span>
                           </Link>
@@ -1070,7 +1068,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                             target="_blank"
                             className="max-w-48 truncate"
                           >
-                            <span className="text-blue-800 underline hover:opacity-80 text-sm">
+                            <span className="text-[#e65c00] dark:text-[#ff8533] underline hover:opacity-80 text-sm">
                               {data?.email}
                             </span>
                           </Link>
@@ -1108,14 +1106,12 @@ const CVDetailPage = ({ params }: { params: any }) => {
                   </div>
 
                   {/* Close / Open Button */}
-                  <div className="flex w-max-[40%] mr-4 flex-wrap flex-col gap-2 justify-end">
-                    <div
-                      className="cursor-pointer bg-gray-200 opacity-200 p-2 rounded dark:bg-[#333332]"
-                      onClick={() => setCloseParsedData((prev) => !prev)}
-                    >
-                      <RxHamburgerMenu />
-                    </div>
-                  </div>
+                  <Card
+                    className="flex w-max-[40%] mr-4 flex-wrap flex-col gap-2 justify-end cursor-pointer bg-gray-200 dark:bg-[#2C2C2C] dark:text-white  p-2 rounded-md"
+                    onClick={() => setCloseParsedData((prev) => !prev)}
+                  >
+                    <RxHamburgerMenu />
+                  </Card>
                 </div>
               </div>
 
@@ -1158,7 +1154,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                             <span className="text-gray-600">
                               <GoDotFill />
                             </span>
-                            <span className="text-sm dark:text-gray-400 capitalize">
+                            <span className="text-sm dark:text-gray-300 capitalize">
                               {item}
                             </span>
                           </div>
@@ -1374,8 +1370,8 @@ const CVDetailPage = ({ params }: { params: any }) => {
                         className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all
                 ${
                   userChoice === "like"
-                    ? "bg-blue-100 text-green-600"
-                    : "hover:bg-gray-100"
+                    ? " text-green-600"
+                    : "hover:bg-gray-100 dark:hover:bg-[#2C2C2C]"
                 }`}
                       >
                         <ThumbsUp
@@ -1389,8 +1385,8 @@ const CVDetailPage = ({ params }: { params: any }) => {
                         className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all
                 ${
                   userChoice === "dislike"
-                    ? "bg-red-100 text-red-600"
-                    : "hover:bg-gray-100"
+                    ? "text-red-600"
+                    : "hover:bg-gray-100 dark:hover:bg-[#2C2C2C]"
                 }`}
                       >
                         <ThumbsDown
@@ -1469,7 +1465,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     {/* Label */}
                     <Label
                       htmlFor="currentSalary"
-                      className={`absolute left-3 px-1 text-center text-xs font-medium text-gray-700 dark:bg-black dark:text-white ${
+                      className={`absolute left-3 px-1 text-center text-xs font-medium text-gray-700 dark:bg-[#3A3A3A] dark:text-white ${
                         inputData.current_salary !== null
                           ? "-top-2 bg-white"
                           : "top-2.5 text-gray-500"
@@ -1481,7 +1477,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     <Input
                       type="text"
                       id="currentSalary"
-                      className="peer block w-full rounded-md border border-gray-300 transition-all duration-100 bg-white py-2 px-3 text-xs shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black dark:bg-black dark:text-white dark:focus:ring-white"
+                      className="peer block w-full rounded-md border border-gray-300 transition-all duration-100 bg-white py-2 px-3 text-xs shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
                       value={
                         inputData.current_salary !== null
                           ? inputData.current_salary.toString()
@@ -1498,7 +1494,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     {/* Label */}
                     <Label
                       htmlFor="estimatedSalary"
-                      className={`absolute left-3 px-1 text-xs font-medium transition-all duration-100 text-gray-700 dark:bg-black dark:text-white ${
+                      className={`absolute left-3 px-1 text-xs font-medium transition-all duration-100 text-gray-700 dark:bg-[#3A3A3A] dark:text-white ${
                         inputData.estimated_salary !== null
                           ? "-top-2 bg-white"
                           : "top-2.5 text-gray-500"
@@ -1510,7 +1506,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     <Input
                       type="text"
                       id="estimatedSalary"
-                      className="block w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-xs shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black dark:bg-black dark:text-white dark:focus:ring-white"
+                      className="block w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-xs shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black "
                       value={
                         inputData.estimated_salary !== null
                           ? inputData.estimated_salary.toString()

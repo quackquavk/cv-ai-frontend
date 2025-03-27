@@ -6,9 +6,6 @@ import { IDocumentData } from "@/interfaces/DocumentData";
 import Link from "next/link";
 import axiosInstance from "@/utils/axiosConfig";
 import GridViewSkeleton from "./ui/Skeleton/GridViewSkeleton";
-// import { IoCallOutline } from "react-icons/io5";
-// import { FaGithub } from "react-icons/fa";
-// import { CiLinkedin } from "react-icons/ci";
 import Masonry from "react-masonry-css";
 import { folderSelectStore } from "@/app/dashboard/store";
 import { useSearchContext } from "@/app/dashboard/context/SearchContext";
@@ -84,6 +81,26 @@ function GridView({ data, searchData }: GridViewProps) {
     }
   }, [selectFolderId]);
 
+  const fetchDocumentsByIds = async (docIds: string[]) => {
+    const promises = docIds.map((docId) =>
+      axiosInstance.get(`/document/cv/${docId}`).then((res) => res.data)
+    );
+    return Promise.all(promises);
+  };
+
+  const formatName = (name: string | undefined): string => {
+    if (!name) return "undefined";
+    return name.trim().replace(/\s+/g, "-").toLowerCase();
+  };
+
+  const formatLanguages = (languages: string[] | undefined): string => {
+    if (!languages || languages.length === 0) return "undefined";
+    return languages
+      .slice(0, 3)
+      .map((lang) => lang.toLowerCase())
+      .join("-");
+  };
+
   const fetchSearchResults = async (searchData: IFormInputData) => {
     try {
       const response = await axiosInstance.post(
@@ -125,6 +142,18 @@ function GridView({ data, searchData }: GridViewProps) {
     } finally {
       setLoading(false);
       setIsSearching(false);
+    }
+  };
+
+  const handleCardClick = async (docId: string) => {
+    try {
+      const [documentData] = await fetchDocumentsByIds([docId]);
+      const url = `/cv-detail/${docId}/${formatName(
+        documentData?.parsed_cv?.name
+      )}/${formatLanguages(documentData?.parsed_cv?.programming_languages)}`;
+      window.open(url, "_blank");
+    } catch (error) {
+      console.error("Error fetching document data:", error);
     }
   };
 
@@ -209,18 +238,17 @@ function GridView({ data, searchData }: GridViewProps) {
             <Card
               key={item.doc_id}
               className="masonry-item mb-6 cursor-pointer relative hover:border-blue-600 border-2 transition duration-500 ease-in-out"
+              onClick={() => handleCardClick(item.doc_id)}
             >
-              <Link href={`/cv-detail/${item.doc_id}`} target="_blank">
-                <Image
-                  src={`${process.env.NEXT_PUBLIC_API_BASE_URL}/cv_images/${item.image_id}.webp`}
-                  alt={`Image ${index + 1}`}
-                  height={500}
-                  width={700}
-                  className="rounded-lg object-cover w-full h-auto"
-                  loading="lazy"
-                  layout="responsive"
-                />
-              </Link>
+              <Image
+                src={`${process.env.NEXT_PUBLIC_API_BASE_URL}/cv_images/${item.image_id}.webp`}
+                alt={`Image ${index + 1}`}
+                height={500}
+                width={700}
+                className="rounded-lg object-cover w-full h-auto"
+                loading="lazy"
+                layout="responsive"
+              />
             </Card>
           ))}
         </Masonry>

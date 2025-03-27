@@ -5,9 +5,7 @@ import { IFormInputData } from "@/interfaces/FormInputData";
 import { SearchContext } from "../context/SearchContext";
 import { ViewContext } from "../context/ViewContext";
 import LinearTagsInput from "./SearchInput/LinearTagsInput";
-import { FaSearch } from "react-icons/fa";
-import { RxCross1 } from "react-icons/rx";
-import { Star } from "lucide-react";
+import { Search, SearchX, CircleX, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { folderSelectStore } from "../store";
 import ToogleView from "./ToogleView";
@@ -172,26 +170,25 @@ const SearchFields = () => {
       {/* Top search fields */}
       <form onSubmit={handleSubmit}>
         <div className="flex flex-col w-full">
-          <div className=" justify-start flex py-2 mb-5">
+          <div className="justify-start flex py-2 mb-5">
             <div className="flex w-full max-w-full justify-start">
               <LinearTagsInput
-                // handleClear={handleClear}
                 tags={tags}
                 setTags={setTags}
                 onShiftEnter={handleSubmit}
               />
             </div>
           </div>
-          <div className="flex w-full justify-between items-start text-center">
-            <div className="w-3/6 flex items-center gap-1">
+          <div className="flex flex-col md:flex-row w-full justify-between items-start text-center gap-4">
+            <div className="w-full md:w-3/6 flex items-center gap-1">
               <div className="w-full">
                 <Input
-                  className="placeholder:text-gray-400 w-full py-2 px-2 h-10 rounded-lg  items-center gap-2 focus:outline-none focus:ring-black focus:ring-opacity-75"
+                  className="placeholder:text-gray-400 w-full py-2 px-2 h-10 rounded-lg items-center gap-2 focus:outline-none focus:ring-black focus:ring-opacity-75"
                   type="string"
                   name="prompt"
                   value={formData.prompt}
                   onChange={handleChange}
-                  placeholder="Enter Prompt (skills)"
+                  placeholder="Enter Prompt (Job Descriptions...)"
                   onKeyDown={handleKeyDown}
                 />
               </div>
@@ -200,28 +197,29 @@ const SearchFields = () => {
               </div>
             </div>
 
-            {/* <div className="flex items-center w-[35%]  justify-around flex-shrink-0 "> */}
-            <div className="flex items-center border-1 rounded-lg">
+            <div className="flex items-center border-1 rounded-lg w-full md:w-auto">
               <Input
-                className="w-[12rem]"
+                className="w-full md:w-[12rem]"
                 type="text"
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
                 placeholder="Location"
                 onKeyDown={handleKeyDown}
-                // ref={addressRef} // Assign the ref to the Input component
               />
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-normal">
               {/* Search Field */}
               <div>
-                <Button type="submit" className="group">
-                  <FaSearch
+                <Button
+                  type="submit"
+                  className="group bg-[#4caf50] dark:bg-[#4caf50] dark:hover:bg-[#56b85a] hover:bg-[#56b85a] dark:text-white"
+                >
+                  <Search
                     size={30}
-                    className="text-md transform transition-transform duration-300 ease-in-out group-hover:translate-y-[-3px]"
+                    className="text-md transform transition-transform text-white duration-300 ease-in-out group-hover:translate-y-[-3px]"
                   />
-                  <span className="">Search</span>
+                  <span className="">Shift + Enter</span>
                 </Button>
               </div>
 
@@ -229,30 +227,29 @@ const SearchFields = () => {
               <div>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button className="group">
-                      <div className="w-fit h-fit rounded-full p-1 bg-white duration-300 ease-in-out  group-hover:translate-y-[-3px]">
-                        <RxCross1
-                          color="red"
-                          size={30}
-                          className="text-2xl transform transition-transform "
+                    <Button className="group bg-[#bdbdbd] dark:bg-[#bdbdbd] dark:hover:bg-[#d4d2d2] hover:bg-[#d4d2d2]">
+                      <div className="p-1 duration-300 ease-in-out group-hover:translate-y-[-3px] ">
+                        <SearchX
+                          size={56}
+                          className="text-[#ff6600] transform transition-transform"
                         />
                       </div>
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
-                    <div className="px-4 py-5 space-y-5 ">
-                      <h1 className="text-2xl font-semibold  ">
-                        Are you sure you want to clear all search fields ?
+                  <DialogContent className="w-[90%] max-w-md mx-auto">
+                    <div className="px-4 py-5 space-y-5">
+                      <h1 className="text-xl md:text-2xl font-semibold">
+                        Are you sure you want to clear all search fields?
                       </h1>
-                      <p className="text-gray-600">
+                      <p className="text-gray-600 dark:text-gray-400">
                         The action will clear all the search fields.
                       </p>
-                      <section className="w-full flex space-x-7  justify-end  ">
+                      <section className="w-full flex space-x-7 justify-end">
                         <DialogClose asChild>
                           <button className="hover:opacity-70">Cancel</button>
                         </DialogClose>
                         <DialogClose asChild>
-                          <Button className=" " onClick={() => handleClear()}>
+                          <Button className="" onClick={() => handleClear()}>
                             Clear
                           </Button>
                         </DialogClose>
@@ -263,13 +260,12 @@ const SearchFields = () => {
               </div>
             </div>
           </div>
-          {/* </div> */}
         </div>
       </form>
       {/* sorting search */}
-      <div className="flex items-center justify-between ">
+      <div className="flex flex-wrap items-center justify-between gap-3 md:gap-1">
         {/* Availability */}
-        <div>
+        <div className="w-[calc(50%-0.375rem)] md:w-auto">
           <Select
             value={formData.availability || ""}
             onValueChange={(value) => {
@@ -277,13 +273,12 @@ const SearchFields = () => {
               setFormData({ ...formData, availability: updatedValue });
             }}
           >
-            <SelectTrigger className="w-[120px]">
+            <SelectTrigger className="w-full md:w-[120px]">
               <SelectValue placeholder="Availability" />
             </SelectTrigger>
 
-            <SelectContent className="w-[120px]">
+            <SelectContent className="md:w-[120px] w-full">
               <SelectGroup>
-                {/* <SelectLabel>Availability</SelectLabel> */}
                 <SelectItem value="all">All</SelectItem>
                 <SelectItem value="remote">Remote</SelectItem>
                 <SelectItem value="onsite">Onsite</SelectItem>
@@ -294,7 +289,7 @@ const SearchFields = () => {
         </div>
 
         {/* Time of the day */}
-        <div>
+        <div className="w-[calc(50%-0.375rem)] md:w-auto">
           <Select
             value={formData.time_of_day || ""}
             onValueChange={(value) => {
@@ -302,11 +297,11 @@ const SearchFields = () => {
               setFormData({ ...formData, time_of_day: updatedValue });
             }}
           >
-            <SelectTrigger className="w-[120px]">
+            <SelectTrigger className="w-full md:w-[120px]">
               <SelectValue placeholder="Time" />
             </SelectTrigger>
 
-            <SelectContent className="w-[120px]">
+            <SelectContent className="md:w-[120px] w-full">
               <SelectGroup>
                 <SelectItem value="all">All</SelectItem>
                 <SelectItem value="day">Day</SelectItem>
@@ -318,7 +313,7 @@ const SearchFields = () => {
         </div>
 
         {/* Salary By */}
-        <div>
+        <div className="w-[calc(50%-0.375rem)] md:w-auto">
           <Select
             value={formData.paid_by}
             onValueChange={(value) => {
@@ -326,13 +321,12 @@ const SearchFields = () => {
               setFormData({ ...formData, paid_by: updatedValue });
             }}
           >
-            <SelectTrigger className="w-[120px]">
+            <SelectTrigger className="w-full md:w-[120px]">
               <SelectValue placeholder="Salary By" />
             </SelectTrigger>
 
-            <SelectContent className="w-[120px]">
+            <SelectContent className="md:w-[120px] w-full">
               <SelectGroup>
-                {/* <SelectLabel>Salary Based</SelectLabel> */}
                 <SelectItem value="all">All</SelectItem>
                 <SelectItem value="hourly">Hourly</SelectItem>
                 <SelectItem value="monthly">Monthly</SelectItem>
@@ -342,18 +336,18 @@ const SearchFields = () => {
           </Select>
         </div>
 
-        {/* Estimsated Salary */}
-        <div className="w-[184px] relative">
+        {/* Estimated Salary */}
+        <div className="w-[calc(50%-0.375rem)] md:w-[184px] relative">
           <Label
             htmlFor="estimatedSalary"
-            className="absolute truncate left-2 px-1 text-center text-xs font-medium  text-gray-700 -top-2 bg-white rounded-md dark:bg-black dark:text-white"
+            className="absolute truncate left-6 px-1 text-center text-xs font-medium text-gray-700 -top-2 bg-white rounded-md dark:bg-[#3A3A3A] dark:text-white"
           >
-            Expected Salary(USD) Range
+            Expected Salary(USD)
           </Label>
           <Input
             type="text"
             id="estimatedSalary"
-            className="peer block h-10 w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-sm  focus-within:ring-1 ring-inset focus:outline-none focus:ring-black focus:ring-opacity-80 dark:bg-black dark:text-white"
+            className="peer block h-10 w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-sm focus-within:ring-1 ring-inset focus:outline-none focus:ring-black focus:ring-opacity-80"
             value={formData.estimated_salary.join(" - ")}
             onChange={(event) =>
               validateInput(event, "estimated_salary", setFormData)
@@ -363,17 +357,17 @@ const SearchFields = () => {
         </div>
 
         {/* Current Salary */}
-        <div className="w-[11rem] relative">
+        <div className="w-[calc(50%-0.375rem)] md:w-[11rem] relative">
           <Label
             htmlFor="currentSalary"
-            className="absolute left-2 px-1 text-xs font-medium text-gray-700 -top-2 bg-white rounded-md dark:bg-black dark:text-white"
+            className="absolute left-6 px-1 text-xs font-medium text-gray-700 -top-2 bg-white rounded-md dark:bg-[#3A3A3A] dark:text-white"
           >
-            Current Salary(USD) Range
+            Current Salary(USD)
           </Label>
           <Input
             type="text"
             id="currentSalary"
-            className="peer block w-full h-10 rounded-md border border-gray-300  bg-white py-2 px-3 text-sm focus-within:ring-1 ring-inset focus:outline-none focus:ring-black focus:ring-opacity-80 dark:bg-black dark:text-white"
+            className="peer block w-full h-10 rounded-md border border-gray-300 bg-white py-2 px-3 text-sm focus-within:ring-1 ring-inset focus:outline-none focus:ring-black focus:ring-opacity-80 dark:text-white"
             value={formData.current_salary.join(" - ")}
             onChange={(event) =>
               validateInput(event, "current_salary", setFormData)
@@ -383,7 +377,7 @@ const SearchFields = () => {
         </div>
 
         {/* Rating */}
-        <div className="w-[90px]">
+        <div className="w-[calc(50%-0.375rem)] md:w-[90px]">
           <Select
             value={String(formData.star_rating || "")}
             onValueChange={(value) => {
@@ -391,13 +385,12 @@ const SearchFields = () => {
               setFormData({ ...formData, star_rating: Number(updatedValue) });
             }}
           >
-            <SelectTrigger className="w-[90px]">
+            <SelectTrigger className="w-full md:w-[90px]">
               <SelectValue placeholder="Rating" />
             </SelectTrigger>
 
-            <SelectContent className="w-[90px]">
+            <SelectContent className="md:w-[90px] w-full">
               <SelectGroup>
-                {/* <SelectLabel>Salary Based</SelectLabel> */}
                 <SelectItem value="all">All</SelectItem>
                 <SelectItem value="1">
                   <span className="flex gap-2 items-center">
@@ -445,7 +438,7 @@ const SearchFields = () => {
         </div>
 
         {/* Sorting */}
-        <div className="">
+        <div className="w-[calc(50%-0.375rem)] md:w-auto">
           <Select
             value={formData.sort_order || ""}
             onValueChange={(value) => {
@@ -459,11 +452,11 @@ const SearchFields = () => {
               });
             }}
           >
-            <SelectTrigger className="w-[120px]">
+            <SelectTrigger className="w-full md:w-[120px]">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
 
-            <SelectContent className="w-[120px]">
+            <SelectContent className="md:w-[120px] w-full">
               <SelectGroup>
                 <SelectItem value="a">Ascending</SelectItem>
                 <SelectItem value="d">Descending</SelectItem>
@@ -473,7 +466,7 @@ const SearchFields = () => {
         </div>
 
         {/* Toogle View */}
-        <div>
+        <div className="w-full md:w-auto flex justify-center md:justify-start">
           <ToogleView />
         </div>
       </div>

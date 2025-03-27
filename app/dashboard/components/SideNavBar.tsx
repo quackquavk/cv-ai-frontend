@@ -1,7 +1,7 @@
 "use client";
-import React, {
-  ChangeEvent,
-  DragEvent,
+import {
+  type ChangeEvent,
+  type DragEvent,
   useState,
   useContext,
   useEffect,
@@ -13,15 +13,9 @@ import { SpinnerContext } from "../context/SpinnerContext";
 import { IoIosCloudUpload } from "react-icons/io";
 import FolderCreation from "./FolderCreation";
 import FolderList from "./FolderList";
-import { IFolderData } from "@/interfaces/FolderData";
+import type { IFolderData } from "@/interfaces/FolderData";
 import { fetchUpdatedApiData } from "../utils/updatedInitialData";
-import {
-  ChevronLeft,
-  ChevronRight,
-  LogOut,
-  Settings,
-  User,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, LogOut, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -33,7 +27,6 @@ import {
 } from "@/components/ui/select";
 import axiosInstance from "../../../utils/axiosConfig";
 import {
-  Sidebar,
   SidebarContent,
   SidebarHeader,
   SidebarFooter,
@@ -42,7 +35,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuGroup,
@@ -52,11 +44,15 @@ import DialogueComponent from "./DialogueComponent";
 import { MdFolderZip } from "react-icons/md";
 import { folderSelectStore, publicFolderStore } from "../store";
 import { Moon, Sun } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
-const SideNavBar = ({ isCollapsed, onCollapsedChange }) => {
+const SideNavBar = ({
+  isCollapsed,
+  onCollapsedChange,
+  isMobile = false,
+  onMobileClose = () => {},
+}) => {
   const context = useContext(ApiDataContext);
   const spinnerContext = useContext(SpinnerContext);
   const setApiData = context?.setApiData;
@@ -73,10 +69,6 @@ const SideNavBar = ({ isCollapsed, onCollapsedChange }) => {
   const [localFolderId, setLocalFolderId] = useState<string | null>(
     selectFolderId
   );
-  // const isCollapsedRef = useRef(false);
-  // const [isCollapsed, setIsCollapsed] = useState(false);
-
-  // const folderListCache = useRef<IFolderData[] | null>(null);
 
   // For Theme Change
   const { theme, setTheme } = useTheme();
@@ -94,12 +86,9 @@ const SideNavBar = ({ isCollapsed, onCollapsedChange }) => {
     setSelectedFolderId(selectFolderId);
   }, [selectFolderId]);
 
-  // useEffect(() => {});
-
   const handleValueChange = (value: string) => {
     setLocalFolderId(value);
     setSelectedFolderId(value); // Update the local state to reflect manual selection
-    // setSelectFolderId(value); // Update the external state
   };
 
   useEffect(() => {
@@ -210,22 +199,29 @@ const SideNavBar = ({ isCollapsed, onCollapsedChange }) => {
   const isDarkMode = theme === "dark";
 
   return (
-    <Sidebar
-      className={`h-[100vh] transition-[width] duration-200 ease-out transform-gpu ${
-        isCollapsed ? "w-16" : "w-1/5"
-      } md:block`}
-    >
-      <Card className="border border-black h-[100vh] rounded-none flex flex-col bg-black relative">
-        {/* Collapse Button */}
-        {!isCollapsed && (
+    <div className={`h-full w-full ${isMobile ? "block" : ""}`}>
+      <Card className="border h-full rounded-none flex flex-col relative">
+        {/* Close button for mobile */}
+        {isMobile && (
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-2 right-2 text-white z-20 hover:bg-gray-600 hover:rounded-full"
+            className="absolute top-0 right-2 z-50"
+            onClick={onMobileClose}
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        )}
+
+        {/* Collapse Button - Only show on desktop */}
+        {!isCollapsed && !isMobile && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-1/2 -right-4 transform -translate-y-1/2 z-50 w-8 h-8 rounded-full bg-gray-800 hover:bg-gray-700 border border-gray-600 shadow-md text-center"
             onClick={() => onCollapsedChange(true)}
           >
             <ChevronLeft className="h-4 w-4 text-white" />
-            {/* <SidebarTrigger className="text-white" /> */}
           </Button>
         )}
 
@@ -238,13 +234,13 @@ const SideNavBar = ({ isCollapsed, onCollapsedChange }) => {
         )}
 
         {/* Fixed Header */}
-        <SidebarHeader className="sticky top-0 z-10 bg-black pt-2">
+        <SidebarHeader className="sticky top-0 z-10  pt-2">
           {!isCollapsed ? (
-            <h1 className="text-2xl text-center w-full px-4 text-white">
+            <h1 className="text-2xl text-center w-full px-4 text-black dark:text-white font-bold">
               CV_AI
             </h1>
           ) : (
-            <div className="text-xl text-center w-full text-white flex flex-col">
+            <div className="text-xl text-center w-full text-black dark:text-white flex flex-col">
               <h1>CV</h1>
               <h1>AI</h1>
             </div>
@@ -261,7 +257,7 @@ const SideNavBar = ({ isCollapsed, onCollapsedChange }) => {
           <div
             className={`${
               isCollapsed && "hidden"
-            } w-full px-4 pt-2 sticky top-0 z-10 bg-black`}
+            } w-full px-4 pt-2 sticky top-0 z-10`}
           >
             <div
               onDrop={handleDrop}
@@ -269,12 +265,16 @@ const SideNavBar = ({ isCollapsed, onCollapsedChange }) => {
               onDragLeave={handleDragLeave}
               onDragOver={handleDragOver}
               onClick={() => document.getElementById("file-input")?.click()}
-              className={`relative flex flex-col cursor-pointer items-center justify-center h-22 border-2 border-dashed border-gray-400 p-4 rounded-md bg-black text-white transition-all duration-300 ease-in-out ${
+              className={`relative flex flex-col cursor-pointer items-center justify-center h-22 border-2 border-dashed border-gray-800 dark:border-white p-4 rounded-md  transition-all duration-300 ease-in-out ${
                 isDragging ? "opacity-50 backdrop-blur-sm" : "opacity-100"
               }`}
             >
               <div className="flex flex-col items-center h-full w-full justify-center">
-                <IoIosCloudUpload size={40} className="text-gray-400" />
+                <IoIosCloudUpload
+                  // color="black"
+                  size={40}
+                  className="text-black dark:text-white"
+                />
                 <p className="text-center">Drop your files here</p>
               </div>
             </div>
@@ -293,7 +293,7 @@ const SideNavBar = ({ isCollapsed, onCollapsedChange }) => {
 
           <div
             className={` ${isCollapsed && "hidden"}
-            w-full px-4 py-4 sticky top-[120px] z-10 bg-black`}
+        w-full px-4 py-4 sticky top-[120px] z-10`}
           >
             <Select
               value={localFolderId || ""}
@@ -322,7 +322,7 @@ const SideNavBar = ({ isCollapsed, onCollapsedChange }) => {
 
           <div
             className={`${isCollapsed && "hidden"}
-             w-full px-4 sticky top-[180px] z-10 bg-black`}
+         w-full px-4 sticky top-[180px] z-10`}
           >
             <FolderCreation
               onFolderCreated={handleFolderCreated}
@@ -335,22 +335,22 @@ const SideNavBar = ({ isCollapsed, onCollapsedChange }) => {
           <div
             className={`${
               isCollapsed && "hidden"
-            } w-full px-4 flex-1 overflow-y-auto scrollbar-thin`}
+            } w-full px-4 flex-1 overflow-y-auto mt-4 scrollbar-thin`}
           >
             {isFolderListOpen && displayFolder && (
-              <div>
+              <div className="flex flex-col">
                 <FolderList
                   updateFolderList={updateFolderList}
                   setUpdateFolderList={setUpdateFolderList}
                 />
 
                 <button
-                  className="bg-inherit px-0 items-center py-1 flex justify-start hover:opacity-60 w-full text-white"
+                  className="bg-inherit px-0 items-center py-1 flex justify-start hover:opacity-60 w-full"
                   onClick={() => {
                     handleDialogue(true);
                   }}
                 >
-                  <MdFolderZip className="text-gray-300 opacity-70" />
+                  <MdFolderZip className="opacity-70" />
                   <h1 className="ml-6">Archive</h1>
                 </button>
               </div>
@@ -358,11 +358,12 @@ const SideNavBar = ({ isCollapsed, onCollapsedChange }) => {
           </div>
         </SidebarContent>
 
-        {/* Expand button when collapsed - positioned above profile */}
-        {isCollapsed && (
+        {/* Expand button when collapsed - Only show on desktop */}
+        {isCollapsed && !isMobile && (
           <Button
             variant="ghost"
-            className="mx-auto mb-4 text-white hover:bg-gray-600 hover:rounded-3xl"
+            size="icon"
+            className="absolute top-1/2 -right-4 transform -translate-y-1/2 z-50 w-8 h-8 rounded-full bg-gray-800 hover:bg-gray-700 border border-gray-600 shadow-md text-center"
             onClick={() => onCollapsedChange(false)}
           >
             <ChevronRight className="h-4 w-4 text-white" />
@@ -371,21 +372,17 @@ const SideNavBar = ({ isCollapsed, onCollapsedChange }) => {
 
         {/* Fixed Profile and Settings Section */}
         <SidebarFooter
-          className={`sticky bottom-0 z-10 bg-black pb-6 pt-2 px-4 w-full`}
+          className={`sticky bottom-0 z-10 pb-6 pt-2 px-4 p-3 w-full ${
+            !isCollapsed && ""
+          }`}
         >
-          {/* Profile Section */}
-          <div
-            className={`bg-black p-3 w-full text-white ${
-              !isCollapsed && " hover:bg-gray-800 md:rounded-md"
-            } `}
-          >
-            {/* <div className="p-3"> */}
+          <Card>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <div
                   className={`flex items-center w-full ${
-                    isCollapsed ? "justify-center" : "space-x-3"
-                  } cursor-pointer  p-2 transition-colors`}
+                    isCollapsed ? "justify-center" : "space-x-3 md:rounded-md"
+                  } cursor-pointer p-2 transition-colors`}
                 >
                   <Avatar>
                     <AvatarImage
@@ -404,19 +401,19 @@ const SideNavBar = ({ isCollapsed, onCollapsedChange }) => {
                   )}
                 </div>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-full" forceMount>
-                <DropdownMenuGroup className="flex flex-col">
+              <DropdownMenuContent matchWidth={true} align="end" forceMount>
+                <DropdownMenuGroup className="flex flex-col w-full">
                   {/* Profile */}
                   <div>
                     <DropdownMenuItem>
-                      <User className="" />
+                      <User className="mr-2 h-4 w-4" />
                       <span>Profile</span>
                     </DropdownMenuItem>
                   </div>
                   <DropdownMenuSeparator />
 
                   {/* Theme */}
-                  <div className="flex items-center justify-between gap-4 px-2">
+                  <div className="flex items-center justify-between gap-4 px-2 py-2">
                     <div
                       className={`flex items-center gap-2 cursor-pointer ${
                         !isDarkMode
@@ -482,11 +479,10 @@ const SideNavBar = ({ isCollapsed, onCollapsedChange }) => {
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
-            {/* </div> */}
-          </div>
+          </Card>
         </SidebarFooter>
       </Card>
-    </Sidebar>
+    </div>
   );
 };
 
