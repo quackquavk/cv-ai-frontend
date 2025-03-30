@@ -199,14 +199,18 @@ const ListView = ({ data, searchData }: ListViewProps) => {
 
   const formatName = (name: string | undefined): string => {
     if (!name) return "undefined";
-    return name.trim().replace(/\s+/g, "-").toLowerCase();
+    return name.trim().replace(/\s+/g, "-");
   };
 
   const formatLanguages = (languages: string[] | undefined): string => {
     if (!languages || languages.length === 0) return "undefined";
     return languages
+      .map((item) => {
+        const match = item.match(/\b[a-zA-Z#]+\b/);
+        return match ? match[0] : ""; // Ensure no null values
+      })
+      .filter((lang) => lang !== "") // Remove empty matches
       .slice(0, 3)
-      .map((lang) => lang.toLowerCase())
       .join("-");
   };
 
@@ -226,7 +230,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
               target="_blank"
               className="transform mb-3 hover:scale-x-[1.01] hover:scale-y-[1.02] hover:cursor-pointer transition duration-500 ease-in-out w-full overflow-hidden"
             >
-              <Card className="relative gap-2 max-w-full px-3 py-4 sm:px-5 sm:py-8 pb-16 sm:pb-20 hover:border-[#ff6600] transition duration-500 ease-in-out">
+              <Card className="relative gap-2 max-w-full px-3 py-4 sm:px-5 sm:py-8 pb-16 sm:pb-20 hover:border-black dark:hover:border-white transition duration-500 ease-in-out">
                 <div className="relative flex justify-between">
                   <div className="flex flex-col lg:flex-row z-0 lg:justify-between w-full gap-4">
                     {/* Basic Information */}
@@ -241,7 +245,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                           {item?.parsed_cv?.address && (
                             <span className="flex items-center">
                               <IoLocation className="text-base mr-2" />
-                              <span className="text-gray-500 text-sm dark:text-white">
+                              <span className="text-gray-500 text-sm dark:text-gray-400">
                                 {item?.parsed_cv.address}
                               </span>
                             </span>

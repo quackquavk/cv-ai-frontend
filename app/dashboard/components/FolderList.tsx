@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { FaChevronDown } from "react-icons/fa";
 import { RxHamburgerMenu } from "react-icons/rx";
 import axiosInstance from "@/utils/axiosConfig";
-import Link from "next/link";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -26,6 +25,7 @@ import { folderSelectStore } from "../store";
 import { FaRegFolder, FaRegFolderOpen } from "react-icons/fa";
 import { publicFolderStore } from "../store";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
   const [folders, setFolders] = useState([]);
@@ -517,14 +517,14 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                             </Command>
 
                             <div className="w-full flex justify-end mt-2">
-                              <button
-                                className="text-sm bg-[#ff6600] text-white hover:bg-[#ff8533] rounded-lg px-4 py-1"
+                              <Button
+                                className="text-sm h-8 w-12 rounded-lg px-4 py-1"
                                 onClick={() => {
                                   handleMove(file);
                                 }}
                               >
                                 Move
-                              </button>
+                              </Button>
                             </div>
                           </PopoverContent>
                         </Popover>
@@ -534,7 +534,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                 ))
               ) : (
                 <div className="text-gray-800 dark:text-gray-400 italic">
-                  No PDF's uploaded.
+                  {`No PDF's uploaded.`}
                 </div>
               )}
             </div>

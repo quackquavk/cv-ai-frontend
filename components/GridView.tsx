@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { IFormInputData } from "@/interfaces/FormInputData";
 import { IDocumentData } from "@/interfaces/DocumentData";
-import Link from "next/link";
+// import Link from "next/link";
 import axiosInstance from "@/utils/axiosConfig";
 import GridViewSkeleton from "./ui/Skeleton/GridViewSkeleton";
 import Masonry from "react-masonry-css";
@@ -237,7 +237,7 @@ function GridView({ data, searchData }: GridViewProps) {
           {displayedData.map((item, index) => (
             <Card
               key={item.doc_id}
-              className="masonry-item mb-6 cursor-pointer relative hover:border-blue-600 border-2 transition duration-500 ease-in-out"
+              className="masonry-item mb-6 cursor-pointer relative hover:border-black dark:hover:border-white border-2 transition duration-500 ease-in-out"
               onClick={() => handleCardClick(item.doc_id)}
             >
               <Image

@@ -1,5 +1,5 @@
 "use client";
-import React, { useContext, useRef } from "react";
+import React, { useContext } from "react";
 import ListView from "@/components/ListView";
 import GridView from "@/components/GridView";
 import { ViewContext } from "./context/ViewContext";

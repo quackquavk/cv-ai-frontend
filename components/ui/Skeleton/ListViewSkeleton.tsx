@@ -2,20 +2,20 @@
 
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useEffect, useState } from "react";
+// import { useEffect, useState } from "react";
 
 export default function ListViewSkeleton() {
   // Optional animation for the carousel
-  const [currentSkillIndex, setCurrentSkillIndex] = useState(0);
+  // const [currentSkillIndex, setCurrentSkillIndex] = useState(0);
   const skillCount = 10;
 
   // Simple animation for the skills carousel
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSkillIndex((prev) => (prev + 1) % skillCount);
-    }, 1500);
-    return () => clearInterval(interval);
-  }, []);
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setCurrentSkillIndex((prev) => (prev + 1) % skillCount);
+  //   }, 1500);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   return (
     <div className="transform mb-3 w-full overflow-hidden">

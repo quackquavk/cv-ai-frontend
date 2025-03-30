@@ -1,11 +1,11 @@
 "use client";
-import React, { useState, useContext, useRef, useEffect } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { IFormInputData } from "@/interfaces/FormInputData";
 import { SearchContext } from "../context/SearchContext";
 import { ViewContext } from "../context/ViewContext";
 import LinearTagsInput from "./SearchInput/LinearTagsInput";
-import { Search, SearchX, CircleX, Star } from "lucide-react";
+import { Search, SearchX, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { folderSelectStore } from "../store";
 import ToogleView from "./ToogleView";
@@ -227,11 +227,11 @@ const SearchFields = () => {
               <div>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button className="group bg-[#bdbdbd] dark:bg-[#bdbdbd] dark:hover:bg-[#d4d2d2] hover:bg-[#d4d2d2]">
+                    <Button className="group bg-red-700 hover:bg-[#d4d2d2]">
                       <div className="p-1 duration-300 ease-in-out group-hover:translate-y-[-3px] ">
                         <SearchX
                           size={56}
-                          className="text-[#ff6600] transform transition-transform"
+                          className="text-white transform transition-transform"
                         />
                       </div>
                     </Button>
@@ -340,14 +340,14 @@ const SearchFields = () => {
         <div className="w-[calc(50%-0.375rem)] md:w-[184px] relative">
           <Label
             htmlFor="estimatedSalary"
-            className="absolute truncate left-6 px-1 text-center text-xs font-medium text-gray-700 -top-2 bg-white rounded-md dark:bg-[#3A3A3A] dark:text-white"
+            className="absolute truncate left-6 px-1 text-center text-xs font-medium text-gray-700 -top-2 bg-white rounded-md dark:bg-black dark:text-white"
           >
             Expected Salary(USD)
           </Label>
           <Input
             type="text"
             id="estimatedSalary"
-            className="peer block h-10 w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-sm focus-within:ring-1 ring-inset focus:outline-none focus:ring-black focus:ring-opacity-80"
+            className="peer block h-10 w-full rounded-md border border-gray-300 py-2 px-3 text-sm focus-within:ring-1 ring-inset focus:outline-none focus:ring-black focus:ring-opacity-80"
             value={formData.estimated_salary.join(" - ")}
             onChange={(event) =>
               validateInput(event, "estimated_salary", setFormData)
@@ -360,14 +360,14 @@ const SearchFields = () => {
         <div className="w-[calc(50%-0.375rem)] md:w-[11rem] relative">
           <Label
             htmlFor="currentSalary"
-            className="absolute left-6 px-1 text-xs font-medium text-gray-700 -top-2 bg-white rounded-md dark:bg-[#3A3A3A] dark:text-white"
+            className="absolute left-6 px-1 text-xs font-medium text-gray-700 -top-2 bg-white rounded-md dark:bg-black dark:text-white"
           >
             Current Salary(USD)
           </Label>
           <Input
             type="text"
             id="currentSalary"
-            className="peer block w-full h-10 rounded-md border border-gray-300 bg-white py-2 px-3 text-sm focus-within:ring-1 ring-inset focus:outline-none focus:ring-black focus:ring-opacity-80 dark:text-white"
+            className="peer block w-full h-10 rounded-md border border-gray-300 py-2 px-3 text-sm focus-within:ring-1 ring-inset focus:outline-none focus:ring-black focus:ring-opacity-80"
             value={formData.current_salary.join(" - ")}
             onChange={(event) =>
               validateInput(event, "current_salary", setFormData)

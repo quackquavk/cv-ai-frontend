@@ -118,7 +118,7 @@ const LinearTagsInput = ({ tags, setTags, onShiftEnter }) => {
   return (
     <div className="w-full relative ">
       <div
-        className="min-h-100 w-full p-[0.4rem] border-2 border-#CCCC rounded-lg flex flex-wrap items-center gap-2 focus-within:ring-1 focus-within:ring-gray-900 cursor-text dark:bg-[#3A3A3A] dark:border-[#505050]"
+        className="min-h-100 w-full p-[0.4rem] border-2 border-#CCCC rounded-lg flex flex-wrap items-center gap-2 focus-within:ring-1 focus-within:ring-gray-900 cursor-text"
         onClick={handleClick}
       >
         <button
@@ -127,7 +127,7 @@ const LinearTagsInput = ({ tags, setTags, onShiftEnter }) => {
             handleAddTag(inputValue);
             handleClick();
           }}
-          className=" hover:opacity-75 flex justify-center items-center focus:outline-none"
+          className="hover:opacity-75 flex justify-center items-center focus:outline-none"
         >
           <PiPlusCircleThin
             size={"30px"}
@@ -137,7 +137,7 @@ const LinearTagsInput = ({ tags, setTags, onShiftEnter }) => {
         {tags.map((tag, index) => (
           <span
             key={index}
-            className="bg-white border-2 border-#CCCC min-w-28 justify-between  text-black  pl-3 pr-1 py-1  rounded-md flex items-center gap-1 text-sm"
+            className="bg-white border-2 border-#CCCC min-w-28 justify-between  text-black  pl-3 pr-1 py-1  rounded-md flex items-center gap-1 text-sm dark:bg-black dark:text-white"
           >
             {tag}
             <button
@@ -167,14 +167,14 @@ const LinearTagsInput = ({ tags, setTags, onShiftEnter }) => {
             />
           </div>
           {suggestions.length > 0 && (
-            <div className="absolute w-fit top-0 mt-12 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto z-10 scrollbar-thin dark:bg-gray-500">
+            <div className="absolute w-fit top-0 mt-12 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto z-10 scrollbar-thin dark:bg-black">
               {suggestions.map((suggestion, index) => (
                 <div
                   key={index}
-                  className={`px-4 py-2 cursor-pointer ${
+                  className={`px-4 py-2 cursor-pointer  rounded-lg ${
                     index === selectedIndex
-                      ? "bg-gray-100 dark:bg-gray-600"
-                      : "hover:bg-gray-50 dark:bg-gray-500"
+                      ? "bg-gray-100 dark:bg-gray-900"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-900"
                   }`}
                   onClick={() => handleAddTag(suggestion)}
                 >

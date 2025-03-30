@@ -40,7 +40,7 @@ export default function DashboardLayout({
                 <div className="h-screen flex w-full overflow-hidden relative">
                   {/* Desktop Sidebar */}
                   <div
-                    className={`transition-all ease-in-out duration-300 flex-shrink-0 hidden md:block ${
+                    className={`transition-all ease-in-out duration-300 flex-shrink-0 hidden lg:block ${
                       isCollapsed ? "w-16" : "w-1/5"
                     }`}
                   >
@@ -55,7 +55,7 @@ export default function DashboardLayout({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="sticky top-[38px] left-4 z-50 md:hidden bg-[#ECEBE2] dark:bg-[#3A3A3A] hover:bg-orange-100"
+                    className="sticky top-[38px] left-4 z-50 lg:hidden bg-[#ECEBE2] dark:bg-[#3A3A3A] hover:bg-orange-100"
                     onClick={toggleMobileSidebar}
                   >
                     <Menu className="h-6 w-6" />
@@ -63,7 +63,7 @@ export default function DashboardLayout({
 
                   {/* Mobile Sidebar Overlay */}
                   <div
-                    className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 md:hidden ${
+                    className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 lg:hidden ${
                       isMobileOpen
                         ? "opacity-100"
                         : "opacity-0 pointer-events-none"
@@ -73,7 +73,7 @@ export default function DashboardLayout({
 
                   {/* Mobile Sidebar */}
                   <div
-                    className={`fixed top-0 left-0 h-full z-50 transition-transform duration-300 ease-in-out transform md:hidden ${
+                    className={`fixed top-0 left-0 h-full z-50 transition-transform duration-300 ease-in-out transform lg:hidden ${
                       isMobileOpen ? "translate-x-0" : "-translate-x-full"
                     }`}
                     style={{ width: "70%" }}

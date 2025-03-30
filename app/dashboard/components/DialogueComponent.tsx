@@ -475,13 +475,15 @@ function DialogueComponent({
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel className="border-none hover:bg-black hover:">
+                          Cancel
+                        </AlertDialogCancel>
                         <AlertDialogAction
                           onClick={() => {
                             handleDocumentArchive();
                             handleDialogue(false);
                           }}
-                          className="dark:text-white"
+                          className="dark:text-black "
                         >
                           Archive
                         </AlertDialogAction>
@@ -501,7 +503,7 @@ function DialogueComponent({
                       </Card>
                     </PopoverTrigger>
                     <PopoverContent
-                      className="w-[200px] p-0 max-h-[400px]"
+                      className="w-[200px] p-2 max-h-[400px]"
                       side="bottom"
                       align="start"
                     >
@@ -538,15 +540,15 @@ function DialogueComponent({
                           </CommandGroup>
                         </CommandList>
                       </Command>
-                      <div className="w-full px-2  flex justify-end">
-                        <button
-                          className="text-sm bg-[#ff6600] hover:bg-[#ff8533] text-white rounded-lg mb-5 px-4 py-1 mt-5 flex justify-end"
+                      <div className="w-full px-2 mt-2 flex justify-end">
+                        <Button
+                          className="text-sm w-12 h-8 rounded-lg px-4 py-1 "
                           onClick={() => {
                             handleMove();
                           }}
                         >
                           Move
-                        </button>
+                        </Button>
                       </div>
                     </PopoverContent>
                   </Popover>
@@ -704,7 +706,7 @@ function DialogueComponent({
               <div className="flex justify-end">
                 <AlertDialog>
                   <AlertDialogTrigger className="p-0 mt-[1px]" asChild>
-                    <Button className="px-5 py-2 mt-10 rounded-lg dark:text-white">
+                    <Button className="px-5 py-2 mt-10 rounded-lg">
                       Archive
                     </Button>
                   </AlertDialogTrigger>
@@ -718,13 +720,15 @@ function DialogueComponent({
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel className="border-none dark:bg-black">
+                        Cancel
+                      </AlertDialogCancel>
                       <AlertDialogAction
                         onClick={() => {
                           handleMultipleFolderArchive();
                           handleDialogue(false);
                         }}
-                        className="dark:text-white"
+                        className="dark:text-black"
                       >
                         Archive
                       </AlertDialogAction>

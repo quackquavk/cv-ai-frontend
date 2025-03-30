@@ -1,7 +1,4 @@
-"use client";
-
-import { useState } from "react";
-import { MenuIcon as RxHamburgerMenu } from "lucide-react";
+// import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import {
@@ -14,12 +11,11 @@ import {
 } from "@/components/ui/select";
 
 export default function DetailViewSkeleton() {
-  const [closeParsedData, setCloseParsedData] = useState(false);
+  // const [closeParsedData, setCloseParsedData] = useState(false);
 
   return (
     <Card
-      className={`px-3 ${
-        closeParsedData ? "hidden translate-x-full" : "flex translate-x-0"
+      className={`px-3 hidden translate-x-full 
       } w-full transition-all duration-300 ease-in-out py-3 h-full flex-col gap-3 rounded-none`}
     >
       {/* Scrollable */}
