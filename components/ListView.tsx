@@ -281,7 +281,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                             onClick={(event) =>
                               handleEmailClick(event, item?.parsed_cv.email)
                             }
-                            className="text-sm text-[#ff6600] underline hover:opacity-80 truncate"
+                            className="text-sm text-[#0000FF] underline dark:text-[#0070E0] hover:opacity-80 truncate"
                           >
                             {item?.parsed_cv.email}
                           </span>
@@ -299,7 +299,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                                 item?.parsed_cv.linkedin_url
                               )
                             }
-                            className="text-xs sm:text-sm text-[#ff6600] underline hover:opacity-80 truncate"
+                            className="text-xs sm:text-sm text-[#0000FF] dark:text-[#0070E0] underline hover:opacity-80 truncate"
                           >
                             {item?.parsed_cv?.linkedin_url}
                           </span>
@@ -317,7 +317,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                             }
                             onClick={(e) => e.stopPropagation()}
                             target="_blank"
-                            className="text-xs sm:text-sm text-[#ff6600] underline hover:opacity-80 truncate"
+                            className="text-xs sm:text-sm text-[#0000FF] dark:text-[#0070E0] underline hover:opacity-80 truncate"
                           >
                             {item?.parsed_cv?.github_url}
                           </Link>
