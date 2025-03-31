@@ -15,8 +15,8 @@ export default function DetailViewSkeleton() {
 
   return (
     <Card
-      className={`px-3 hidden translate-x-full 
-      } w-full transition-all duration-300 ease-in-out py-3 h-full flex-col gap-3 rounded-none`}
+      className="px-3 
+       w-full transition-all duration-300 ease-in-out py-3 h-full flex-col gap-3 rounded-none"
     >
       {/* Scrollable */}
       <div className="pb-3 overflow-y-auto scrollbar-thin flex flex-col gap-3">

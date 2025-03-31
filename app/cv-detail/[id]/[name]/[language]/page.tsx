@@ -5,19 +5,18 @@ import Link from "next/link";
 import { GoDotFill } from "react-icons/go";
 import DetailViewSkeleton from "@/components/ui/Skeleton/DetailViewSkeleton";
 import axiosInstance from "@/utils/axiosConfig";
-import { SquareArrowOutUpRight } from "lucide-react";
+import { SquareArrowOutUpRight, ExternalLink } from "lucide-react";
 import { Star } from "lucide-react";
 import { FaLinkedin, FaGithub } from "react-icons/fa";
 import { PiGlobeLight } from "react-icons/pi";
 import { IoLocation } from "react-icons/io5";
 import { MdEmail } from "react-icons/md";
-import { ThumbsUp, ThumbsDown } from "lucide-react";
+// import { ThumbsUp, ThumbsDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IAvailability } from "@/interfaces/Availability";
 import { LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import { PiNotePencilBold } from "react-icons/pi";
-// import { useRouter } from "next/navigation";
 import { FaPhoneAlt } from "react-icons/fa";
 import {
   Select,
@@ -47,6 +46,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Save } from "lucide-react";
 
 const CVDetailPage = ({ params }: { params: any }) => {
   const [data, setData] = useState<any>();
@@ -185,9 +185,9 @@ const CVDetailPage = ({ params }: { params: any }) => {
   //   }
   // };
 
-  const handleChoice = (choice: string) => {
-    setUserChoice((prevChoice) => (prevChoice === choice ? null : choice));
-  };
+  // const handleChoice = (choice: string) => {
+  //   setUserChoice((prevChoice) => (prevChoice === choice ? null : choice));
+  // };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -305,7 +305,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                   rel="noopener noreferrer"
                                   className="max-w-48 truncate"
                                 >
-                                  <span className="text-[#ff6600] underline hover:opacity-80 text-sm">
+                                  <span className="text-[#0000FF] dark:text-[#0070E0] underline hover:opacity-80 text-sm">
                                     {data.linkedin_url}
                                   </span>
                                 </a>
@@ -328,7 +328,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                   target="_blank"
                                   className="max-w-48 truncate"
                                 >
-                                  <span className="text-[#ff6600] underline hover:opacity-80 text-sm">
+                                  <span className="text-[#0000FF] dark:text-[#0070E0] underline hover:opacity-80 text-sm">
                                     {data?.git_url}
                                   </span>
                                 </Link>
@@ -351,7 +351,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                   target="_blank"
                                   className="max-w-48 truncate"
                                 >
-                                  <span className="text-[#ff6600] underline hover:opacity-80 text-sm">
+                                  <span className="text-[#0000FF] dark:text-[#0070E0] underline hover:opacity-80 text-sm">
                                     {data?.website}
                                   </span>
                                 </Link>
@@ -371,7 +371,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                   target="_blank"
                                   className="max-w-48  truncate"
                                 >
-                                  <span className="text-[#ff6600] underline hover:opacity-80 text-sm">
+                                  <span className="text-[#0000FF] dark:text-[#0070E0] underline hover:opacity-80 text-sm">
                                     {data?.email}
                                   </span>
                                 </Link>
@@ -645,8 +645,12 @@ const CVDetailPage = ({ params }: { params: any }) => {
                 {/* Availability Section - Fixed */}
                 <div className="sticky bottom-0 z-10 border-t-2 border-slate-700 py-3 flex flex-col gap-3">
                   {/* Stars & Like / DisLike */}
-                  <div className="flex justify-between items-start">
+                  <div className="flex justify-end items-start gap-3">
                     {/* stars */}
+
+                    {/* <div>
+                      <span>(X)</span>
+                    </div> */}
                     <div className="flex gap-1">
                       {[1, 2, 3, 4, 5].map((index) => (
                         <button
@@ -672,63 +676,12 @@ const CVDetailPage = ({ params }: { params: any }) => {
                         </button>
                       ))}
                     </div>
-
-                    {/* Notes */}
-                    <div>
-                      <Sheet>
-                        <SheetTrigger>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger className="cursor-pointer transition-transform rounded-md duration-300 ease-in-out">
-                                <Button className="flex gap-1 items-center w-22 h-8 px-2 text-xs">
-                                  <span>
-                                    <PiNotePencilBold className="text-[2px]" />
-                                  </span>
-                                  <span>Notes</span>
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Add Notes to the CV</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </SheetTrigger>
-                        <SheetContent className="flex flex-col gap-3">
-                          <SheetHeader>
-                            <SheetTitle>Note</SheetTitle>
-                          </SheetHeader>
-                          <div>
-                            <Textarea
-                              className="h-48"
-                              placeholder="Add notes..."
-                              value={inputData.note}
-                              onChange={(e) =>
-                                setInputData({
-                                  ...inputData,
-                                  note: e.target.value,
-                                })
-                              }
-                              onKeyDown={handleKeyDown}
-                            />
-                          </div>
-                          <SheetFooter>
-                            <SheetClose asChild>
-                              <Button
-                                className="w-22 h-8"
-                                type="submit"
-                                onClick={handleSave}
-                                ref={closeButtonRef}
-                              >
-                                Save
-                              </Button>
-                            </SheetClose>
-                          </SheetFooter>
-                        </SheetContent>
-                      </Sheet>
-                    </div>
+                    {/* <div>
+                      <span>X+</span>
+                    </div> */}
 
                     {/* Like / DisLike */}
-                    <div>
+                    {/* <div>
                       <div className="flex items-center">
                         <button
                           onClick={() => handleChoice("like")}
@@ -762,11 +715,11 @@ const CVDetailPage = ({ params }: { params: any }) => {
                           />
                         </button>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
 
                   {/* Availability */}
-                  <div className="flex justify-between items-start">
+                  <div className="flex justify-end items-start gap-14">
                     <div className="">
                       <Select
                         value={inputData.availability || ""}
@@ -824,13 +777,13 @@ const CVDetailPage = ({ params }: { params: any }) => {
                   </div>
 
                   {/* Salary */}
-                  <div className="flex mt-1 justify-between ">
+                  <div className="flex mt-1 justify-between gap-3 ">
                     {/* Current Salary */}
-                    <div className="w-auto relative">
+                    <div className="w-full relative">
                       {/* Label */}
                       <Label
                         htmlFor="currentSalary"
-                        className={`absolute left-3 px-1 text-center text-[10px] font-medium text-gray-700 dark:bg-[#3A3A3A] dark:text-white ${
+                        className={`absolute left-3 px-1 text-center text-[10px] font-medium text-gray-700 dark:bg-black dark:text-white ${
                           inputData.current_salary !== null
                             ? "-top-2 bg-white"
                             : "top-2.5 text-gray-500"
@@ -842,7 +795,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       <Input
                         type="text"
                         id="currentSalary"
-                        className="peer block w-auto rounded-md border border-gray-300 transition-all duration-100 bg-white py-2 px-3 text-[10px] shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
+                        className="peer block w-auto rounded-md py-2 px-3 text-[10px]  focus:ring-black focus:ring-1 gap-2 focus:outline-none focus:ring-opacity-75"
                         value={
                           inputData.current_salary !== null
                             ? inputData.current_salary.toString()
@@ -855,11 +808,11 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     </div>
 
                     {/* Estimated Salary */}
-                    <div className="w-auto relative">
+                    <div className="w-full relative">
                       {/* Label */}
                       <Label
                         htmlFor="estimatedSalary"
-                        className={`absolute left-3 px-1 text-[10px] font-medium transition-all duration-100 text-gray-700 dark:bg-[#3A3A3A] dark:text-white ${
+                        className={`absolute left-3 px-1 text-[10px] font-medium transition-all duration-100 text-gray-700 dark:bg-black dark:text-white ${
                           inputData.estimated_salary !== null
                             ? "-top-2 bg-white"
                             : "top-2.5 text-gray-500"
@@ -871,7 +824,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       <Input
                         type="text"
                         id="estimatedSalary"
-                        className="block w-auto rounded-md border border-gray-300 bg-white py-2 px-3 text-[10px] shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
+                        className="block w-auto rounded-md py-2 px-3 text-[10px] focus:border-black focus:outline-none focus:ring-1 focus:ring-black focus:ring-opacity-75"
                         value={
                           inputData.estimated_salary !== null
                             ? inputData.estimated_salary.toString()
@@ -882,10 +835,8 @@ const CVDetailPage = ({ params }: { params: any }) => {
                         }
                       />
                     </div>
-                  </div>
 
-                  {/* Salary Based & Save */}
-                  <div className="flex justify-between items-center ">
+                    {/* Salary Based */}
                     <div className="w-full sm:w-auto">
                       <Select
                         value={inputData.paid_by || ""}
@@ -914,7 +865,78 @@ const CVDetailPage = ({ params }: { params: any }) => {
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
 
+                  {/* Salary Based & Save */}
+                  <div className="flex justify-between items-center ">
+                    {/* Move Button */}
+                    <div>
+                      <Button className="flex flex-wrap">
+                        <span className="flex gap-1">
+                          <span>
+                            <ExternalLink />
+                          </span>
+                          <span>Move to</span>
+                        </span>
+                        <span>Private</span>
+                      </Button>
+                    </div>
+
+                    {/* Notes */}
+                    <div>
+                      <Sheet>
+                        <SheetTrigger>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger className="cursor-pointer transition-transform rounded-md duration-300 ease-in-out">
+                                <Button className="flex gap-1 items-center w-22 h-8 px-2 text-xs">
+                                  <span>
+                                    <PiNotePencilBold className="text-[2px]" />
+                                  </span>
+                                  <span>Notes</span>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Add Notes to the CV</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </SheetTrigger>
+                        <SheetContent className="flex flex-col gap-3">
+                          <SheetHeader>
+                            <SheetTitle>Note</SheetTitle>
+                          </SheetHeader>
+                          <div>
+                            <Textarea
+                              className="h-48"
+                              placeholder="Add notes..."
+                              value={inputData.note}
+                              onChange={(e) =>
+                                setInputData({
+                                  ...inputData,
+                                  note: e.target.value,
+                                })
+                              }
+                              onKeyDown={handleKeyDown}
+                            />
+                          </div>
+                          <SheetFooter>
+                            <SheetClose asChild>
+                              <Button
+                                className="w-22 h-8"
+                                type="submit"
+                                onClick={handleSave}
+                                ref={closeButtonRef}
+                              >
+                                Save
+                              </Button>
+                            </SheetClose>
+                          </SheetFooter>
+                        </SheetContent>
+                      </Sheet>
+                    </div>
+
+                    {/* Save Button */}
                     <div className="">
                       <Button
                         className="w-22 h-8"
@@ -983,7 +1005,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       {data?.name?.toUpperCase()}
                     </h1>
 
-                    <p className="font-semibold underline">
+                    <p className="font-semibold underline underline-offset-2">
                       {data?.position?.toUpperCase()}
                     </p>
                     <p className="flex gap-2 items-center">
@@ -1002,7 +1024,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                             rel="noopener noreferrer"
                             className="max-w-48 truncate"
                           >
-                            <span className="text-[#ff6600] underline hover:opacity-80 text-sm">
+                            <span className="text-[#0000FF] dark:text-[#0070E0] underline underline-offset-2 hover:opacity-80 text-sm">
                               {data.linkedin_url}
                             </span>
                           </a>
@@ -1025,7 +1047,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                             target="_blank"
                             className="max-w-48 truncate"
                           >
-                            <span className="text-[#ff6600] underline hover:opacity-80 text-sm">
+                            <span className="text-[#0000FF] dark:text-[#0070E0] underline underline-offset-2 hover:opacity-80 text-sm">
                               {data?.git_url}
                             </span>
                           </Link>
@@ -1048,7 +1070,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                             target="_blank"
                             className="max-w-48 truncate"
                           >
-                            <span className="text-[#ff6600] underline hover:opacity-80 text-sm">
+                            <span className="text-[#0000FF] dark:text-[#0070E0] underline underline-offset-2 hover:opacity-80 text-sm">
                               {data?.website}
                             </span>
                           </Link>
@@ -1068,7 +1090,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                             target="_blank"
                             className="max-w-48 truncate"
                           >
-                            <span className="text-[#ff6600] underline hover:opacity-80 text-sm">
+                            <span className="text-[#0000FF] dark:text-[#0070E0] underline underline-offset-2 hover:opacity-80 text-sm">
                               {data?.email}
                             </span>
                           </Link>
@@ -1083,7 +1105,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                             <FaPhoneAlt size={14} />
                           </span>
 
-                          <span className="font-semibold text-gray-700 dark:text-gray-400 text-sm">
+                          <span className="font-semibold text-gray-600 dark:text-gray-300 text-sm">
                             {data?.phone_number}
                           </span>
                         </>
@@ -1097,7 +1119,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                             <IoLocation />
                           </span>
 
-                          <span className="font-semibold text-gray-700 dark:text-gray-400 text-sm capitalize">
+                          <span className="font-semibold text-gray-600 dark:text-gray-300 text-sm capitalize">
                             {data?.address}
                           </span>
                         </>
@@ -1124,12 +1146,14 @@ const CVDetailPage = ({ params }: { params: any }) => {
                 {/* Programming Language */}
                 <div>
                   <div className="flex flex-col gap-1 pb-2">
-                    <p className="font-semibold">Progamming Language</p>
+                    <p className="font-semibold">
+                      Progamming Language (X Years)
+                    </p>
                     <div className="flex flex-wrap gap-3 text-sm max-w-3xl">
                       {data?.programming_languages?.map(
                         (item: any, idx: number) => (
                           <div key={idx}>
-                            <Card className="flex px-2 py-1 text-gray-600 font-sans rounded-md w-fit font-semibold dark:text-gray-400 capitalize">
+                            <Card className="flex px-2 py-1 text-gray-600 font-sans rounded-md w-fit font-semibold dark:text-gray-300 capitalize">
                               {item}
                             </Card>
                           </div>
@@ -1334,8 +1358,12 @@ const CVDetailPage = ({ params }: { params: any }) => {
             <div className="relative w-full">
               <div className="sticky z-10 border-t-2 border-slate-700 pt-3 flex flex-col gap-3">
                 {/* Stars & Like / DisLike */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+                <div className="flex justify-end items-center gap-3 ">
                   {/* stars */}
+
+                  {/* <div>
+                    <span>(X)</span>
+                  </div> */}
                   <div className="flex gap-1">
                     {[1, 2, 3, 4, 5].map((index) => (
                       <button
@@ -1361,9 +1389,12 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       </button>
                     ))}
                   </div>
+                  {/* <div>
+                    <span>X+</span>
+                  </div> */}
 
                   {/* Like / DisLike */}
-                  <div className="order-2 sm:order-3">
+                  {/* <div className="order-2 sm:order-3">
                     <div className="flex items-center">
                       <button
                         onClick={() => handleChoice("like")}
@@ -1397,12 +1428,12 @@ const CVDetailPage = ({ params }: { params: any }) => {
                         />
                       </button>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* Availability */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
-                  <div className="w-full sm:w-auto">
+                <div className="flex justify-end items-center gap-14">
+                  <div className="">
                     <Select
                       value={inputData.availability || ""}
                       onValueChange={(value) =>
@@ -1431,7 +1462,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     </Select>
                   </div>
 
-                  <div className="w-full sm:w-auto">
+                  <div className="">
                     <Select
                       value={inputData.time_of_day || ""}
                       onValueChange={(value) =>
@@ -1477,7 +1508,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     <Input
                       type="text"
                       id="currentSalary"
-                      className="peer block w-full rounded-md border border-gray-300 py-2 px-3 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-black"
+                      className="peer block w-full rounded-md py-2 px-3 text-xs focus:ring-1 gap-2 focus:outline-none focus:ring-black focus:ring-opacity-75"
                       value={
                         inputData.current_salary !== null
                           ? inputData.current_salary.toString()
@@ -1506,7 +1537,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     <Input
                       type="text"
                       id="estimatedSalary"
-                      className="block w-full rounded-md border border-gray-300 py-2 px-3 text-xs shadow-sm  focus:outline-none focus:ring-1 focus:ring-black "
+                      className="block w-full rounded-md py-2 px-3 text-xs   focus:outline-none focus:ring-1 gap-2 focus:ring-black focus:ring-opacity-75"
                       value={
                         inputData.estimated_salary !== null
                           ? inputData.estimated_salary.toString()
@@ -1517,10 +1548,8 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       }
                     />
                   </div>
-                </div>
 
-                {/* Salary Based & Save */}
-                <div className="flex justify-between items-center">
+                  {/* Salary Based */}
                   <div className="w-full sm:w-auto">
                     <Select
                       value={inputData.paid_by || ""}
@@ -1548,6 +1577,22 @@ const CVDetailPage = ({ params }: { params: any }) => {
                         </SelectGroup>
                       </SelectContent>
                     </Select>
+                  </div>
+                </div>
+
+                {/* Salary Based & Save */}
+                <div className="flex justify-between items-center">
+                  {/* Move Button */}
+                  <div>
+                    <Button className="flex flex-wrap">
+                      <span className="flex gap-1">
+                        <span>
+                          <ExternalLink />
+                        </span>
+                        <span>Move to</span>
+                      </span>
+                      <span>Private</span>
+                    </Button>
                   </div>
 
                   {/* Notes */}
@@ -1607,15 +1652,20 @@ const CVDetailPage = ({ params }: { params: any }) => {
                   {/* Save Button */}
                   <div className="w-full sm:w-auto">
                     <Button
-                      className="w-full sm:w-22 h-8"
+                      className="w-full text-center items-center sm:w-auto h-8"
                       onClick={handleSave}
                       disabled={loader}
                     >
-                      <span className="flex items-center  w-full">
+                      <span className="flex text-center items-center w-auto">
                         {loader ? (
                           <LoaderCircle className="h-4 animate-spin" />
                         ) : (
-                          <span className="text-xs h-4">Save</span>
+                          <div className="flex gap-1 items-center">
+                            <span>
+                              <Save />
+                            </span>
+                            <span className="text-xs">Save</span>
+                          </div>
                         )}
                       </span>
                     </Button>

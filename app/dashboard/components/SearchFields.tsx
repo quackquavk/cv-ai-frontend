@@ -227,7 +227,7 @@ const SearchFields = () => {
               <div>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button className="group bg-red-700 hover:bg-[#d4d2d2]">
+                    <Button className="group bg-red-600 hover:bg-red-500">
                       <div className="p-1 duration-300 ease-in-out group-hover:translate-y-[-3px] ">
                         <SearchX
                           size={56}
@@ -347,7 +347,7 @@ const SearchFields = () => {
           <Input
             type="text"
             id="estimatedSalary"
-            className="peer block h-10 w-full rounded-md border border-gray-300 py-2 px-3 text-sm focus-within:ring-1 ring-inset focus:outline-none focus:ring-black focus:ring-opacity-80"
+            className="peer block h-10 w-full placeholder:text-gray-400 rounded-md border py-2 px-3 text-sm gap-2 focus:outline-none focus:ring-black focus:ring-opacity-75"
             value={formData.estimated_salary.join(" - ")}
             onChange={(event) =>
               validateInput(event, "estimated_salary", setFormData)
@@ -367,7 +367,7 @@ const SearchFields = () => {
           <Input
             type="text"
             id="currentSalary"
-            className="peer block w-full h-10 rounded-md border border-gray-300 py-2 px-3 text-sm focus-within:ring-1 ring-inset focus:outline-none focus:ring-black focus:ring-opacity-80"
+            className="peer block w-full h-10 placeholder:text-gray-400 rounded-md  py-2 px-3 text-sm gap-2 focus:outline-none focus:ring-black focus:ring-opacity-75"
             value={formData.current_salary.join(" - ")}
             onChange={(event) =>
               validateInput(event, "current_salary", setFormData)

@@ -228,41 +228,39 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                 item?.parsed_cv?.name
               )}/${formatLanguages(item?.parsed_cv?.programming_languages)}`}
               target="_blank"
-              className="transform mb-3 hover:scale-x-[1.01] hover:scale-y-[1.02] hover:cursor-pointer transition duration-500 ease-in-out w-full overflow-hidden"
+              className="transform mb-3 sm:hover:scale-x-[1.01] sm:hover:scale-y-[1.02] cursor-pointer transition duration-500 ease-in-out w-full overflow-hidden"
             >
               <Card className="relative gap-2 max-w-full px-3 py-4 sm:px-5 sm:py-8 pb-16 sm:pb-20 hover:border-black dark:hover:border-white transition duration-500 ease-in-out">
                 <div className="relative flex justify-between">
                   <div className="flex flex-col lg:flex-row z-0 lg:justify-between w-full gap-4">
                     {/* Basic Information */}
                     <div className="flex flex-col gap-1 w-full lg:w-[25%] overflow-clip ">
-                      <div className="flex mb-0 flex-col">
-                        <h1 className="mb-2 sm:mb-3 text-sm sm:text-base underline underline-offset-4 font-bold">
-                          {item?.parsed_cv?.position
-                            ? item?.parsed_cv.position.toUpperCase()
-                            : ""}
-                        </h1>
-                        <p className="flex items-center gap-2 capitalize">
-                          {item?.parsed_cv?.address && (
-                            <span className="flex items-center">
-                              <IoLocation className="text-base mr-2" />
-                              <span className="text-gray-500 text-sm dark:text-gray-400">
-                                {item?.parsed_cv.address}
-                              </span>
+                      {/* <div className="flex mb-0 flex-col"> */}
+                      <h1 className="mb-2 sm:mb-3 text-sm sm:text-base underline underline-offset-4 font-bold">
+                        {item?.parsed_cv?.position
+                          ? item?.parsed_cv.position.toUpperCase()
+                          : ""}
+                      </h1>
+                      <p className="flex items-center gap-2 capitalize">
+                        {item?.parsed_cv?.address && (
+                          <span className="flex items-center">
+                            <IoLocation className="text-base mr-2" />
+                            <span className="text-gray-500 text-sm dark:text-gray-400">
+                              {item?.parsed_cv.address}
                             </span>
-                          )}
-                        </p>
-                      </div>
-
-                      <div>
-                        {item?.parsed_cv?.name && (
-                          <div className="flex items-center gap-2 mt-0 capitalize">
-                            <FaUser className="text-sm" />
-                            <span className="text-gray-500 font-normal text-sm dark:text-gray-400">
-                              {item?.parsed_cv?.name}
-                            </span>
-                          </div>
+                          </span>
                         )}
-                      </div>
+                      </p>
+                      {/* </div> */}
+
+                      {item?.parsed_cv?.name && (
+                        <div className="flex items-center gap-2 mt-0 capitalize">
+                          <FaUser className="text-sm" />
+                          <span className="text-gray-500 font-normal text-sm dark:text-gray-400">
+                            {item?.parsed_cv?.name}
+                          </span>
+                        </div>
+                      )}
 
                       {/* Contact Information */}
                       {item?.parsed_cv?.phone_number && (
@@ -281,7 +279,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                             onClick={(event) =>
                               handleEmailClick(event, item?.parsed_cv.email)
                             }
-                            className="text-sm text-[#0000FF] underline dark:text-[#0070E0] hover:opacity-80 truncate"
+                            className="text-sm text-[#0000FF] underline underline-offset-2 dark:text-[#0070E0] hover:opacity-80 truncate"
                           >
                             {item?.parsed_cv.email}
                           </span>
@@ -299,7 +297,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                                 item?.parsed_cv.linkedin_url
                               )
                             }
-                            className="text-xs sm:text-sm text-[#0000FF] dark:text-[#0070E0] underline hover:opacity-80 truncate"
+                            className="text-xs sm:text-sm text-[#0000FF] dark:text-[#0070E0] underline underline-offset-2 hover:opacity-80 truncate"
                           >
                             {item?.parsed_cv?.linkedin_url}
                           </span>
@@ -317,7 +315,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                             }
                             onClick={(e) => e.stopPropagation()}
                             target="_blank"
-                            className="text-xs sm:text-sm text-[#0000FF] dark:text-[#0070E0] underline hover:opacity-80 truncate"
+                            className="text-xs sm:text-sm text-[#0000FF] dark:text-[#0070E0] underline underline-offset-2 hover:opacity-80 truncate"
                           >
                             {item?.parsed_cv?.github_url}
                           </Link>
@@ -360,7 +358,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                             {item.parsed_cv.education[0].degree}
                           </span>
                         ) : (
-                          <span className="text-sm text-red-700">
+                          <span className="text-sm text-red-600">
                             Education details not available
                           </span>
                         )}

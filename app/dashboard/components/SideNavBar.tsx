@@ -236,12 +236,12 @@ const SideNavBar = ({
         {/* Fixed Header */}
         <SidebarHeader className="sticky top-0 z-10  pt-2">
           {!isCollapsed ? (
-            <h1 className="text-2xl text-center w-full px-4 text-black dark:text-white font-bold">
-              RESUME_AI
+            <h1 className="text-2xl text-center w-full px-4 text-black dark:text-white font-semibold font-sans">
+              Resume AI
             </h1>
           ) : (
-            <div className="text-xl text-center w-full text-black dark:text-white flex flex-col">
-              <h1>RES..</h1>
+            <div className="text-xl text-center w-full text-black dark:text-white flex flex-col font-sans font-semibold">
+              <h1>CV</h1>
               <h1>AI</h1>
             </div>
           )}

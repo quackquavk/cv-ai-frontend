@@ -1,6 +1,7 @@
 import React, { useState, useEffect, KeyboardEvent, useRef } from "react";
 import { X } from "lucide-react";
 import { PiPlusCircleThin } from "react-icons/pi";
+// import { Input } from "@/components/ui/input";
 
 const LinearTagsInput = ({ tags, setTags, onShiftEnter }) => {
   const [inputValue, setInputValue] = useState("");
@@ -23,6 +24,7 @@ const LinearTagsInput = ({ tags, setTags, onShiftEnter }) => {
     "aws",
     "kafka",
     "devops",
+    "django",
     "digital marketing",
     "seo",
     "wordpress",
@@ -43,11 +45,13 @@ const LinearTagsInput = ({ tags, setTags, onShiftEnter }) => {
     "docker",
     "android",
     "flutter",
+    "fastapi",
     "c++",
     "spark",
     "hive",
     "jira",
     "machine learning",
+    "notion",
   ];
 
   useEffect(() => {
@@ -118,7 +122,7 @@ const LinearTagsInput = ({ tags, setTags, onShiftEnter }) => {
   return (
     <div className="w-full relative ">
       <div
-        className="min-h-100 w-full p-[0.4rem] border-2 border-#CCCC rounded-lg flex flex-wrap items-center gap-2 focus-within:ring-1 focus-within:ring-gray-900 cursor-text"
+        className="min-h-100 w-full p-[0.4rem] border border-input rounded-lg flex flex-wrap items-center ring-offset-background gap-2 focus-within:ring-1 focus-within:ring-black cursor-text focus:ring-black placeholder:text-muted-foreground ring-inset disabled:cursor-not-allowed disabled:opacity-50 dark:border-2 dark:focus:ring-white dark:focus-within:ring-white"
         onClick={handleClick}
       >
         <button
