@@ -96,8 +96,12 @@ function GridView({ data, searchData }: GridViewProps) {
   const formatLanguages = (languages: string[] | undefined): string => {
     if (!languages || languages.length === 0) return "undefined";
     return languages
+      .map((item) => {
+        const match = item.match(/\b[a-zA-Z#]+\b/);
+        return match ? match[0] : ""; // Ensure no null values
+      })
+      .filter((lang) => lang !== "") // Remove empty matches
       .slice(0, 3)
-      .map((lang) => lang.toLowerCase())
       .join("-");
   };
 
