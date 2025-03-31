@@ -46,6 +46,7 @@ import { folderSelectStore, publicFolderStore } from "../store";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 const SideNavBar = ({
   isCollapsed,
@@ -236,13 +237,33 @@ const SideNavBar = ({
         {/* Fixed Header */}
         <SidebarHeader className="sticky top-0 z-10  pt-2">
           {!isCollapsed ? (
-            <h1 className="text-2xl text-center w-full px-4 text-black dark:text-white font-semibold font-sans">
-              Resume AI
-            </h1>
+            <div className="flex items-center px-4  justify-center w-full">
+              <div className=" w-16 h-22 rounded-full overflow-hidden">
+                <Image
+                  src="/assets/logo.png"
+                  alt="logo"
+                  width={600}
+                  height={800}
+                />
+              </div>
+              <h1 className="text-2xl text-black dark:text-white font-semibold font-sans">
+                Resume AI
+              </h1>
+            </div>
           ) : (
-            <div className="text-xl text-center w-full text-black dark:text-white flex flex-col font-sans font-semibold">
-              <h1>CV</h1>
-              <h1>AI</h1>
+            <div className="w-full flex flex-col gap-2 items-center justify-center">
+              <div className=" w-16 h-22 rounded-full overflow-hidden">
+                <Image
+                  src="/assets/logo.png"
+                  alt="logo"
+                  width={600}
+                  height={800}
+                />
+              </div>
+              <div className="text-xl text-center text-black dark:text-white font-sans font-semibold">
+                <h1>CV</h1>
+                <h1>AI</h1>
+              </div>
             </div>
           )}
         </SidebarHeader>

@@ -342,7 +342,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
               </form>
             ) : (
               <div
-                className="flex items-center w-full gap-2 cursor-pointer hover:opacity-50 "
+                className="flex items-center w-full gap-2 cursor-pointer hover:opacity-50"
                 onClick={() => toggleDropDown(folder.folder_id)}
               >
                 <span>
@@ -356,13 +356,13 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
               </div>
             )}
 
-            <div className="flex items-center gap-4 ">
+            <div className="flex  items-center gap-4 ">
               <div
                 className="flex gap-4 cursor-pointer"
                 onClick={() => toggleDropDown(folder.folder_id)}
               >
                 <span
-                  className={`ml-auto w-6 h-6 hover:bg-gray-700 rounded-full items-center justify-center  flex transform transition-transform duration-300 ${
+                  className={`ml-auto hover:opacity-50 items-center justify-center  flex transform transition-transform duration-300 ${
                     selectFolderId === folder.folder_id
                       ? "rotate-180"
                       : "rotate-0"

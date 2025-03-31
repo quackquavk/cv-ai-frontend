@@ -241,6 +241,15 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                           ? item?.parsed_cv.position.toUpperCase()
                           : ""}
                       </h1>
+
+                      {item?.parsed_cv?.name && (
+                        <div className="flex items-center gap-2 mt-0 capitalize">
+                          <FaUser className="text-sm" />
+                          <span className="text-gray-500 font-normal text-sm dark:text-gray-400">
+                            {item?.parsed_cv?.name}
+                          </span>
+                        </div>
+                      )}
                       <p className="flex items-center gap-2 capitalize">
                         {item?.parsed_cv?.address && (
                           <span className="flex items-center">
@@ -251,16 +260,6 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                           </span>
                         )}
                       </p>
-                      {/* </div> */}
-
-                      {item?.parsed_cv?.name && (
-                        <div className="flex items-center gap-2 mt-0 capitalize">
-                          <FaUser className="text-sm" />
-                          <span className="text-gray-500 font-normal text-sm dark:text-gray-400">
-                            {item?.parsed_cv?.name}
-                          </span>
-                        </div>
-                      )}
 
                       {/* Contact Information */}
                       {item?.parsed_cv?.phone_number && (
