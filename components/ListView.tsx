@@ -118,15 +118,17 @@ const ListView = ({ data, searchData }: ListViewProps) => {
   }, [selectFolderId]);
 
   useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: ["documents"] });
+    queryClient.invalidateQueries({
+      queryKey: ["documents", selectFolderId, searchData],
+    });
   }, [selectFolderId, searchData]);
 
   // Cleanup effect
-  useEffect(() => {
-    return () => {
-      queryClient.cancelQueries({ queryKey: ["documents"] });
-    };
-  }, [queryClient]);
+  // useEffect(() => {
+  //   return () => {
+  //     queryClient.cancelQueries({ queryKey: ["documents"] });
+  //   };
+  // }, [queryClient]);
 
   // Prefetch initial data when component mounts or data prop changes
   useEffect(() => {

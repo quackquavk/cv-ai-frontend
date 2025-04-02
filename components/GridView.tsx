@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { IFormInputData } from "@/interfaces/FormInputData";
 import { IDocumentData } from "@/interfaces/DocumentData";
-// import Link from "next/link";
 import axiosInstance from "@/utils/axiosConfig";
 import GridViewSkeleton from "./ui/Skeleton/GridViewSkeleton";
 import Masonry from "react-masonry-css";
@@ -22,11 +21,7 @@ function GridView({ data, searchData }: GridViewProps) {
 
   const [loading, setLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
-  // const [hoveredId, setHoveredId] = useState<any | null>(null);
-  // const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const [folderFilteredData, setFolderFilteredData] = useState<any[]>([]);
-  // const [hoveredUser, setHoveredUser] = useState<any>(null);
-
   const { resetSearch } = useSearchContext();
   const { selectFolderId } = folderSelectStore();
   const { isFolderListOpen } = publicFolderStore();
@@ -52,34 +47,21 @@ function GridView({ data, searchData }: GridViewProps) {
   }, [searchData]);
 
   // useEffect(() => {
-  //   const getHoveredDetails = async () => {
-  //     try {
-  //       const response = await axiosInstance.get(`/document/cv/${hoveredId}`);
-  //       if (response.status === 200) {
-  //         setHoveredUser(response.data.parsed_cv);
-  //       }
-  //     } catch (error) {
-  //       console.error("Error parsing data:", error);
-  //     }
-  //   };
-  //   if (hoveredId) {
-  //     getHoveredDetails();
+  //   if (selectFolderId && searchData) {
+  //     fetchSearchResults(searchData);
+  //     setIsSearching(false);
   //   }
-  // }, [hoveredId]);
+  // }, [selectFolderId, searchData]);
 
   useEffect(() => {
     if (selectFolderId && searchData) {
       fetchSearchResults(searchData);
       setIsSearching(false);
-    }
-  }, [selectFolderId, searchData]);
-
-  useEffect(() => {
-    if (selectFolderId) {
+    } else if (selectFolderId) {
       fetchFolderFiles();
       resetSearch();
     }
-  }, [selectFolderId]);
+  }, [selectFolderId, searchData]);
 
   const fetchDocumentsByIds = async (docIds: string[]) => {
     const promises = docIds.map((docId) =>
@@ -160,46 +142,6 @@ function GridView({ data, searchData }: GridViewProps) {
       console.error("Error fetching document data:", error);
     }
   };
-
-  // const handleMouseOver = (id: any) => {
-  //   if (timeoutId) {
-  //     clearTimeout(timeoutId);
-  //   }
-
-  //   const newTimeoutId = setTimeout(() => {
-  //     setHoveredId(id);
-  //   }, 800);
-
-  //   setTimeoutId(newTimeoutId);
-  // };
-
-  // const handleMouseLeave = () => {
-  //   if (timeoutId) {
-  //     clearTimeout(timeoutId);
-  //     setHoveredId(null);
-  //     setHoveredUser([]);
-  //   }
-  //   setHoveredUser([]);
-  //   setHoveredId(null);
-  // };
-
-  // For Opening the linkedin and github
-
-  // const handleLinkedin = (event, linkedinUrl) => {
-  //   event.stopPropagation();
-  //   const newLinkedinUrl = linkedinUrl.startsWith("http")
-  //     ? linkedinUrl
-  //     : `https://${linkedinUrl}`;
-  //   window.open(newLinkedinUrl, "_blank");
-  // };
-
-  // const handleGithub = (event, githubUrl) => {
-  //   event.stopPropagation();
-  //   const newGithubUrl = githubUrl.startsWith("http")
-  //     ? githubUrl
-  //     : `https://${githubUrl}`;
-  //   window.open(newGithubUrl, "_blank");
-  // };
 
   const breakpointColumnsObj = {
     default: 3,
