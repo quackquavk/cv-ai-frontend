@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, ReactNode, useState, useEffect } from "react";
+import React, { createContext, ReactNode, useState } from "react";
 
 type ViewType = "grid" | "list";
 
