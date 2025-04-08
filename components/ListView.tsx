@@ -218,7 +218,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
 
   return (
     <div className="flex flex-col w-full max-w-[100vw] rounded-md sm:p-2 gap-3 sm:gap-5 items-center">
-      {allDocuments.length === 0 || !isFolderListOpen ? (
+      {(allDocuments.length === 0 && isLoading) || !isFolderListOpen ? (
         <p className="text-gray-600">No Document Available...</p>
       ) : (
         <>

@@ -545,11 +545,22 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                         {data.project_link && (
                                           <Link
                                             href={
-                                              data.project_link.startsWith(
-                                                "http"
-                                              )
-                                                ? data.project_link
-                                                : `https://${data.project_link}`
+                                              (Array.isArray(data.project_link)
+                                                ? data.project_link[0]
+                                                : data.project_link
+                                              ).startsWith("http")
+                                                ? Array.isArray(
+                                                    data.project_link
+                                                  )
+                                                  ? data.project_link[0]
+                                                  : data.project_link
+                                                : `https://${
+                                                    Array.isArray(
+                                                      data.project_link
+                                                    )
+                                                      ? data.project_link[0]
+                                                      : data.project_link
+                                                  }`
                                             }
                                             target="_blank"
                                             className=" mr-4 hover:opacity-50 dark:text-white"
@@ -1266,9 +1277,18 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                   {data.project_link && (
                                     <Link
                                       href={
-                                        data.project_link.startsWith("http")
-                                          ? data.project_link
-                                          : `https://${data.project_link}`
+                                        (Array.isArray(data.project_link)
+                                          ? data.project_link[0]
+                                          : data.project_link
+                                        ).startsWith("http")
+                                          ? Array.isArray(data.project_link)
+                                            ? data.project_link[0]
+                                            : data.project_link
+                                          : `https://${
+                                              Array.isArray(data.project_link)
+                                                ? data.project_link[0]
+                                                : data.project_link
+                                            }`
                                       }
                                       target="_blank"
                                       className=" mr-4 hover:opacity-50 dark:text-white"
