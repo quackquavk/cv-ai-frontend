@@ -72,7 +72,7 @@ const SideNavBar = ({
   );
 
   // For Theme Change
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, systemTheme } = useTheme();
 
   const handleFolderCreated = () => {
     setUpdateFolderList((prev) => !prev);
@@ -197,7 +197,8 @@ const SideNavBar = ({
     }
   };
 
-  const isDarkMode = theme === "dark";
+  const isDarkMode =
+    theme === "dark" || (theme === "system" && systemTheme === "dark");
 
   return (
     <div className={`h-full w-full ${isMobile ? "block" : ""}`}>
@@ -237,8 +238,8 @@ const SideNavBar = ({
         {/* Fixed Header */}
         <SidebarHeader className="sticky top-0 z-10  pt-2">
           {!isCollapsed ? (
-            <div className="flex items-center px-4  justify-center w-full">
-              <div className=" w-16 h-22 rounded-full overflow-hidden">
+            <div className="flex items-center px-4  justify-center w-full gap-3">
+              <div className="w-14 rounded-full overflow-hidden">
                 <Image
                   src="/assets/logo.png"
                   alt="logo"
@@ -252,7 +253,7 @@ const SideNavBar = ({
             </div>
           ) : (
             <div className="w-full flex flex-col gap-2 items-center justify-center">
-              <div className=" w-16 h-22 rounded-full overflow-hidden">
+              <div className="w-14 rounded-full overflow-hidden">
                 <Image
                   src="/assets/logo.png"
                   alt="logo"
