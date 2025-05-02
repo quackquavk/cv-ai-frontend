@@ -3,6 +3,8 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/Theme/theme-provider";
+import GoogleAnalytics from "./components/GoogleAnalytics";
+import PageTracker from "./components/PageTracker";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -25,13 +27,19 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+  
   return (
     <html lang="en" suppressHydrationWarning>
-      <head></head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen`}
       >
-        {" "}
+        {gaMeasurementId && (
+          <>
+            <GoogleAnalytics GA_MEASUREMENT_ID={gaMeasurementId} />
+            <PageTracker />
+          </>
+        )}
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
