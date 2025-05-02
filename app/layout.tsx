@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/Theme/theme-provider";
 import GoogleAnalytics from "./components/GoogleAnalytics";
 import PageTracker from "./components/PageTracker";
+import { Suspense } from "react";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -37,7 +38,9 @@ export default function RootLayout({
         {gaMeasurementId && (
           <>
             <GoogleAnalytics GA_MEASUREMENT_ID={gaMeasurementId} />
-            <PageTracker />
+            <Suspense fallback={null}>
+              <PageTracker />
+            </Suspense>
           </>
         )}
         <ThemeProvider
