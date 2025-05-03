@@ -14,6 +14,10 @@ const nextConfig = {
         hostname: "cvai.rebuzzpos.com",
         pathname: "/cv_images/**",
       },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
     ],
   },
   // Local

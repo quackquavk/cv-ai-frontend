@@ -26,6 +26,7 @@ import { FaRegFolder, FaRegFolderOpen } from "react-icons/fa";
 import { publicFolderStore } from "../store";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useDocumentStore } from "../store";
 
 const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
   const [folders, setFolders] = useState([]);
@@ -50,6 +51,12 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
   const { isFolderListOpen } = publicFolderStore();
 
   const inputRefs = useRef({});
+
+  // State to track the changes (archieve files)
+  const setShouldRefetchDocuments = useDocumentStore(
+    (state) => state.setShouldRefetchDocuments
+  );
+
   useEffect(() => {
     if (editingFolder && inputRefs.current[editingFolder]) {
       inputRefs.current[editingFolder].focus();
@@ -204,6 +211,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
           [toFolderId]: updatedToFolder,
         };
       });
+      setShouldRefetchDocuments(true);
       toast.success("File moved successfully!");
     } catch (error) {
       console.error("Error moving file:", error);
@@ -233,6 +241,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
           [folderId]: updatedToFolder,
         };
       });
+      setShouldRefetchDocuments(true);
       toast.success("File moved successfully!");
     } catch (error) {
       console.error("Error !!", error);

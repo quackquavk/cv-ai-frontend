@@ -43,6 +43,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { MdOutlineFolder } from "react-icons/md";
+import { useDocumentStore } from "../store";
 
 function DialogueComponent({
   variant,
@@ -77,6 +78,11 @@ function DialogueComponent({
   const [searchTerm, setSearchTerm] = useState(""); //State to store search query
   const context = useContext(ApiDataContext);
   const setApiData = context?.setApiData;
+
+  // State to track the changes (archieve files)
+  const setShouldRefetchDocuments = useDocumentStore(
+    (state) => state.setShouldRefetchDocuments
+  );
 
   // API's Call
   useEffect(() => {
@@ -211,11 +217,15 @@ function DialogueComponent({
         return updatedFolderContents;
       });
       toast.success(response.data.message);
-      if (setApiData) {
-        await fetchUpdatedApiData(setApiData);
-      } else {
-        console.warn("API Data context is not available.");
-      }
+
+      // Refetch the updated data
+      setShouldRefetchDocuments(true);
+
+      // if (setApiData) {
+      //   await fetchUpdatedApiData(setApiData);
+      // } else {
+      //   console.warn("API Data context is not available.");
+      // }
     } catch (error) {
       console.error("Error Archieving", error);
       toast.error(error);
@@ -283,11 +293,13 @@ function DialogueComponent({
         handleDialogue(false);
         setUpdateFolderList((prev) => !prev);
 
-        if (setApiData) {
-          await fetchUpdatedApiData(setApiData);
-        } else {
-          console.warn("API Data context is not available.");
-        }
+        // if (setApiData) {
+        //   await fetchUpdatedApiData(setApiData);
+        // } else {
+        //   console.warn("API Data context is not available.");
+        // }
+
+        setShouldRefetchDocuments(true);
         toast.success("Successfully unarchived the files");
       } else {
         if (!isFolderUnarchiveSuccess) {
@@ -323,11 +335,12 @@ function DialogueComponent({
           return newFolders;
         });
         setUpdateFolderList((prev) => !prev);
-        if (setApiData) {
-          await fetchUpdatedApiData(setApiData);
-        } else {
-          console.warn("API Data context is not available.");
-        }
+        // if (setApiData) {
+        //   await fetchUpdatedApiData(setApiData);
+        // } else {
+        //   console.warn("API Data context is not available.");
+        // }
+        setShouldRefetchDocuments(true);
         toast.success(response.data.message);
       }
     } catch (error) {
@@ -364,6 +377,8 @@ function DialogueComponent({
               [folderId]: updatedToFolder,
             };
           });
+
+          setShouldRefetchDocuments(true);
 
           toast("successfully moved files", {
             style: {
@@ -411,11 +426,14 @@ function DialogueComponent({
             [id.folder_id]: updatedFolder,
           };
         });
-        if (setApiData) {
-          await fetchUpdatedApiData(setApiData);
-        } else {
-          console.warn("API Data context is not available.");
-        }
+
+        // if (setApiData) {
+        //   await fetchUpdatedApiData(setApiData);
+        // } else {
+        //   console.warn("API Data context is not available.");
+        // }
+
+        setShouldRefetchDocuments(true);
       }
 
       toast.success("File Archieve Successfully");

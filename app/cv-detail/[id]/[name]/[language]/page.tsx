@@ -11,7 +11,6 @@ import { FaLinkedin, FaGithub } from "react-icons/fa";
 import { PiGlobeLight } from "react-icons/pi";
 import { IoLocation } from "react-icons/io5";
 import { MdEmail } from "react-icons/md";
-// import { ThumbsUp, ThumbsDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IAvailability } from "@/interfaces/Availability";
 import { LoaderCircle } from "lucide-react";
@@ -53,13 +52,11 @@ const CVDetailPage = ({ params }: { params: any }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [loader, setLoader] = useState<boolean>(false);
   const [closeParsedData, setCloseParsedData] = useState<boolean>(false);
-
-  // const [isPageLoading, setIsPageLoading] = useState<boolean>(false);
-
-  // For Star
-  // const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [userChoice, setUserChoice] = useState(null);
+  const [isAuthenticatedState, setIsAuthenticatedState] = useState(() =>
+    localStorage.getItem("isAuthenticated")
+  );
 
   // State for API data and user input
   const [inputData, setInputData] = useState<IAvailability>({
@@ -79,16 +76,19 @@ const CVDetailPage = ({ params }: { params: any }) => {
   const closeButtonRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false); // Use state for reactivity
 
-  // const accessToken = document.cookie.includes("access_token");
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setIsAuthenticatedState(localStorage.getItem("isAuthenticated"));
+    };
 
-  // const router = useRouter();
+    window.addEventListener("storage", handleStorageChange);
 
-  // const handleLogin = (e) => {
-  //   e.preventDefault();
-  //   setIsPageLoading(true);
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
 
-  //   router.push("../../auth/login");
-  // };
+  const isAuthenticated = isAuthenticatedState === "true";
 
   useEffect(() => {
     fetchFullCV();
@@ -167,27 +167,6 @@ const CVDetailPage = ({ params }: { params: any }) => {
     // setRating(index);
     setInputData({ ...inputData, star_rating: index });
   };
-
-  // const handleLike = () => {
-  //   if (userChoice === "like") {
-  //     // Undo like
-  //     setUserChoice(null);
-  //   } else {
-  //     setUserChoice("like");
-  //   }
-  // };
-
-  // const handleDislike = () => {
-  //   if (userChoice === "dislike") {
-  //     setUserChoice(null);
-  //   } else {
-  //     setUserChoice("dislike");
-  //   }
-  // };
-
-  // const handleChoice = (choice: string) => {
-  //   setUserChoice((prevChoice) => (prevChoice === choice ? null : choice));
-  // };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -274,9 +253,9 @@ const CVDetailPage = ({ params }: { params: any }) => {
                 <DetailViewSkeleton />
               </div>
             ) : (
-              <Card className="px-3 rounded-none flex py-3 w-full h-full flex-col gap-9">
+              <Card className="px-3 rounded-none flex py-3 w-full h-full flex-col gap-6">
                 {/* Main content - scrollable */}
-                <div className="flex-grow overflow-y-auto scrollbar-thin pb-3">
+                <div className="flex-grow overflow-y-auto scrollbar-thin">
                   <div className="flex flex-col gap-3">
                     {/* First Part */}
                     <div className="top-0">
@@ -654,316 +633,331 @@ const CVDetailPage = ({ params }: { params: any }) => {
                 </div>
 
                 {/* Availability Section - Fixed */}
-                <div className="sticky bottom-0 z-10 border-t-2 border-slate-700 py-3 flex flex-col gap-3">
-                  {/* Stars & Like / DisLike */}
-                  <div className="flex justify-end items-start gap-3">
-                    {/* stars */}
+                <div className="relative mb-6">
+                  <div
+                    className={`sticky bottom-0 z-10 border-t-2 border-slate-700 py-3 flex flex-col gap-3 ${
+                      !isAuthenticated && "blur-[2px] cursor-not-allowed"
+                    }`}
+                  >
+                    {/* Stars & Like / DisLike */}
+                    <div className="flex justify-end items-start gap-3">
+                      {/* stars */}
 
-                    {/* <div>
+                      {/* <div>
                       <span>(X)</span>
                     </div> */}
-                    <div className="flex gap-1">
-                      {[1, 2, 3, 4, 5].map((index) => (
-                        <button
-                          key={index}
-                          className="p-1 hover:scale-110 transition-transform"
-                          onMouseEnter={() => handleMouseEnter(index)}
-                          onMouseLeave={handleMouseLeave}
-                          onClick={() => handleClick(index)}
-                        >
-                          <Star
-                            size={14}
-                            fill={
-                              index <= (hoveredRating || inputData.star_rating)
-                                ? "#f59e0b"
-                                : "none"
-                            }
-                            stroke={
-                              index <= (hoveredRating || inputData.star_rating)
-                                ? "#f59e0b"
-                                : "#4b5563"
-                            }
-                          />
-                        </button>
-                      ))}
-                    </div>
-                    {/* <div>
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map((index) => (
+                          <button
+                            key={index}
+                            className="p-1 hover:scale-110 transition-transform"
+                            onMouseEnter={() => handleMouseEnter(index)}
+                            onMouseLeave={handleMouseLeave}
+                            onClick={() => handleClick(index)}
+                          >
+                            <Star
+                              size={14}
+                              fill={
+                                index <=
+                                (hoveredRating || inputData.star_rating)
+                                  ? "#f59e0b"
+                                  : "none"
+                              }
+                              stroke={
+                                index <=
+                                (hoveredRating || inputData.star_rating)
+                                  ? "#f59e0b"
+                                  : "#4b5563"
+                              }
+                            />
+                          </button>
+                        ))}
+                      </div>
+                      {/* <div>
                       <span>X+</span>
                     </div> */}
+                    </div>
 
-                    {/* Like / DisLike */}
-                    {/* <div>
-                      <div className="flex items-center">
-                        <button
-                          onClick={() => handleChoice("like")}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all
-                ${
-                  userChoice === "like" ? "text-green-600" : "hover:bg-gray-100"
-                }`}
+                    {/* Availability */}
+                    <div className="flex justify-end items-start gap-14">
+                      <div className="">
+                        <Select
+                          value={inputData.availability || ""}
+                          onValueChange={(value) =>
+                            setInputData({ ...inputData, availability: value })
+                          }
                         >
-                          <ThumbsUp
-                            size={16}
-                            fill={
-                              userChoice === "like" ? "currentColor" : "none"
-                            }
-                          />
-                        </button>
-
-                        <button
-                          onClick={() => handleChoice("dislike")}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all
-                ${
-                  userChoice === "dislike"
-                    ? "text-red-600"
-                    : "hover:bg-gray-100"
-                }`}
-                        >
-                          <ThumbsDown
-                            size={16}
-                            fill={
-                              userChoice === "dislike" ? "currentColor" : "none"
-                            }
-                          />
-                        </button>
-                      </div>
-                    </div> */}
-                  </div>
-
-                  {/* Availability */}
-                  <div className="flex justify-end items-start gap-14">
-                    <div className="">
-                      <Select
-                        value={inputData.availability || ""}
-                        onValueChange={(value) =>
-                          setInputData({ ...inputData, availability: value })
-                        }
-                      >
-                        <SelectTrigger className="w-[120px] h-[34px] text-xs">
-                          <SelectValue
-                            className="text-xs"
-                            placeholder="Availability"
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectItem value="remote" className="text-xs">
-                              Remote
-                            </SelectItem>
-                            <SelectItem value="onsite" className="text-xs">
-                              Onsite
-                            </SelectItem>
-                            <SelectItem value="hybrid" className="text-xs">
-                              Hybrid
-                            </SelectItem>
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="">
-                      <Select
-                        value={inputData.time_of_day || ""}
-                        onValueChange={(value) =>
-                          setInputData({ ...inputData, time_of_day: value })
-                        }
-                      >
-                        <SelectTrigger className="w-[120px] text-xs h-[34px]">
-                          <SelectValue placeholder="Time" className="text-xs" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectItem value="day" className="text-xs">
-                              Day
-                            </SelectItem>
-                            <SelectItem value="night" className="text-xs">
-                              Night
-                            </SelectItem>
-                            <SelectItem value="flexible" className="text-xs">
-                              Flexible
-                            </SelectItem>
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  {/* Salary */}
-                  <div className="flex mt-1 justify-between gap-3 ">
-                    {/* Current Salary */}
-                    <div className="w-full relative">
-                      {/* Label */}
-                      <Label
-                        htmlFor="currentSalary"
-                        className={`absolute left-3 px-1 text-center text-[10px] font-medium text-gray-700 dark:bg-black dark:text-white ${
-                          inputData.current_salary !== null
-                            ? "-top-2 bg-white"
-                            : "top-2.5 text-gray-500"
-                        }`}
-                      >
-                        Current Salary(USD)
-                      </Label>
-                      {/* Input Field */}
-                      <Input
-                        type="text"
-                        id="currentSalary"
-                        className="peer block w-auto rounded-md py-2 px-3 text-[10px]  focus:ring-black focus:ring-1 gap-2 focus:outline-none focus:ring-opacity-75"
-                        value={
-                          inputData.current_salary !== null
-                            ? inputData.current_salary.toString()
-                            : ""
-                        }
-                        onChange={(event) =>
-                          validatePositiveNumber(event, "current_salary")
-                        }
-                      />
-                    </div>
-
-                    {/* Estimated Salary */}
-                    <div className="w-full relative">
-                      {/* Label */}
-                      <Label
-                        htmlFor="estimatedSalary"
-                        className={`absolute left-3 px-1 text-[10px] font-medium transition-all duration-100 text-gray-700 dark:bg-black dark:text-white ${
-                          inputData.estimated_salary !== null
-                            ? "-top-2 bg-white"
-                            : "top-2.5 text-gray-500"
-                        }`}
-                      >
-                        Expected Salary(USD)
-                      </Label>
-                      {/* Input Field */}
-                      <Input
-                        type="text"
-                        id="estimatedSalary"
-                        className="block w-auto rounded-md py-2 px-3 text-[10px] focus:border-black focus:outline-none focus:ring-1 focus:ring-black focus:ring-opacity-75"
-                        value={
-                          inputData.estimated_salary !== null
-                            ? inputData.estimated_salary.toString()
-                            : ""
-                        }
-                        onChange={(event) =>
-                          validatePositiveNumber(event, "estimated_salary")
-                        }
-                      />
-                    </div>
-
-                    {/* Salary Based */}
-                    <div className="w-full sm:w-auto">
-                      <Select
-                        value={inputData.paid_by || ""}
-                        onValueChange={(value) =>
-                          setInputData({ ...inputData, paid_by: value })
-                        }
-                      >
-                        <SelectTrigger className="w-[120px] h-[34px] text-xs">
-                          <SelectValue
-                            className="text-xs"
-                            placeholder="Salary Based"
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectItem value="hourly" className="text-xs">
-                              Hourly
-                            </SelectItem>
-                            <SelectItem value="monthly" className="text-xs">
-                              Monthly
-                            </SelectItem>
-                            <SelectItem value="annually" className="text-xs">
-                              Annually
-                            </SelectItem>
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  {/* Salary Based & Save */}
-                  <div className="flex justify-between items-center ">
-                    {/* Move Button */}
-                    <div>
-                      <Button className="flex flex-wrap">
-                        <span className="flex gap-1">
-                          <span>
-                            <ExternalLink />
-                          </span>
-                          <span>Move to</span>
-                        </span>
-                        <span>Private</span>
-                      </Button>
-                    </div>
-
-                    {/* Notes */}
-                    <div>
-                      <Sheet>
-                        <SheetTrigger>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger className="cursor-pointer transition-transform rounded-md duration-300 ease-in-out">
-                                <Button className="flex gap-1 items-center w-22 h-8 px-2 text-xs">
-                                  <span>
-                                    <PiNotePencilBold className="text-[2px]" />
-                                  </span>
-                                  <span>Notes</span>
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Add Notes to the CV</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </SheetTrigger>
-                        <SheetContent className="flex flex-col gap-3">
-                          <SheetHeader>
-                            <SheetTitle>Note</SheetTitle>
-                          </SheetHeader>
-                          <div>
-                            <Textarea
-                              className="h-48"
-                              placeholder="Add notes..."
-                              value={inputData.note}
-                              onChange={(e) =>
-                                setInputData({
-                                  ...inputData,
-                                  note: e.target.value,
-                                })
-                              }
-                              onKeyDown={handleKeyDown}
+                          <SelectTrigger className="w-[120px] h-[34px] text-xs">
+                            <SelectValue
+                              className="text-xs"
+                              placeholder="Availability"
                             />
-                          </div>
-                          <SheetFooter>
-                            <SheetClose asChild>
-                              <Button
-                                className="w-22 h-8"
-                                type="submit"
-                                onClick={handleSave}
-                                ref={closeButtonRef}
-                              >
-                                Save
-                              </Button>
-                            </SheetClose>
-                          </SheetFooter>
-                        </SheetContent>
-                      </Sheet>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectItem value="remote" className="text-xs">
+                                Remote
+                              </SelectItem>
+                              <SelectItem value="onsite" className="text-xs">
+                                Onsite
+                              </SelectItem>
+                              <SelectItem value="hybrid" className="text-xs">
+                                Hybrid
+                              </SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="">
+                        <Select
+                          value={inputData.time_of_day || ""}
+                          onValueChange={(value) =>
+                            setInputData({ ...inputData, time_of_day: value })
+                          }
+                        >
+                          <SelectTrigger className="w-[120px] text-xs h-[34px]">
+                            <SelectValue
+                              placeholder="Time"
+                              className="text-xs"
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectItem value="day" className="text-xs">
+                                Day
+                              </SelectItem>
+                              <SelectItem value="night" className="text-xs">
+                                Night
+                              </SelectItem>
+                              <SelectItem value="flexible" className="text-xs">
+                                Flexible
+                              </SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
 
-                    {/* Save Button */}
-                    <div className="">
-                      <Button
-                        className="w-22 h-8"
-                        onClick={handleSave}
-                        disabled={loader}
-                      >
-                        <span className="flex items-center justify-center w-full">
-                          {loader ? (
-                            <LoaderCircle className="h-4 animate-spin" />
-                          ) : (
-                            <span className="text-xs h-4">Save</span>
-                          )}
-                        </span>
-                      </Button>
+                    {/* Salary */}
+                    <div className="flex mt-1 justify-between">
+                      {/* Current Salary */}
+                      <div className="w-32 relative">
+                        {/* Label */}
+                        <Label
+                          htmlFor="currentSalary"
+                          className={`absolute left-3 px-1 text-center text-[10px] font-medium text-gray-700 dark:bg-black dark:text-white ${
+                            inputData.current_salary !== null
+                              ? "-top-2 bg-white"
+                              : "top-2.5 text-gray-500"
+                          } `}
+                        >
+                          Current Salary(USD)
+                        </Label>
+                        {/* Input Field */}
+                        <Input
+                          type="text"
+                          id="currentSalary"
+                          className={`peer block rounded-md py-2 px-3 text-[10px] w-full focus:ring-black focus:ring-1 gap-2 focus:outline-none focus:ring-opacity-75 ${
+                            !isAuthenticated && "cursor-not-allowed"
+                          }`}
+                          value={
+                            inputData.current_salary !== null
+                              ? inputData.current_salary.toString()
+                              : ""
+                          }
+                          onChange={(event) =>
+                            validatePositiveNumber(event, "current_salary")
+                          }
+                        />
+                      </div>
+
+                      {/* Estimated Salary */}
+                      <div className="w-32 relative">
+                        {/* Label */}
+                        <Label
+                          htmlFor="estimatedSalary"
+                          className={`absolute left-3 px-1 text-[10px] font-medium transition-all duration-100 text-gray-700 dark:bg-black dark:text-white ${
+                            inputData.estimated_salary !== null
+                              ? "-top-2 bg-white"
+                              : "top-2.5 text-gray-500"
+                          }`}
+                        >
+                          Expected Salary(USD)
+                        </Label>
+                        {/* Input Field */}
+                        <Input
+                          type="text"
+                          id="estimatedSalary"
+                          className={`block w-full rounded-md py-2 px-3 text-[10px] focus:border-black focus:outline-none focus:ring-1 focus:ring-black focus:ring-opacity-75 ${
+                            !isAuthenticated && "cursor-not-allowed"
+                          } `}
+                          value={
+                            inputData.estimated_salary !== null
+                              ? inputData.estimated_salary.toString()
+                              : ""
+                          }
+                          onChange={(event) =>
+                            validatePositiveNumber(event, "estimated_salary")
+                          }
+                        />
+                      </div>
+
+                      {/* Salary Based */}
+                      <div className="">
+                        <Select
+                          value={inputData.paid_by || ""}
+                          onValueChange={(value) =>
+                            setInputData({ ...inputData, paid_by: value })
+                          }
+                        >
+                          <SelectTrigger className="w-[120px] h-[39px] text-xs">
+                            <SelectValue
+                              className="text-xs"
+                              placeholder="Salary Based"
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectItem value="hourly" className="text-xs">
+                                Hourly
+                              </SelectItem>
+                              <SelectItem value="monthly" className="text-xs">
+                                Monthly
+                              </SelectItem>
+                              <SelectItem value="annually" className="text-xs">
+                                Annually
+                              </SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Salary Based & Save */}
+                    <div className="flex justify-between items-center ">
+                      {/* Move Button */}
+                      <div>
+                        <Button
+                          className="flex flex-wrap sm-w-auto h-8 text-center items-center"
+                          disabled={!isAuthenticated}
+                        >
+                          <span className="flex gap-1 items-center w-auto text-xs">
+                            <span>
+                              <ExternalLink />
+                            </span>
+                            <span>Move to Private</span>
+                          </span>
+                        </Button>
+                      </div>
+
+                      {/* Notes */}
+                      <div>
+                        <Sheet>
+                          <SheetTrigger
+                            disabled={!isAuthenticated}
+                            className={`${
+                              !isAuthenticated && "cursor-not-allowed"
+                            }`}
+                          >
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger
+                                  className={`cursor-pointer transition-transform rounded-md duration-300 ease-in-out ${
+                                    !isAuthenticated && "cursor-not-allowed"
+                                  }`}
+                                >
+                                  <Button
+                                    className={`flex gap-1 items-center w-22 h-8 px-2 text-xs ${
+                                      !isAuthenticated && "pointer-events-none"
+                                    }`}
+                                  >
+                                    <span>
+                                      <PiNotePencilBold className="text-[2px]" />
+                                    </span>
+                                    <span>Notes</span>
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Add Notes to the CV</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </SheetTrigger>
+                          <SheetContent className="flex flex-col gap-3">
+                            <SheetHeader>
+                              <SheetTitle>Note</SheetTitle>
+                            </SheetHeader>
+                            <div>
+                              <Textarea
+                                className="h-48"
+                                placeholder="Add notes..."
+                                value={inputData.note}
+                                onChange={(e) =>
+                                  setInputData({
+                                    ...inputData,
+                                    note: e.target.value,
+                                  })
+                                }
+                                onKeyDown={handleKeyDown}
+                              />
+                            </div>
+                            <SheetFooter>
+                              <SheetClose asChild>
+                                <Button
+                                  className="w-22 h-8"
+                                  type="submit"
+                                  onClick={handleSave}
+                                  ref={closeButtonRef}
+                                  disabled={!isAuthenticated}
+                                >
+                                  Save
+                                </Button>
+                              </SheetClose>
+                            </SheetFooter>
+                          </SheetContent>
+                        </Sheet>
+                      </div>
+
+                      {/* Save Button */}
+                      <div className="">
+                        <Button
+                          className={`text-center items-center w-[88px] h-8 ${
+                            !isAuthenticated && "cursor-not-allowed"
+                          }`}
+                          onClick={handleSave}
+                          disabled={loader || !isAuthenticated}
+                        >
+                          <div className="flex items-center justify-center w-full">
+                            {loader ? (
+                              <LoaderCircle className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <div className="flex gap-1 items-center">
+                                <Save className="w-4 h-4" />
+                                <span className="text-xs">Save</span>
+                              </div>
+                            )}
+                          </div>
+                        </Button>
+                      </div>
                     </div>
                   </div>
+                  {!isAuthenticated && (
+                    <div className="absolute text-center">
+                      <p className="text-sm text-red-500">
+                        You need to login to use this feature
+                      </p>
+                    </div>
+                  )}
+                  {!isAuthenticated && (
+                    <div className="absolute inset-0 flex items-center justify-center z-20">
+                      <Link href={"../../../../auth/login"}>
+                        <Button className="font-bold px-6 py-3 rounded-lg shadow-lg">
+                          Login
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
                 </div>
               </Card>
             )}
@@ -1376,7 +1370,11 @@ const CVDetailPage = ({ params }: { params: any }) => {
 
             {/* Availability Section */}
             <div className="relative w-full">
-              <div className="sticky z-10 border-t-2 border-slate-700 pt-3 flex flex-col gap-3">
+              <div
+                className={`sticky z-10 border-t-2 border-slate-700 pt-3 flex flex-col gap-3 ${
+                  !isAuthenticated && "blur-[2px] cursor-not-allowed"
+                }`}
+              >
                 {/* Stars & Like / DisLike */}
                 <div className="flex justify-end items-center gap-3 ">
                   {/* stars */}
@@ -1388,10 +1386,13 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     {[1, 2, 3, 4, 5].map((index) => (
                       <button
                         key={index}
-                        className="p-1 hover:scale-110 transition-transform"
+                        className={`p-1 hover:scale-110 transition-transform ${
+                          !isAuthenticated && "cursor-not-allowed"
+                        }`}
                         onMouseEnter={() => handleMouseEnter(index)}
                         onMouseLeave={handleMouseLeave}
                         onClick={() => handleClick(index)}
+                        disabled={!isAuthenticated}
                       >
                         <Star
                           size={14}
@@ -1460,7 +1461,10 @@ const CVDetailPage = ({ params }: { params: any }) => {
                         setInputData({ ...inputData, availability: value })
                       }
                     >
-                      <SelectTrigger className="w-full sm:w-[120px] h-[34px] text-xs">
+                      <SelectTrigger
+                        className="w-full sm:w-[120px] h-[34px] text-xs"
+                        disabled={!isAuthenticated}
+                      >
                         <SelectValue
                           className="text-xs"
                           placeholder="Availability"
@@ -1482,12 +1486,13 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     </Select>
                   </div>
 
-                  <div className="">
+                  <div>
                     <Select
                       value={inputData.time_of_day || ""}
                       onValueChange={(value) =>
                         setInputData({ ...inputData, time_of_day: value })
                       }
+                      disabled={!isAuthenticated}
                     >
                       <SelectTrigger className="w-full sm:w-[120px] text-xs h-[34px]">
                         <SelectValue placeholder="Time" className="text-xs" />
@@ -1512,7 +1517,11 @@ const CVDetailPage = ({ params }: { params: any }) => {
                 {/* Salary */}
                 <div className="flex flex-col sm:flex-row mt-1 justify-between md:gap-3 sm:gap-0">
                   {/* Current Salary */}
-                  <div className="w-full md:w-40 relative">
+                  <div
+                    className={`w-full md:w-40 relative ${
+                      !isAuthenticated && "cursor-not-allowed"
+                    }`}
+                  >
                     {/* Label */}
                     <Label
                       htmlFor="currentSalary"
@@ -1520,7 +1529,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                         inputData.current_salary !== null
                           ? "-top-2 bg-white"
                           : "top-2.5 text-gray-500"
-                      }`}
+                      } ${!isAuthenticated && "cursor-not-allowed"} `}
                     >
                       Current Salary(USD)
                     </Label>
@@ -1528,7 +1537,9 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     <Input
                       type="text"
                       id="currentSalary"
-                      className="peer block w-full rounded-md py-2 px-3 text-xs focus:ring-1 gap-2 focus:outline-none focus:ring-black focus:ring-opacity-75"
+                      className={`peer block w-full rounded-md py-2 px-3 text-xs focus:ring-1 gap-2 focus:outline-none focus:ring-black focus:ring-opacity-75 ${
+                        !isAuthenticated && "cursor-not-allowed"
+                      } `}
                       value={
                         inputData.current_salary !== null
                           ? inputData.current_salary.toString()
@@ -1557,7 +1568,9 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     <Input
                       type="text"
                       id="estimatedSalary"
-                      className="block w-full rounded-md py-2 px-3 text-xs   focus:outline-none focus:ring-1 gap-2 focus:ring-black focus:ring-opacity-75"
+                      className={`block w-full rounded-md py-2 px-3 text-xs   focus:outline-none focus:ring-1 gap-2 focus:ring-black focus:ring-opacity-75 ${
+                        !isAuthenticated && "cursor-not-allowed"
+                      } `}
                       value={
                         inputData.estimated_salary !== null
                           ? inputData.estimated_salary.toString()
@@ -1577,7 +1590,10 @@ const CVDetailPage = ({ params }: { params: any }) => {
                         setInputData({ ...inputData, paid_by: value })
                       }
                     >
-                      <SelectTrigger className="w-full sm:w-[120px] h-[34px] text-xs">
+                      <SelectTrigger
+                        className="w-full sm:w-[120px] h-[39px] text-xs"
+                        disabled={!isAuthenticated}
+                      >
                         <SelectValue
                           className="text-xs"
                           placeholder="Salary Based"
@@ -1604,25 +1620,40 @@ const CVDetailPage = ({ params }: { params: any }) => {
                 <div className="flex justify-between items-center">
                   {/* Move Button */}
                   <div>
-                    <Button className="flex flex-wrap">
-                      <span className="flex gap-1">
+                    <Button
+                      className="flex flex-wrap sm-w-auto h-8 text-center items-center"
+                      disabled={!isAuthenticated}
+                    >
+                      <span className="flex gap-1 items-center w-auto text-xs">
                         <span>
                           <ExternalLink />
                         </span>
-                        <span>Move to</span>
+                        <span>Move to Private</span>
                       </span>
-                      <span>Private</span>
                     </Button>
                   </div>
 
                   {/* Notes */}
                   <div className="">
                     <Sheet>
-                      <SheetTrigger>
+                      <SheetTrigger
+                        disabled={!isAuthenticated}
+                        className={`${
+                          !isAuthenticated && "cursor-not-allowed"
+                        }`}
+                      >
                         <TooltipProvider>
                           <Tooltip>
-                            <TooltipTrigger className="cursor-pointer transition-transform rounded-md duration-300 ease-in-out">
-                              <Button className="flex gap-1 items-center w-22 h-8 px-2 text-xs">
+                            <TooltipTrigger
+                              className={`cursor-pointer transition-transform rounded-md duration-300 ease-in-out ${
+                                !isAuthenticated && "cursor-not-allowed"
+                              }`}
+                            >
+                              <Button
+                                className={`flex gap-1 items-center w-22 h-8 px-2 text-xs ${
+                                  !isAuthenticated && "pointer-events-none"
+                                }`}
+                              >
                                 <span>
                                   <PiNotePencilBold className="text-[2px]" />
                                 </span>
@@ -1660,6 +1691,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                               type="submit"
                               onClick={handleSave}
                               ref={closeButtonRef}
+                              disabled={!isAuthenticated}
                             >
                               Save
                             </Button>
@@ -1670,28 +1702,47 @@ const CVDetailPage = ({ params }: { params: any }) => {
                   </div>
 
                   {/* Save Button */}
-                  <div className="w-full sm:w-auto">
+                  <div className="">
                     <Button
-                      className="w-full text-center items-center sm:w-auto h-8"
+                      className={`text-center items-center w-[88px] h-8 ${
+                        !isAuthenticated && "cursor-not-allowed"
+                      }`}
                       onClick={handleSave}
-                      disabled={loader}
+                      disabled={loader || !isAuthenticated}
                     >
-                      <span className="flex text-center items-center w-auto">
+                      <div className="flex text-center items-center w-full">
                         {loader ? (
-                          <LoaderCircle className="h-4 animate-spin" />
+                          <div className="items-center tex-center">
+                            <LoaderCircle className=" animate-spin w-4 h-4" />
+                          </div>
                         ) : (
                           <div className="flex gap-1 items-center">
-                            <span>
-                              <Save />
-                            </span>
+                            <Save className="w-4 h-4" />
                             <span className="text-xs">Save</span>
                           </div>
                         )}
-                      </span>
+                      </div>
                     </Button>
                   </div>
                 </div>
               </div>
+
+              {!isAuthenticated && (
+                <div className="text-center">
+                  <p className="text-sm text-red-500">
+                    You need to login to use this feature
+                  </p>
+                </div>
+              )}
+              {!isAuthenticated && (
+                <div className="absolute inset-0 flex items-center justify-center z-20">
+                  <Link href={"../../../../auth/login"}>
+                    <Button className="font-bold px-6 py-3 rounded-lg shadow-lg">
+                      Login
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </div>
           </Card>
         )}

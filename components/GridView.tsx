@@ -1,15 +1,16 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { IFormInputData } from "@/interfaces/FormInputData";
 import { IDocumentData } from "@/interfaces/DocumentData";
 import axiosInstance from "@/utils/axiosConfig";
 import GridViewSkeleton from "./ui/Skeleton/GridViewSkeleton";
 import Masonry from "react-masonry-css";
-import { folderSelectStore } from "@/app/dashboard/store";
+import { folderSelectStore, publicFolderStore } from "@/app/dashboard/store";
 import { useSearchContext } from "@/app/dashboard/context/SearchContext";
-import { publicFolderStore } from "@/app/dashboard/store";
 import { Card } from "./ui/card";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useDocumentStore } from "@/app/dashboard/store";
 
 interface GridViewProps {
   data: IDocumentData[];
@@ -17,131 +18,107 @@ interface GridViewProps {
 }
 
 function GridView({ data, searchData }: GridViewProps) {
-  const [searchResultsGridView, setSearchResultsGridView] = useState<any[]>([]);
-
-  const [loading, setLoading] = useState(true);
-  const [isSearching, setIsSearching] = useState(false);
-  const [folderFilteredData, setFolderFilteredData] = useState<any[]>([]);
-  const { resetSearch } = useSearchContext();
+  const [searchResultsGridView, setSearchResultsGridView] = useState<
+    IDocumentData[]
+  >([]);
   const { selectFolderId } = folderSelectStore();
   const { isFolderListOpen } = publicFolderStore();
+  const { resetSearch } = useSearchContext();
+  // const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (!searchData) {
-      setLoading(false);
+  const [isSearching, setIsSearching] = useState(false);
+
+  // State to track if the document (archieve)
+  const shouldRefetchDocuments = useDocumentStore(
+    (state) => state.shouldRefetchDocuments
+  );
+
+  const setShouldRefetchDocuments = useDocumentStore(
+    (state) => state.setShouldRefetchDocuments
+  );
+  // --- Folder Fetch ---
+  const {
+    data: folderFilteredData,
+    isLoading: folderLoading,
+    refetch: refetchFolderFiles,
+  } = useQuery({
+    queryKey: ["folderFiles", selectFolderId],
+    queryFn: async () => {
+      if (!selectFolderId) return [];
+      const res = await axiosInstance.get(`/folder/getFiles/${selectFolderId}`);
+      return res.data;
+    },
+    enabled: !!selectFolderId && !searchData,
+  });
+
+  // --- Search Fetch ---
+  const searchMutation = useMutation({
+    mutationFn: async (searchData: IFormInputData) => {
+      const res = await axiosInstance.post(
+        `/document/search_by_query`,
+        searchData
+      );
+      return res.data;
+    },
+    onSuccess: (data) => {
+      setSearchResultsGridView(data || []);
+    },
+    onSettled: () => {
       setIsSearching(false);
-      // setFolderFilteredData()
-    }
-  }, [data, searchData]);
+    },
+  });
 
-  // Handle search data and view changes
   useEffect(() => {
     if (searchData) {
-      setLoading(true);
       setIsSearching(true);
-      fetchSearchResults(searchData);
+      searchMutation.mutate(searchData);
     }
-    // else {
-    //   resetSearch();
-    // }
   }, [searchData]);
 
-  // useEffect(() => {
-  //   if (selectFolderId && searchData) {
-  //     fetchSearchResults(searchData);
-  //     setIsSearching(false);
-  //   }
-  // }, [selectFolderId, searchData]);
+  useEffect(() => {
+    resetSearch();
+  }, [selectFolderId]);
+
+  console.log("shouldRefetchDocuments", shouldRefetchDocuments);
 
   useEffect(() => {
-    if (selectFolderId && searchData) {
-      fetchSearchResults(searchData);
-      setIsSearching(false);
-    } else if (selectFolderId) {
-      fetchFolderFiles();
-      resetSearch();
-    }
-  }, [selectFolderId, searchData]);
-
-  const fetchDocumentsByIds = async (docIds: string[]) => {
-    const promises = docIds.map((docId) =>
-      axiosInstance.get(`/document/cv/${docId}`).then((res) => res.data)
-    );
-    return Promise.all(promises);
-  };
-
-  const formatName = (name: string | undefined): string => {
-    if (!name) return "undefined";
-    return name.trim().replace(/\s+/g, "-").toLowerCase();
-  };
-
-  const formatLanguages = (languages: string[] | undefined): string => {
-    if (!languages || languages.length === 0) return "undefined";
-    return languages
-      .map((item) => {
-        const match = item.match(/\b[a-zA-Z#]+\b/);
-        return match ? match[0] : ""; // Ensure no null values
-      })
-      .filter((lang) => lang !== "") // Remove empty matches
-      .slice(0, 3)
-      .join("-");
-  };
-
-  const fetchSearchResults = async (searchData: IFormInputData) => {
-    try {
-      const response = await axiosInstance.post(
-        `/document/search_by_query`,
-        searchData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      if (response.status === 200) {
-        setSearchResultsGridView(response.data || []);
-        setLoading(true);
-      } else {
-        console.error("Unexpected response status:", response.status);
+    if (shouldRefetchDocuments) {
+      if (!searchData && selectFolderId) {
+        refetchFolderFiles(); // use this instead of invalidateQueries
       }
-    } catch (error) {
-      console.error("Erro Fetching", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const fetchFolderFiles = async () => {
-    if (!selectFolderId) return;
-
-    try {
-      setLoading(true);
-      const response = await axiosInstance.get(
-        `/folder/getFiles/${selectFolderId}`
-      );
-
-      if (response.status === 200) {
-        setFolderFilteredData(response.data);
+      if (searchData) {
+        setIsSearching(true);
+        searchMutation.mutate(searchData);
       }
-    } catch (error) {
-      console.error("Error fetching folder files:", error);
-    } finally {
-      setLoading(false);
-      setIsSearching(false);
-    }
-  };
 
+      setShouldRefetchDocuments(false);
+    }
+  }, [shouldRefetchDocuments, selectFolderId, searchData, refetchFolderFiles]);
+
+  // --- Click Handler ---
   const handleCardClick = async (docId: string) => {
     try {
-      const [documentData] = await fetchDocumentsByIds([docId]);
+      const res = await axiosInstance.get(`/document/cv/${docId}`);
+      const documentData = res.data;
       const url = `/cv-detail/${docId}/${formatName(
         documentData?.parsed_cv?.name
       )}/${formatLanguages(documentData?.parsed_cv?.programming_languages)}`;
       window.open(url, "_blank");
-    } catch (error) {
-      console.error("Error fetching document data:", error);
+    } catch (err) {
+      console.error("Error fetching doc:", err);
     }
   };
+
+  const formatName = (name: string | undefined): string =>
+    name?.trim().replace(/\s+/g, "-").toLowerCase() || "undefined";
+
+  const formatLanguages = (languages: string[] | undefined): string =>
+    (languages || [])
+      .map((lang) => lang.match(/\b[a-zA-Z#]+\b/)?.[0] || "")
+      .filter(Boolean)
+      .slice(0, 3)
+      .join("-") || "undefined";
 
   const breakpointColumnsObj = {
     default: 3,
@@ -151,29 +128,20 @@ function GridView({ data, searchData }: GridViewProps) {
   };
 
   const displayedData =
-    selectFolderId && searchData
+    searchData && selectFolderId
       ? searchResultsGridView
       : selectFolderId
-      ? folderFilteredData
+      ? folderFilteredData || []
       : isSearching
       ? searchResultsGridView
       : data;
 
-  // const displayedData =
-  //   searchData && selectFolderId
-  //     ? searchResults
-  //     : selectFolderId
-  //     ? folderFilteredData
-  //     : data;
+  const loading = folderLoading || (searchData && isSearching);
 
   return (
     <div className="overflow-hidden max-w-[100vw]">
       {loading ? (
-        <div>
-          {Array.from({ length: 1 }).map((_, index) => (
-            <GridViewSkeleton key={index} />
-          ))}
-        </div>
+        <GridViewSkeleton />
       ) : displayedData.length > 0 && isFolderListOpen ? (
         <Masonry
           breakpointCols={breakpointColumnsObj}
@@ -200,7 +168,7 @@ function GridView({ data, searchData }: GridViewProps) {
         </Masonry>
       ) : (
         <div className="text-center text-gray-600 mt-4">
-          No Data Available...
+          No Document Available...
         </div>
       )}
     </div>

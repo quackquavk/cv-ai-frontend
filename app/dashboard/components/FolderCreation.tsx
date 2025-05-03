@@ -17,7 +17,7 @@ import DialogueComponent from "./DialogueComponent";
 import { publicFolderStore } from "../store";
 
 function FolderCreation({ onFolderCreated, setUpdateFolderList }) {
-  const [folderName, setFolderName] = useState("");
+  const [folderName, setFolderName] = useState(" ");
   const [error, setError] = useState("");
   const [open, setOpen] = useState(false);
   const [dialogOpen, setDialogueOpen] = useState(false);

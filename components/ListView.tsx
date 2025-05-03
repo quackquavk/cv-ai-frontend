@@ -22,6 +22,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useDocumentStore } from "@/app/dashboard/store";
 
 interface ListViewProps {
   data: IDocumentData[] | any;
@@ -38,6 +39,15 @@ const ListView = ({ data, searchData }: ListViewProps) => {
   const queryClient = useQueryClient();
 
   const hasMounted = useRef(false);
+
+  // State to track if the document (archieve)
+  const shouldRefetchDocuments = useDocumentStore(
+    (state) => state.shouldRefetchDocuments
+  );
+
+  const setShouldRefetchDocuments = useDocumentStore(
+    (state) => state.setShouldRefetchDocuments
+  );
 
   // Function to fetch documents by IDs
   const fetchDocumentsByIds = async (docIds: string[]) => {
@@ -118,10 +128,16 @@ const ListView = ({ data, searchData }: ListViewProps) => {
   }, [selectFolderId]);
 
   useEffect(() => {
-    queryClient.invalidateQueries({
-      queryKey: ["documents", selectFolderId, searchData],
-    });
-  }, [selectFolderId, searchData]);
+    if (shouldRefetchDocuments || selectFolderId || searchData) {
+      queryClient.invalidateQueries({
+        queryKey: ["documents", selectFolderId, searchData],
+      });
+
+      if (shouldRefetchDocuments) {
+        setShouldRefetchDocuments(false); // Reset only if triggered by archive
+      }
+    }
+  }, [selectFolderId, searchData, shouldRefetchDocuments]);
 
   // Cleanup effect
   // useEffect(() => {
@@ -133,7 +149,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
   // Prefetch initial data when component mounts or data prop changes
   useEffect(() => {
     const prefetchInitialData = async () => {
-      if (data && data.length > 0 && !selectFolderId && !searchData) {
+      if (data && data?.length > 0 && !selectFolderId && !searchData) {
         const initialDocIds = data
           .slice(0, ITEMS_PER_PAGE)
           .map((item) => item.doc_id);
@@ -187,7 +203,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
     e.preventDefault();
   };
 
-  if (isLoading) {
+  if (isLoading || shouldRefetchDocuments) {
     return (
       <div className="flex flex-col gap-3">
         <ListViewSkeletion />
@@ -218,7 +234,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
 
   return (
     <div className="flex flex-col w-full max-w-[100vw] rounded-md sm:p-2 gap-3 sm:gap-5 items-center">
-      {(allDocuments.length === 0 && isLoading) || !isFolderListOpen ? (
+      {allDocuments?.length === 0 || !isFolderListOpen ? (
         <p className="text-gray-600">No Document Available...</p>
       ) : (
         <>
@@ -476,7 +492,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
           {/* Loading indicator and intersection observer reference */}
           <div
             ref={ref}
-            className="w-full mt-24 h-20 flex items-center justify-center"
+            className="w-full lg:mt-24 mt-[15rem] h-20 flex items-center justify-center"
           >
             {isFetchingNextPage && <ListViewSkeletion />}
           </div>

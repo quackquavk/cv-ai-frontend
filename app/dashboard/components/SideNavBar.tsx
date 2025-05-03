@@ -8,14 +8,22 @@ import {
 } from "react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ApiDataContext } from "../context/ApiDataContext";
+// import { ApiDataContext } from "../context/ApiDataContext";
 import { SpinnerContext } from "../context/SpinnerContext";
 import { IoIosCloudUpload } from "react-icons/io";
 import FolderCreation from "./FolderCreation";
 import FolderList from "./FolderList";
+import Link from "next/link";
 import type { IFolderData } from "@/interfaces/FolderData";
-import { fetchUpdatedApiData } from "../utils/updatedInitialData";
-import { ChevronLeft, ChevronRight, LogOut, User, X } from "lucide-react";
+// import { fetchUpdatedApiData } from "../utils/updatedInitialData";
+import {
+  ChevronLeft,
+  ChevronRight,
+  LogOut,
+  LogIn,
+  User,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -39,7 +47,17 @@ import {
   DropdownMenuTrigger,
   DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import DialogueComponent from "./DialogueComponent";
 import { MdFolderZip } from "react-icons/md";
 import { folderSelectStore, publicFolderStore } from "../store";
@@ -47,6 +65,9 @@ import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { useQueryClient } from "@tanstack/react-query";
+import { UserContext } from "@/context/UserContext";
+import { useRouter } from "next/navigation";
 
 const SideNavBar = ({
   isCollapsed,
@@ -54,9 +75,11 @@ const SideNavBar = ({
   isMobile = false,
   onMobileClose = () => {},
 }) => {
-  const context = useContext(ApiDataContext);
+  // const context = useContext(ApiDataContext);
   const spinnerContext = useContext(SpinnerContext);
-  const setApiData = context?.setApiData;
+  const userContext = useContext(UserContext);
+  const { user, loading, isAuthenticated, setIsAuthenticated } = userContext;
+  // const setApiData = context?.setApiData;
   const setUploading = spinnerContext?.setUploading;
   const uploading = spinnerContext?.uploading;
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -70,6 +93,10 @@ const SideNavBar = ({
   const [localFolderId, setLocalFolderId] = useState<string | null>(
     selectFolderId
   );
+  const [isPageLoading, setIsPageLoading] = useState<boolean>(false);
+
+  const queryClient = useQueryClient();
+  const router = useRouter();
 
   // For Theme Change
   const { theme, setTheme, systemTheme } = useTheme();
@@ -81,6 +108,7 @@ const SideNavBar = ({
     setDialogeOpen(state);
   };
 
+  console.log("Loading", loading);
   useEffect(() => {
     // Sync local state with external `selectFolderId` when it changes
     setLocalFolderId(selectFolderId);
@@ -145,12 +173,24 @@ const SideNavBar = ({
         toast("Uploaded successfully", {
           description: "The file has been uploaded successfully",
         });
+
+        // Invalidate and refetch ListView data
+        // queryClient.refetchQueries({
+        //   queryKey: ["documents", selectedFolderId],
+        // });
+        queryClient.invalidateQueries({
+          queryKey: ["documents", selectedFolderId],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["folderFiles", selectedFolderId],
+        });
+
         // Refectiing the initialRenderData API
-        if (setApiData) {
-          await fetchUpdatedApiData(setApiData);
-        } else {
-          console.warn("API Data context is not available");
-        }
+        // if (setApiData) {
+        //   await fetchUpdatedApiData(setApiData);
+        // } else {
+        //   console.warn("API Data context is not available");
+        // }
       } else {
         toast("Upload failed", {
           description: "Failed to upload files ",
@@ -195,6 +235,16 @@ const SideNavBar = ({
     if (event.dataTransfer.files) {
       handleFileUpload(event.dataTransfer.files);
     }
+  };
+
+  // console.log("ImageURL", user.picture);
+
+  const handleLogOut = async (e) => {
+    e.preventDefault();
+    await axiosInstance.get("/user/logout");
+    setIsAuthenticated(false);
+    setIsPageLoading(true);
+    router.push("../../auth/login");
   };
 
   const isDarkMode =
@@ -404,18 +454,35 @@ const SideNavBar = ({
                     isCollapsed ? "justify-center" : "space-x-3 md:rounded-md"
                   } cursor-pointer p-2 transition-colors`}
                 >
+                  {/* {} */}
                   <Avatar>
-                    <AvatarImage
-                      src="/placeholder.svg?height=40&width=40"
-                      alt="User"
-                    />
-                    <AvatarFallback>UN</AvatarFallback>
+                    {loading ? (
+                      <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
+                    ) : isAuthenticated ? (
+                      <AvatarImage src={user?.picture} alt="User" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-red-600 overflow-hidden"></div>
+                    )}
                   </Avatar>
-                  {!isCollapsed && (
+
+                  {loading ? (
+                    <div className="flex flex-col gap-1">
+                      <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mb-1" />
+                      <div className="h-3 w-28 bg-gray-200 rounded animate-pulse" />
+                    </div>
+                  ) : !isCollapsed && isAuthenticated ? (
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">User Name</p>
+                      <p className="text-sm font-medium truncate">
+                        {user?.full_name}
+                      </p>
                       <p className="text-xs text-gray-400 truncate">
-                        user@example.com
+                        {user?.email}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-red-600 font-medium truncate">
+                        User Not Login
                       </p>
                     </div>
                   )}
@@ -424,13 +491,15 @@ const SideNavBar = ({
               <DropdownMenuContent matchWidth={true} align="end" forceMount>
                 <DropdownMenuGroup className="flex flex-col w-full">
                   {/* Profile */}
-                  <div>
-                    <DropdownMenuItem>
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Profile</span>
-                    </DropdownMenuItem>
-                  </div>
-                  <DropdownMenuSeparator />
+                  {isAuthenticated && (
+                    <div>
+                      <DropdownMenuItem className="cursor-pointer">
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Profile</span>
+                      </DropdownMenuItem>
+                    </div>
+                  )}
+                  {isAuthenticated && <DropdownMenuSeparator />}
 
                   {/* Theme */}
                   <div className="flex items-center justify-between gap-4 px-2 py-2">
@@ -490,18 +559,68 @@ const SideNavBar = ({
                   <DropdownMenuSeparator />
 
                   {/* Log Out */}
-                  <div>
-                    <DropdownMenuItem>
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Log out</span>
-                    </DropdownMenuItem>
-                  </div>
+                  {isAuthenticated && (
+                    <div className="cursor-pointer">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <DropdownMenuItem
+                            className="cursor-pointer"
+                            onSelect={(e) => {
+                              // Prevent the dropdown from closing when clicking this item
+                              e.preventDefault();
+                            }}
+                          >
+                            <LogOut className="mr-2 h-4 w-4" />
+                            <span>Log out</span>
+                          </DropdownMenuItem>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>
+                              Are you sure want to sign out ?
+                            </DialogTitle>
+                          </DialogHeader>
+                          <DialogFooter>
+                            <DialogClose asChild>
+                              <Button>Cancel</Button>
+                            </DialogClose>
+                            <DialogClose>
+                              <Button
+                                className="bg-red-600 hover:bg-red-500 text-white"
+                                onClick={(e) => handleLogOut(e)}
+                              >
+                                Log Out
+                              </Button>
+                            </DialogClose>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  )}
+                  {!isAuthenticated && (
+                    <Link
+                      href={"../../auth/login"}
+                      onClick={() => setIsPageLoading(true)}
+                    >
+                      <DropdownMenuItem className="cursor-pointer">
+                        <LogIn className="mr-2 h-4 w-4" />
+                        <span>Log in</span>
+                      </DropdownMenuItem>
+                    </Link>
+                  )}
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
           </Card>
         </SidebarFooter>
       </Card>
+
+      {/* Loader (shown when isLoading is true) */}
+      {isPageLoading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
+          <div className="loader border-t-4 border-white border-solid rounded-full w-12 h-12 animate-spin"></div>
+        </div>
+      )}
     </div>
   );
 };

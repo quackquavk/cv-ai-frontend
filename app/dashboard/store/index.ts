@@ -18,6 +18,12 @@ interface SearchState {
   setFormData: (newData) => void;
 }
 
+// Track the changes (archieve files)
+interface DocumentState {
+  shouldRefetchDocuments: boolean;
+  setShouldRefetchDocuments: (value: boolean) => void;
+}
+
 // Folder Select
 export const folderSelectStore = create<FolderSelectStore>((set) => ({
   selectFolderId: null,
@@ -50,4 +56,10 @@ export const useSearchStore = create<SearchState>((set) => ({
     set((state) => ({
       formData: { ...state.formData, ...newData },
     })),
+}));
+
+// Export the state to track the changes (archieve files)
+export const useDocumentStore = create<DocumentState>((set) => ({
+  shouldRefetchDocuments: false,
+  setShouldRefetchDocuments: (value) => set({ shouldRefetchDocuments: value }),
 }));

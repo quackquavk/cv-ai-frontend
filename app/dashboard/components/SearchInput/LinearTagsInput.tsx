@@ -163,10 +163,11 @@ const LinearTagsInput = ({ tags, setTags, onShiftEnter }) => {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="flex-1 outline-none bg-transparent w-[20rem]"
+              className="flex-1 outline-none bg-transparent w-[12rem] sm:w-[20rem] truncate overflow-hidden"
               placeholder={
-                tags.length === 0 &&
-                "Tags to search... e.g.nodejs nextjs python"
+                tags.length === 0
+                  ? "Tags to search... e.g.nodejs nextjs python"
+                  : undefined
               }
             />
           </div>

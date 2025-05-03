@@ -22,6 +22,7 @@ function Dashboard() {
 
   const { searchData } = searchContext;
 
+
   const context = useContext(ViewContext);
   if (!context) {
     throw new Error("Dashboard must be used within a ViewProvider");
