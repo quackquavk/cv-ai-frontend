@@ -35,7 +35,8 @@ const LoginPage = () => {
 
   const handleLogin = async () => {
     setLoader(true);
-    window.location.href = "https://cvai.rebuzzpos.com/user/google/login";
+    const googleLogin = process.env.NEXT_PUBLIC_GOOGLE_LOGIN
+    window.location.href = googleLogin;
   };
 
   return (
