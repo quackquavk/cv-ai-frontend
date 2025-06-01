@@ -6,6 +6,10 @@ export interface IAvailability {
   current_salary: null | number;
   estimated_salary: null | number;
   paid_by: null | string;
-  votes: null | boolean;
   note: string;
+  rating_info: {
+    average: number;
+    count: number;
+  };
+  has_rated: boolean;
 }

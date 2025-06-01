@@ -1,9 +1,10 @@
 "use client";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { UserContext } from "@/context/UserContext";
 
 export default function Home() {
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const userContext = useContext(UserContext);
   const router = useRouter();
 
@@ -16,6 +17,7 @@ export default function Home() {
   useEffect(() => {
     // Only redirect after loading is complete
     if (!loading) {
+      setIsRedirecting(true);
       if (isAuthenticated) {
         router.push("/dashboard");
       } else {
@@ -25,7 +27,7 @@ export default function Home() {
   }, [isAuthenticated, loading, router]);
 
   // Show a simple loading state while checking authentication
-  if (loading) {
+  if (loading || isRedirecting) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
         <div className="loader border-t-4 border-white border-solid rounded-full w-12 h-12 animate-spin"></div>

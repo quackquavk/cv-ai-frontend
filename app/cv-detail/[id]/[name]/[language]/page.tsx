@@ -5,6 +5,7 @@ import Link from "next/link";
 import { GoDotFill } from "react-icons/go";
 import DetailViewSkeleton from "@/components/ui/Skeleton/DetailViewSkeleton";
 import axiosInstance from "@/utils/axiosConfig";
+import ContactQRCode from "@/app/components/ContactQRCode";
 import { SquareArrowOutUpRight, ExternalLink } from "lucide-react";
 import { Star } from "lucide-react";
 import { FaLinkedin, FaGithub } from "react-icons/fa";
@@ -53,7 +54,6 @@ const CVDetailPage = ({ params }: { params: any }) => {
   const [loader, setLoader] = useState<boolean>(false);
   const [closeParsedData, setCloseParsedData] = useState<boolean>(false);
   const [hoveredRating, setHoveredRating] = useState(0);
-  const [userChoice, setUserChoice] = useState(null);
   const [isAuthenticatedState, setIsAuthenticatedState] = useState(() =>
     localStorage.getItem("isAuthenticated")
   );
@@ -67,8 +67,12 @@ const CVDetailPage = ({ params }: { params: any }) => {
     current_salary: null,
     estimated_salary: null,
     paid_by: null,
-    votes: null,
     note: "",
+    rating_info: {
+      average: 0,
+      count: 0,
+    },
+    has_rated: false,
   });
 
   const { id }: any = use(params);
@@ -103,13 +107,6 @@ const CVDetailPage = ({ params }: { params: any }) => {
         );
         setInputData(response.data);
         // Set the userChoice based on the 'votes' value from the API response
-        if (response.data.votes === true) {
-          setUserChoice("like");
-        } else if (response.data.votes === false) {
-          setUserChoice("dislike");
-        } else {
-          setUserChoice(null);
-        }
       } catch (error) {
         console.error("Error fetching data", error);
       }
@@ -164,8 +161,17 @@ const CVDetailPage = ({ params }: { params: any }) => {
   };
 
   const handleClick = (index) => {
-    // setRating(index);
     setInputData({ ...inputData, star_rating: index });
+
+    // setInputData((prev) => ({
+    //   ...prev,
+    //   star_rating: index,
+    //   has_rated: true,
+    //   rating_info: {
+    //     ...prev.rating_info,
+    //     count: prev.rating_info.count + 1, // +1 to count
+    //   },
+    // }));
   };
 
   const handleKeyDown = (e) => {
@@ -181,8 +187,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
   const handleSave = async () => {
     if (isSubmitting) return; // Prevent multiple API calls
     setIsSubmitting(true); // Mark as submitting
-    const vote =
-      userChoice === "like" ? true : userChoice === "dislike" ? false : null;
+
     const body = {
       document_id: id,
       availability: inputData.availability || "",
@@ -191,13 +196,21 @@ const CVDetailPage = ({ params }: { params: any }) => {
       current_salary: inputData.current_salary,
       estimated_salary: inputData.estimated_salary,
       paid_by: inputData.paid_by || "",
-      vote: vote,
+      rating_info: {
+        average: inputData.rating_info.average,
+        count: inputData.rating_info.count,
+      },
+      has_rated: inputData.has_rated,
       note: inputData.note,
     };
 
     try {
       setLoader(true);
-      await axiosInstance.put(`/cv_document/updateAvailability`, body);
+      const response = await axiosInstance.put(
+        `/cv_document/updateAvailability`,
+        body
+      );
+      setInputData(response.data);
       toast("Successfully Updated Data", {
         style: {
           background: "black",
@@ -214,6 +227,15 @@ const CVDetailPage = ({ params }: { params: any }) => {
       setIsSubmitting(false); // Reset flag after request
     }
   };
+
+  // Function to display the titleCase text
+
+  function toTitleCase(str: string): string {
+    return str
+      ?.split(" ")
+      ?.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      ?.join(" ");
+  }
 
   return (
     <div className="flex h-full relative w-full overflow-y-hidden">
@@ -386,6 +408,25 @@ const CVDetailPage = ({ params }: { params: any }) => {
                             )}
                           </p>
                         </div>
+
+                        {/* QR Code */}
+                        <div className="mr-4">
+                            <ContactQRCode
+                              contact={{
+                                fullName: data?.name
+                                  ? `${toTitleCase(data.name)} (${
+                                      toTitleCase(data?.position) || ""
+                                    })`
+                                  : "",
+                                phone: data?.phone_number || "",
+                                address: data?.address || "",
+                                email: data?.email || "",
+                                linkedin: data?.linkedin_url || "",
+                                website: data?.website || "",
+                                skills: data?.skills?.slice(0, 4) || [],
+                              }}
+                            />
+                        </div>
                       </div>
                     </div>
 
@@ -420,7 +461,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       {/* Skills */}
                       <div>
                         {data?.skills?.length > 0 && (
-                          <div className="flex flex-col gap-1 pb-2">
+                          <div className="flex flex-col gap-1 pb-2 mr-4">
                             <p className="font-semibold">Skills</p>
                             <div className="flex flex-wrap gap-3  max-w-3xl">
                               {data?.skills?.map((item: any, index: number) => (
@@ -446,7 +487,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       </div>
 
                       {/* Experience */}
-                      <div className="flex flex-col gap-2">
+                      <div className="flex flex-col gap-2 mr-4">
                         <p className="font-semibold flex items-center gap-4 ">
                           Experiences
                           <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -454,7 +495,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                               +data?.years_of_experience + " Years"}
                           </span>
                         </p>
-                        <div className="flex flex-col gap-3">
+                        <div className="flex flex-col gap-3 mr-4">
                           {data?.work_experience.length > 0 &&
                             data?.work_experience.map(
                               (item: any, index: number) => (
@@ -479,7 +520,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                       </span>
                                     )}
                                   </span>
-                                  <span className="flex flex-col text-sm max-w-3xl mr-4">
+                                  <span className="flex flex-col text-sm max-w-3xl ">
                                     {item.responsibilities.length > 0 &&
                                       item.responsibilities.map(
                                         (el: any, index: number) => (
@@ -640,13 +681,12 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     }`}
                   >
                     {/* Stars & Like / DisLike */}
-                    <div className="flex justify-end items-start gap-3">
+                    <div className="flex justify-end items-start gap-1">
                       {/* stars */}
-
-                      {/* <div>
-                      <span>(X)</span>
-                    </div> */}
-                      <div className="flex gap-1">
+                      <div className="font-semibold opacity-80">
+                        <span>{inputData.rating_info.average}</span>
+                      </div>
+                      <div className="flex">
                         {[1, 2, 3, 4, 5].map((index) => (
                           <button
                             key={index}
@@ -673,9 +713,9 @@ const CVDetailPage = ({ params }: { params: any }) => {
                           </button>
                         ))}
                       </div>
-                      {/* <div>
-                      <span>X+</span>
-                    </div> */}
+                      <div className="font-semibold opacity-80">
+                        <span>{"(" + inputData.rating_info.count + ")"}</span>
+                      </div>
                     </div>
 
                     {/* Availability */}
@@ -1132,13 +1172,33 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     </p>
                   </div>
 
-                  {/* Close / Open Button */}
-                  <Card
-                    className="flex w-max-[40%] mr-4 flex-wrap flex-col gap-2 justify-end cursor-pointer bg-gray-200 dark:bg-[#2C2C2C] dark:text-white  p-2 rounded-md"
-                    onClick={() => setCloseParsedData((prev) => !prev)}
-                  >
-                    <RxHamburgerMenu />
-                  </Card>
+                  <div className="flex gap-4">
+                    {/* QR Code */}
+                    <div>
+                      <ContactQRCode
+                        contact={{
+                          fullName: data?.name
+                            ? `${toTitleCase(data.name)} (${
+                                toTitleCase(data?.position) || ""
+                              })`
+                            : "",
+                          phone: data?.phone_number || "",
+                          address: data?.address || "",
+                          email: data?.email || "",
+                          linkedin: data?.linkedin_url || "",
+                          website: data?.website || "",
+                          skills: data?.skills?.slice(0, 4) || [],
+                        }}
+                      />
+                    </div>
+                    {/* Close / Open Button */}
+                    <Card
+                      className="flex w-max-[40%] h-8 mr-4 flex-wrap flex-col gap-2 justify-end cursor-pointer bg-gray-200 dark:bg-[#2C2C2C] dark:text-white  p-2 rounded-md"
+                      onClick={() => setCloseParsedData((prev) => !prev)}
+                    >
+                      <RxHamburgerMenu />
+                    </Card>
+                  </div>
                 </div>
               </div>
 
@@ -1376,13 +1436,13 @@ const CVDetailPage = ({ params }: { params: any }) => {
                 }`}
               >
                 {/* Stars & Like / DisLike */}
-                <div className="flex justify-end items-center gap-3 ">
+                <div className="flex justify-end items-center gap-1">
                   {/* stars */}
 
-                  {/* <div>
-                    <span>(X)</span>
-                  </div> */}
-                  <div className="flex gap-1">
+                  <div className="font-semibold opacity-80">
+                    <span>{inputData.rating_info.average}</span>
+                  </div>
+                  <div className="flex">
                     {[1, 2, 3, 4, 5].map((index) => (
                       <button
                         key={index}
@@ -1410,46 +1470,9 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       </button>
                     ))}
                   </div>
-                  {/* <div>
-                    <span>X+</span>
-                  </div> */}
-
-                  {/* Like / DisLike */}
-                  {/* <div className="order-2 sm:order-3">
-                    <div className="flex items-center">
-                      <button
-                        onClick={() => handleChoice("like")}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all
-                ${
-                  userChoice === "like"
-                    ? " text-green-600"
-                    : "hover:bg-gray-100 dark:hover:bg-[#2C2C2C]"
-                }`}
-                      >
-                        <ThumbsUp
-                          size={16}
-                          fill={userChoice === "like" ? "currentColor" : "none"}
-                        />
-                      </button>
-
-                      <button
-                        onClick={() => handleChoice("dislike")}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all
-                ${
-                  userChoice === "dislike"
-                    ? "text-red-600"
-                    : "hover:bg-gray-100 dark:hover:bg-[#2C2C2C]"
-                }`}
-                      >
-                        <ThumbsDown
-                          size={16}
-                          fill={
-                            userChoice === "dislike" ? "currentColor" : "none"
-                          }
-                        />
-                      </button>
-                    </div>
-                  </div> */}
+                  <div className="font-semibold opacity-80">
+                    <span>{"(" + inputData.rating_info.count + ")"}</span>
+                  </div>
                 </div>
 
                 {/* Availability */}

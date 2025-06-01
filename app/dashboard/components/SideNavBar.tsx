@@ -21,8 +21,11 @@ import {
   ChevronRight,
   LogOut,
   LogIn,
-  User,
+  // User,
   X,
+  Settings,
+  // Moon,
+  // Sun,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,7 +46,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
+  // DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
@@ -61,9 +64,8 @@ import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import DialogueComponent from "./DialogueComponent";
 import { MdFolderZip } from "react-icons/md";
 import { folderSelectStore, publicFolderStore } from "../store";
-import { Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
-import { cn } from "@/lib/utils";
+// import { useTheme } from "next-themes";
+// import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserContext } from "@/context/UserContext";
@@ -95,11 +97,13 @@ const SideNavBar = ({
   );
   const [isPageLoading, setIsPageLoading] = useState<boolean>(false);
 
+  const [dropdownOpen, setDropdownOpen] = useState(false); //Close the dropdown menu when necessary
+
   const queryClient = useQueryClient();
   const router = useRouter();
 
   // For Theme Change
-  const { theme, setTheme, systemTheme } = useTheme();
+  // const { theme, setTheme, systemTheme } = useTheme();
 
   const handleFolderCreated = () => {
     setUpdateFolderList((prev) => !prev);
@@ -108,7 +112,6 @@ const SideNavBar = ({
     setDialogeOpen(state);
   };
 
-  console.log("Loading", loading);
   useEffect(() => {
     // Sync local state with external `selectFolderId` when it changes
     setLocalFolderId(selectFolderId);
@@ -242,13 +245,14 @@ const SideNavBar = ({
   const handleLogOut = async (e) => {
     e.preventDefault();
     await axiosInstance.get("/user/logout");
+    setDropdownOpen(false); // Close the dropdown menu
     setIsAuthenticated(false);
     setIsPageLoading(true);
     router.push("../../auth/login");
   };
 
-  const isDarkMode =
-    theme === "dark" || (theme === "system" && systemTheme === "dark");
+  // const isDarkMode =
+  //   theme === "dark" || (theme === "system" && systemTheme === "dark");
 
   return (
     <div className={`h-full w-full ${isMobile ? "block" : ""}`}>
@@ -446,15 +450,18 @@ const SideNavBar = ({
         <SidebarFooter
           className={`sticky bottom-0 z-10 pb-6 pt-2 px-4 p-3 w-full`}
         >
-          <Card className={`${isCollapsed && " border-none"}`}>
-            <DropdownMenu>
+          <Card
+            className={`w-[100%] flex items-center px-2 justify-between ${
+              isCollapsed && " border-none"
+            }`}
+          >
+            <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
               <DropdownMenuTrigger asChild>
                 <div
-                  className={`flex items-center w-full ${
+                  className={`flex items-center w-[80%] ${
                     isCollapsed ? "justify-center" : "space-x-3 md:rounded-md"
                   } cursor-pointer p-2 transition-colors`}
                 >
-                  {/* {} */}
                   <Avatar>
                     {loading ? (
                       <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
@@ -491,18 +498,17 @@ const SideNavBar = ({
               <DropdownMenuContent matchWidth={true} align="end" forceMount>
                 <DropdownMenuGroup className="flex flex-col w-full">
                   {/* Profile */}
-                  {isAuthenticated && (
+                  {/* {isAuthenticated && (
                     <div>
                       <DropdownMenuItem className="cursor-pointer">
-                        <User className="mr-2 h-4 w-4" />
+                        <User className="h-4 w-4" />
                         <span>Profile</span>
                       </DropdownMenuItem>
                     </div>
                   )}
-                  {isAuthenticated && <DropdownMenuSeparator />}
-
+                  {/* {isAuthenticated && <DropdownMenuSeparator />} */}
                   {/* Theme */}
-                  <div className="flex items-center justify-between gap-4 px-2 py-2">
+                  {/* <div className="flex items-center justify-between gap-4 px-2 py-2">
                     <div
                       className={`flex items-center gap-2 cursor-pointer ${
                         !isDarkMode
@@ -555,9 +561,8 @@ const SideNavBar = ({
                       />
                       <span>Dark</span>
                     </div>
-                  </div>
-                  <DropdownMenuSeparator />
-
+                  </div> */}
+                  {/* <DropdownMenuSeparator /> */}
                   {/* Log Out */}
                   {isAuthenticated && (
                     <div className="cursor-pointer">
@@ -582,7 +587,9 @@ const SideNavBar = ({
                           </DialogHeader>
                           <DialogFooter>
                             <DialogClose asChild>
-                              <Button>Cancel</Button>
+                              <Button onClick={() => setDropdownOpen(false)}>
+                                Cancel
+                              </Button>
                             </DialogClose>
                             <DialogClose>
                               <Button
@@ -611,6 +618,17 @@ const SideNavBar = ({
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {!isCollapsed && (
+              <div className="cursor-pointer group p-2 rounded-md transition-colors duration-500 hover:bg-gray-200 dark:hover:bg-gray-700">
+                <Link
+                  onClick={() => setIsPageLoading(true)}
+                  href={"../../user/setting"}
+                >
+                  <Settings className="transition-transform duration-700 ease-in-out group-hover:rotate-180" />
+                </Link>
+              </div>
+            )}
           </Card>
         </SidebarFooter>
       </Card>
