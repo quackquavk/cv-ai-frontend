@@ -2,6 +2,7 @@
 import React, { useRef, useEffect } from "react";
 import { Card } from "./ui/card";
 import { FaUser, FaPhoneAlt, FaLinkedin, FaGithub } from "react-icons/fa";
+import { BsThreeDotsVertical } from "react-icons/bs";
 import { Dot } from "lucide-react";
 import { MdEmail } from "react-icons/md";
 import { IoLocation } from "react-icons/io5";
@@ -22,6 +23,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useDocumentStore } from "@/app/dashboard/store";
 
 interface ListViewProps {
@@ -201,6 +207,12 @@ const ListView = ({ data, searchData }: ListViewProps) => {
   const handleCarouselClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+  };
+
+  const handleFunction = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    console.log("Function triggered");
   };
 
   if (isLoading || shouldRefetchDocuments) {
@@ -442,24 +454,40 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                     </div>
 
                     {/* Edited status check */}
-                    {!item?.parsed_cv?.edited && (
-                      <div className="hidden absolute right-[-20px] top-[-30px] lg:flex">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Dot color="red" size={48} />
-                            </TooltipTrigger>
-                            <TooltipContent className="mb-[-2px]p-1 text-xs">
-                              <p>Not Edited</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                    <div className=" gap-2 justify-center relative mr-4 hidden  lg:flex">
+                      <div onClick={(e) => handleFunction(e)} className="">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button>
+                              <BsThreeDotsVertical
+                                className="text-gray-800 dark:text-gray-400 hover:opacity-60 hover:cursor-pointer"
+                                size={"15px"}
+                              />
+                            </button>
+                          </PopoverTrigger>
+                        </Popover>
                       </div>
-                    )}
+                      {!item?.parsed_cv?.edited && (
+                        <div className="absolute">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="absolute top-[-18px]">
+                                  <Dot color="red" size={48} />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent className="p-1    translate-y-7 translate-x-4 mr-16 text-xs z-50">
+                                <p>Not Edited</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   {/* Edited status check */}
                   {!item?.parsed_cv?.edited && (
-                    <div className="flex absolute top-[-25px] right-[-20px] lg:hidden  text-3xl">
+                    <div className="flex absolute top-[-25px] right-[-20px] lg:hidden text-3xl">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>

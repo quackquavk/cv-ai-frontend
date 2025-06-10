@@ -1,13 +1,22 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from "next-themes";
 import Image from "next/image";
 import { QRCodeSVG } from "qrcode.react";
 import { Button } from "@/components/ui/button";
 import axiosInstance from "@/utils/axiosConfig";
 import { toast } from "sonner";
-import { Menu, X, Loader2, BadgeCheck } from "lucide-react";
+import {
+  Menu,
+  X,
+  Loader2,
+  BadgeCheck,
+  CreditCard,
+  Smartphone,
+  Wallet,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -18,19 +27,25 @@ import {
 // Content Components
 const BillingSettings = () => (
   <div className="p-4 md:p-6">
-    <h2 className="text-xl font-semibold mb-4 text-black dark:text-white">Billing Settings</h2>
+    <h2 className="text-xl font-semibold mb-4 text-black dark:text-white">
+      Billing Settings
+    </h2>
     <p className="text-gray-600 dark:text-gray-400 mb-6">
       Manage your billing preferences and payment methods.
     </p>
     <div className="space-y-4">
       <Card className="p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
-        <h3 className="font-medium text-black dark:text-white">Payment History</h3>
+        <h3 className="font-medium text-black dark:text-white">
+          Payment History
+        </h3>
         <p className="text-sm text-gray-600 dark:text-gray-400">
           View your past transactions and invoices
         </p>
       </Card>
       <Card className="p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
-        <h3 className="font-medium text-black dark:text-white">Billing Address</h3>
+        <h3 className="font-medium text-black dark:text-white">
+          Billing Address
+        </h3>
         <p className="text-sm text-gray-600 dark:text-gray-400">
           Update your billing information
         </p>
@@ -39,7 +54,7 @@ const BillingSettings = () => (
   </div>
 );
 
-const StripeSettings = () => {
+const StripePayment = () => {
   const [loading, setLoading] = useState(false);
 
   const handleClick = async (selectedPlan, selectedTier) => {
@@ -73,50 +88,47 @@ const StripeSettings = () => {
   };
 
   return (
-    <div className="p-4 md:p-6">
-      <div className="flex flex-col gap-2 mb-6">
-        <h2 className="text-xl font-semibold text-black dark:text-white">Stripe Payment</h2>
-        <p className="text-gray-600 dark:text-gray-400">Choose your subscription plan</p>
+    <div className="space-y-6">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+          <CreditCard className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold text-black dark:text-white">
+            Stripe Payment
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Secure payment with credit/debit cards
+          </p>
+        </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-        <Card className="flex flex-col gap-4 p-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-          <div className="flex items-center justify-between">
-            <p className="text-2xl font-semibold text-black dark:text-white">$20.00</p>
-            <span className="text-gray-600 dark:text-gray-400">/monthly</span>
-          </div>
-          <p className="text-lg font-semibold text-black dark:text-white">Basic</p>
-          <Button 
-            onClick={() => handleClick("monthly", "basic")}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            Choose Basic Plan
-          </Button>
-        </Card>
 
+      <div className="w-[300px]">
         <Card className="flex flex-col gap-4 p-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
           <div className="flex items-center justify-between">
-            <p className="text-2xl font-semibold text-black dark:text-white">$100.00</p>
+            <p className="text-2xl font-semibold text-black dark:text-white">
+              $100.00
+            </p>
             <span className="text-gray-600 dark:text-gray-400">/annually</span>
           </div>
-          <p className="text-lg font-semibold text-black dark:text-white">Premium</p>
-          <Button 
+          <p className="text-lg font-semibold text-black dark:text-white">
+            Premium Plan
+          </p>
+          <Button
             onClick={() => handleClick("annual", "premium")}
+            disabled={loading}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white"
           >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
             Choose Premium Plan
           </Button>
         </Card>
       </div>
-      {loading && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      )}
     </div>
   );
 };
 
-const FonePaySettings = () => {
+const FonePayPayment = () => {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [qrValue, setQrValue] = useState("");
@@ -224,40 +236,43 @@ const FonePaySettings = () => {
   }, [paymentStatus]);
 
   return (
-    <div className="p-4 md:p-6">
-      <div className="flex flex-col gap-2 mb-6">
-        <h2 className="text-xl font-semibold text-black dark:text-white">FonePay Payment</h2>
-        <p className="text-gray-600 dark:text-gray-400">Choose your payment plan</p>
+    <div className="space-y-6">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-2 bg-[#fdd8d9] dark:bg-[#ce2027]/20 rounded-lg">
+          <Smartphone className="h-5 w-5 text-[#ce2027]" />
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold text-black dark:text-white">
+            FonePay Payment
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Pay using FonePay mobile wallet
+          </p>
+        </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-        <Card className="flex flex-col gap-4 p-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-          <div className="flex items-center justify-between">
-            <p className="text-2xl font-semibold text-black dark:text-white">$20.00</p>
-            <span className="text-gray-600 dark:text-gray-400">/monthly</span>
-          </div>
-          <p className="text-lg font-semibold text-black dark:text-white">Basic</p>
-          <Button 
-            onClick={() => handleClick("monthly", "Basic")}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            Choose Basic Plan
-          </Button>
-        </Card>
 
+      <div className="w-[300px]">
         <Card className="flex flex-col gap-4 p-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
           <div className="flex items-center justify-between">
-            <p className="text-2xl font-semibold text-black dark:text-white">$100.00</p>
+            <p className="text-2xl font-semibold text-black dark:text-white">
+              NPR 10,000.00
+            </p>
             <span className="text-gray-600 dark:text-gray-400">/annually</span>
           </div>
-          <p className="text-lg font-semibold text-black dark:text-white">Premium</p>
-          <Button 
+          <p className="text-lg font-semibold text-black dark:text-white">
+            Premium Plan
+          </p>
+          <Button
             onClick={() => handleClick("yearly", "Premium")}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            disabled={loading}
+            className="w-full bg-[#ce2027] hover:bg-[#a61a20]] text-white"
           >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
             Choose Premium Plan
           </Button>
         </Card>
       </div>
+
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-black dark:text-white max-w-sm mx-auto">
           <DialogHeader className="text-center items-center">
@@ -266,8 +281,8 @@ const FonePaySettings = () => {
                 className="h-10 w-32 mx-auto"
                 src={`/assets/fonePay.png`}
                 alt="fonePayImg"
-                height={200}
-                width={200}
+                height={40}
+                width={128}
               />
             </div>
           </DialogHeader>
@@ -278,7 +293,9 @@ const FonePaySettings = () => {
             <QRCodeSVG value={qrValue} size={200} marginSize={4} />
           </div>
           <div className="flex flex-col items-center gap-2">
-            <div className="font-bold text-lg text-black dark:text-white">BRAND BUILDER PVT. LTD.</div>
+            <div className="font-bold text-lg text-black dark:text-white">
+              BRAND BUILDER PVT. LTD.
+            </div>
             <div className="font-semibold text-gray-700 dark:text-gray-300">
               {planStatus + " " + "Plan"}
             </div>
@@ -305,11 +322,173 @@ const FonePaySettings = () => {
           </div>
         </DialogContent>
       </Dialog>
-      {loading && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  );
+};
+
+const RazorPayPayment = () => {
+  const [loading, setLoading] = useState(false);
+
+  // const handleClick = async (selectedPlan, selectedTier) => {
+  //   const body = {
+  //     plan_id: `${selectedPlan}`,
+  //     tier: `${selectedTier}`,
+  //     success_url: "http://localhost:3000/user/setting",
+  //     cancel_url: "http://localhost:3000/user/setting",
+  //   };
+
+  //   setLoading(true);
+
+  //   try {
+  //     const response = await axiosInstance.post(
+  //       "/razorpay/create-checkout-session",
+  //       body
+  //     );
+
+  //     if (response.status === 200) {
+  //       const options = {
+  //         key: response.data.key_id,
+  //         amount: response.data.amount,
+  //         currency: response.data.currency,
+  //         name: "Brand Builder",
+  //         description: `${selectedTier} Plan Subscription`,
+  //         order_id: response.data.order_id,
+  //         handler: (response) => {
+  //           toast.success("Payment successful!");
+  //           // Handle successful payment
+  //           console.log("Payment successful:", response);
+  //         },
+  //         prefill: {
+  //           name: "Customer Name",
+  //           email: "customer@example.com",
+  //           contact: "9999999999",
+  //         },
+  //         theme: {
+  //           color: "#3B82F6",
+  //         },
+  //       };
+
+  //       // const rzp = new window.Razorpay(options);
+  //       // rzp.open();
+  //     }
+  //   } catch (error) {
+  //     if (error.response?.status === 400) {
+  //       toast.error(error.response.data.detail);
+  //     }
+  //     console.error("Error creating checkout session:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+          <Wallet className="h-5 w-5 text-purple-600 dark:text-purple-400" />
         </div>
-      )}
+        <div>
+          <h3 className="text-lg font-semibold text-black dark:text-white">
+            RazorPay Payment
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Pay with UPI, cards, wallets & more
+          </p>
+        </div>
+      </div>
+
+      <div className="w-[300px]">
+        <Card className="flex flex-col gap-4 p-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+          <div className="flex items-center justify-between">
+            <p className="text-2xl font-semibold text-black dark:text-white">
+              INR 7,000.00
+            </p>
+            <span className="text-gray-600 dark:text-gray-400">/annually</span>
+          </div>
+          <p className="text-lg font-semibold text-black dark:text-white">
+            Premium Plan
+          </p>
+          <Button
+            // onClick={() => handleClick("annual", "premium")}
+            disabled={loading}
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+          >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            Choose Premium Plan
+          </Button>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+const PaymentSettings = () => {
+  return (
+    <div className="p-4 md:p-6">
+      <div className="flex flex-col gap-2 mb-6">
+        <h2 className="text-xl font-semibold text-black dark:text-white">
+          Payment Methods
+        </h2>
+        <p className="text-gray-600 dark:text-gray-400">
+          Choose your preferred payment method and subscription plan
+        </p>
+      </div>
+
+      <Tabs defaultValue="stripe" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-8">
+          <TabsTrigger value="stripe" className="flex items-center gap-2">
+            <div className="flex flex-col">
+              <div className="flex text-lg items-center justify-center">
+                <CreditCard className="font-semibold" />
+                <span className="font-semibold font-sans">Stripe</span>
+              </div>
+              <div>
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  For International Use
+                </span>
+              </div>
+            </div>
+          </TabsTrigger>
+          <TabsTrigger value="fonepay" className="flex items-center gap-2">
+            <div className="flex flex-col">
+              <div className="flex text-lg items-center justify-center">
+                <Smartphone className="font-semibold" />
+                <span className="font-semibold font-sans">FonePay</span>
+              </div>
+              <div>
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  For Nepal Use
+                </span>
+              </div>
+            </div>
+          </TabsTrigger>
+          <TabsTrigger value="razorpay" className="flex items-center gap-2">
+            <div className="flex flex-col">
+              <div className="flex text-lg items-center justify-center">
+                <Wallet className="font-semibold" />
+                <span className="font-semibold font-sans">RazorPay</span>
+              </div>
+              <div>
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  For India use
+                </span>
+              </div>
+            </div>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="stripe" className="mt-0">
+          <StripePayment />
+        </TabsContent>
+
+        <TabsContent value="fonepay" className="mt-0">
+          <FonePayPayment />
+        </TabsContent>
+
+        <TabsContent value="razorpay" className="mt-0">
+          <RazorPayPayment />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
@@ -319,7 +498,9 @@ const AppearanceSettings = () => {
 
   return (
     <div className="p-4 md:p-6">
-      <h2 className="text-xl font-semibold mb-4 text-black dark:text-white">Appearance</h2>
+      <h2 className="text-xl font-semibold mb-4 text-black dark:text-white">
+        Appearance
+      </h2>
       <p className="text-gray-600 dark:text-gray-400 mb-6">
         Customize how the app looks.
       </p>
@@ -330,9 +511,11 @@ const AppearanceSettings = () => {
             onClick={() => setTheme("light")}
             variant={theme === "light" ? "default" : "outline"}
             className={`
-              ${theme === "light" 
-                ? "bg-blue-600 text-white hover:bg-blue-700"
-                : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-black dark:text-white"}
+              ${
+                theme === "light"
+                  ? "bg-blue-600 text-white hover:bg-blue-700"
+                  : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-black dark:text-white"
+              }
               transition-all duration-200
             `}
           >
@@ -365,9 +548,11 @@ const AppearanceSettings = () => {
             onClick={() => setTheme("dark")}
             variant={theme === "dark" ? "default" : "outline"}
             className={`
-              ${theme === "dark"
-                ? "bg-blue-600 text-white hover:bg-blue-700"
-                : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-black dark:text-white"}
+              ${
+                theme === "dark"
+                  ? "bg-blue-600 text-white hover:bg-blue-700"
+                  : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-black dark:text-white"
+              }
               transition-all duration-200
             `}
           >
@@ -395,13 +580,12 @@ const AppearanceSettings = () => {
 };
 
 function Setting() {
-  const [activeSection, setActiveSection] = useState("billing");
+  const [activeSection, setActiveSection] = useState("Billing Overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const showContent = () => {
-    if (activeSection === "billing") return <BillingSettings />;
-    if (activeSection === "stripe") return <StripeSettings />;
-    if (activeSection === "fonepay") return <FonePaySettings />;
+    if (activeSection === "Billing Overview") return <BillingSettings />;
+    if (activeSection === "Payment") return <PaymentSettings />;
     if (activeSection === "appearance") return <AppearanceSettings />;
     return <div className="p-6">Select a setting</div>;
   };
@@ -411,7 +595,9 @@ function Setting() {
       {/* Mobile Menu Button */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className={`${sidebarOpen ? "hidden" : "block"} md:hidden fixed top-4 left-4 z-50 p-3 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm`}
+        className={`${
+          sidebarOpen ? "hidden" : "block"
+        } md:hidden fixed top-4 left-4 z-50 p-3 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm`}
         aria-label="Open menu"
       >
         <Menu size={20} className="text-black dark:text-white" />
@@ -425,7 +611,9 @@ function Setting() {
       >
         <div className="p-4 space-y-6">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold text-black dark:text-white">Settings</h1>
+            <h1 className="text-xl font-bold text-black dark:text-white">
+              Settings
+            </h1>
             <button
               onClick={() => setSidebarOpen(false)}
               className="md:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -443,7 +631,7 @@ function Setting() {
                 </span>
               </div>
               <div className="space-y-1">
-                {["billing", "stripe", "fonepay"].map((item) => (
+                {["Billing Overview", "Payment"].map((item) => (
                   <button
                     key={item}
                     onClick={() => {
@@ -488,9 +676,7 @@ function Setting() {
 
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto pt-16 md:pt-0">
-          {showContent()}
-        </div>
+        <div className="max-w-4xl mx-auto pt-16 md:pt-0">{showContent()}</div>
       </div>
 
       {/* Mobile Overlay */}

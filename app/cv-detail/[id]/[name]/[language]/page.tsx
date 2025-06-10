@@ -411,21 +411,22 @@ const CVDetailPage = ({ params }: { params: any }) => {
 
                         {/* QR Code */}
                         <div className="mr-4">
-                            <ContactQRCode
-                              contact={{
-                                fullName: data?.name
-                                  ? `${toTitleCase(data.name)} (${
-                                      toTitleCase(data?.position) || ""
-                                    })`
-                                  : "",
-                                phone: data?.phone_number || "",
-                                address: data?.address || "",
-                                email: data?.email || "",
-                                linkedin: data?.linkedin_url || "",
-                                website: data?.website || "",
-                                skills: data?.skills?.slice(0, 4) || [],
-                              }}
-                            />
+                          <ContactQRCode
+                            contact={{
+                              fullName: data?.name
+                                ? `${toTitleCase(data.name)} (${
+                                    toTitleCase(data?.position) || ""
+                                  })`
+                                : "",
+                              phone: data?.phone_number || "",
+                              address: data?.address || "",
+                              email: data?.email || "",
+                              linkedin: data?.linkedin_url || "",
+                              github: data?.git_url || "",
+                              website: data?.website || "",
+                              skills: data?.skills?.slice(0, 4) || [],
+                            }}
+                          />
                         </div>
                       </div>
                     </div>
@@ -1186,6 +1187,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                           address: data?.address || "",
                           email: data?.email || "",
                           linkedin: data?.linkedin_url || "",
+                          github: data?.git_url || "",
                           website: data?.website || "",
                           skills: data?.skills?.slice(0, 4) || [],
                         }}

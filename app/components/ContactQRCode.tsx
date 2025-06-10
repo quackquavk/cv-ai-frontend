@@ -9,6 +9,7 @@ interface ContactInfo {
   position?: string;
   linkedin?: string;
   website?: string;
+  github?: string;
   skills?: string[];
 }
 
@@ -21,6 +22,7 @@ const generateVCard = (contact: ContactInfo): string => {
     position = "",
     linkedin = "",
     website = "",
+    github = "",
     skills = [],
   } = contact;
 
@@ -38,6 +40,7 @@ TEL;TYPE=CELL:${phone}
 EMAIL:${email}
 URL:${linkedin}
 URL:${website}
+URL:${github}
 NOTE:${notes}
 END:VCARD`;
 };
