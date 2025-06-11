@@ -327,7 +327,7 @@ const FonePayPayment = () => {
 };
 
 const RazorPayPayment = () => {
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
 
   // const handleClick = async (selectedPlan, selectedTier) => {
   //   const body = {
@@ -410,10 +410,9 @@ const RazorPayPayment = () => {
           </p>
           <Button
             // onClick={() => handleClick("annual", "premium")}
-            disabled={loading}
+            // disabled={loading}
             className="w-full bg-purple-600 hover:bg-purple-700 text-white"
           >
-            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
             Choose Premium Plan
           </Button>
         </Card>
