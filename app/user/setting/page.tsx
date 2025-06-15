@@ -263,7 +263,7 @@ const FonePayPayment = () => {
             Premium Plan
           </p>
           <Button
-            onClick={() => handleClick("yearly", "Premium")}
+            onClick={() => handleClick("annual", "Premium")}
             disabled={loading}
             className="w-full bg-[#ce2027] hover:bg-[#a61a20]] text-white"
           >
