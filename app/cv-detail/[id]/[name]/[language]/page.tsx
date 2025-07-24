@@ -210,6 +210,10 @@ const CVDetailPage = ({ params }: { params: any }) => {
         `/cv_document/updateAvailability`,
         body
       );
+      if (response.data.detail && response.data.detail.includes("Nothing to change in document")) {
+        toast.info("Nothing to change in document", { duration: 1000 });
+        return;
+      }
       setInputData(response.data);
       toast("Successfully Updated Data", {
         style: {
