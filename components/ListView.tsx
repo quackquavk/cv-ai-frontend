@@ -1,8 +1,7 @@
 "use client";
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Card } from "./ui/card";
 import { FaUser, FaPhoneAlt, FaLinkedin, FaGithub } from "react-icons/fa";
-import { BsThreeDotsVertical } from "react-icons/bs";
 import { Dot } from "lucide-react";
 import { MdEmail } from "react-icons/md";
 import { IoLocation } from "react-icons/io5";
@@ -23,21 +22,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  // CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
+
 import { useDocumentStore } from "@/app/dashboard/store";
+import MoveCV from "@/app/dashboard/components/MoveCV";
 
 interface ListViewProps {
   data: IDocumentData[] | any;
@@ -52,7 +39,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
   const { selectFolderId } = folderSelectStore();
   const { isFolderListOpen } = publicFolderStore();
   const queryClient = useQueryClient();
-
+  const [folders, setFolders] = useState<any[]>([]);
   const hasMounted = useRef(false);
 
   // State to track if the document (archieve)
@@ -66,11 +53,19 @@ const ListView = ({ data, searchData }: ListViewProps) => {
 
   // Function to fetch documents by IDs
   const fetchDocumentsByIds = async (docIds: string[]) => {
-    const promises = docIds.map((docId) =>
-      axiosInstance.get(`/document/cv/${docId}`).then((res) => res.data)
-    );
-    return Promise.all(promises);
+    const documents = await axiosInstance.post("document/bulk_document", {
+      document_ids: docIds,
+    });
+    return documents.data;
   };
+
+  useEffect(() => {
+    const fetchFolders = async () => {
+      const folders = await axiosInstance.get("/folder/getAllFolders");
+      setFolders(folders.data);
+    };
+    fetchFolders();
+  }, []);
 
   const {
     data: infiniteData,
@@ -80,6 +75,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
     isFetchingNextPage,
   } = useInfiniteQuery({
     queryKey: ["documents", selectFolderId, searchData],
+ 
     queryFn: async ({ pageParam = 0 }: { pageParam: any }) => {
       try {
         let documentsToFetch: string[] = [];
@@ -229,7 +225,6 @@ const ListView = ({ data, searchData }: ListViewProps) => {
 
   const allDocuments =
     infiniteData?.pages.flatMap((page: any) => page.documents) ?? [];
-
   const formatName = (name: string | undefined): string => {
     if (!name) return "undefined";
     return name.trim().replace(/\s+/g, "-");
@@ -457,208 +452,14 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                     </div>
 
                     {/* Edited status check */}
-                    <div className="relative mr-4 hidden lg:block">
-                      <div onClick={handleCarouselClick}>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <button className="text-gray-800 absolute inset-x-0 h-[20px] w-[20px] z-50 dark:text-gray-400 hover:opacity-60 hover:cursor-pointer">
-                              <BsThreeDotsVertical size={"15px"} />
-                            </button>
-                          </PopoverTrigger>
-
-                          {/* PopoverContent inserted here */}
-                          <PopoverContent className="p-1 z-50 w-32 px-6 cursor-pointer ">
-                            <p
-                              className="flex items-center py-1 hover:cursor-pointer hover:opacity-50 justify-center"
-                              // onClick={() => {
-                              //   handleAlertFile(true);
-                              //   setSelectedFile({
-                              //     folder_id: folder.folder_id,
-                              //     file_id: file.doc_id,
-                              //   });
-                              // }}
-                            >
-                              Archive
-                            </p>
-                            <hr />
-
-                            {/* Nested Popover for "Move to" */}
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <p className="flex items-center py-1 hover:cursor-pointer hover:opacity-50 justify-center">
-                                  Move to
-                                </p>
-                              </PopoverTrigger>
-                              <PopoverContent
-                                className="p-2 w-[200px]"
-                                side="right"
-                                align="start"
-                              >
-                                <Command>
-                                  <CommandInput
-                                    placeholder="Search folder..."
-                                    className="h-4"
-                                  />
-                                  <CommandList className="max-h-48">
-                                    <CommandEmpty>
-                                      No folders found.
-                                    </CommandEmpty>
-                                    <CommandGroup>
-                                      {/* {folders?.map((folder) => (
-                                        <CommandItem
-                                          key={folder.folder_id}
-                                          value={folder.folder_name}
-                                          onSelect={(currentValue) => {
-                                            setValue(
-                                              currentValue === value
-                                                ? ""
-                                                : currentValue
-                                            );
-                                            setFolderId(folder.folder_id);
-                                          }}
-                                        >
-                                          {folder.folder_name}
-                                          <Check
-                                            className={cn(
-                                              "ml-auto",
-                                              value === folder.folder_name
-                                                ? "opacity-100"
-                                                : "opacity-0"
-                                            )}
-                                          />
-                                        </CommandItem>
-                                      ))} */}
-                                    </CommandGroup>
-                                  </CommandList>
-                                </Command>
-
-                                <div className="w-full flex justify-end mt-2">
-                                  <Button
-                                    className="text-sm h-8 w-12 rounded-lg px-4 py-1"
-                                    // onClick={() => {
-                                    //   handleMove(file);
-                                    // }}
-                                  >
-                                    Move
-                                  </Button>
-                                </div>
-                              </PopoverContent>
-                            </Popover>
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                      <div>
-                        {!item?.parsed_cv?.edited && (
-                          <div className="absolute">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <div className="absolute  h-8 w-8 top-[-17px]">
-                                    <Dot color="red" size={48} />
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent className="p-1  translate-y-7 translate-x-4 mr-16 text-xs z-50">
-                                  <p>Not Edited</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    <MoveCV
+                      handleCarouselClick={handleCarouselClick}
+                      item={item}
+                      folders={folders}
+                    />
 
                     {/* Mobile Menu - Similar to Desktop */}
-                    <div className="absolute mr-4 flex top-[-16px] right-[10px] lg:hidden">
-                      <div onClick={handleCarouselClick}>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <button className="text-gray-800 absolute inset-x-0 h-[20px] w-[20px] z-50 dark:text-gray-400 hover:opacity-60 hover:cursor-pointer">
-                              <BsThreeDotsVertical size={"15px"} />
-                            </button>
-                          </PopoverTrigger>
-
-                          {/* Mobile PopoverContent */}
-                          <PopoverContent className="p-1 z-50 w-32 px-6 cursor-pointer">
-                            <p
-                              className="flex items-center py-1 hover:cursor-pointer hover:opacity-50 justify-center"
-                              // onClick={() => {
-                              //   handleAlertFile(true);
-                              //   setSelectedFile({
-                              //     folder_id: folder.folder_id,
-                              //     file_id: file.doc_id,
-                              //   });
-                              // }}
-                            >
-                              Archive
-                            </p>
-                            <hr />
-
-                            {/* Nested Popover for "Move to" on Mobile */}
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <p className="flex items-center py-1 hover:cursor-pointer hover:opacity-50 justify-center">
-                                  Move to
-                                </p>
-                              </PopoverTrigger>
-                              <PopoverContent
-                                className="p-2 w-[200px]"
-                                side="left"
-                                align="start"
-                              >
-                                <Command>
-                                  <CommandInput
-                                    placeholder="Search folder..."
-                                    className="h-4"
-                                  />
-                                  <CommandList className="max-h-48">
-                                    <CommandEmpty>
-                                      No folders found.
-                                    </CommandEmpty>
-                                    <CommandGroup>
-                                      {/* {folders?.map((folder) => (
-                                        <CommandItem
-                                          key={folder.folder_id}
-                                          value={folder.folder_name}
-                                          onSelect={(currentValue) => {
-                                            setValue(
-                                              currentValue === value
-                                                ? ""
-                                                : currentValue
-                                            );
-                                            setFolderId(folder.folder_id);
-                                          }}
-                                        >
-                                          {folder.folder_name}
-                                          <Check
-                                            className={cn(
-                                              "ml-auto",
-                                              value === folder.folder_name
-                                                ? "opacity-100"
-                                                : "opacity-0"
-                                            )}
-                                          />
-                                        </CommandItem>
-                                      ))} */}
-                                    </CommandGroup>
-                                  </CommandList>
-                                </Command>
-
-                                <div className="w-full flex justify-end mt-2">
-                                  <Button
-                                    className="text-sm h-8 w-12 rounded-lg px-4 py-1"
-                                    // onClick={() => {
-                                    //   handleMove(file);
-                                    // }}
-                                  >
-                                    Move
-                                  </Button>
-                                </div>
-                              </PopoverContent>
-                            </Popover>
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                    </div>
+  
                   </div>
                   {/* Edited status check */}
                   {!item?.parsed_cv?.edited && (

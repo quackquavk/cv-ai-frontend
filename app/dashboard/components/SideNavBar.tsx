@@ -149,7 +149,10 @@ const SideNavBar = ({
 
   const handleFileUpload = async (files: FileList) => {
     if (!files || files.length === 0) return;
-
+    if (!isAuthenticated) {
+      router.push("../../auth/login");
+      return;
+    }
     const formData = new FormData();
     Array.from(files).forEach((file) => {
       formData.append("files", file);
@@ -351,7 +354,7 @@ const SideNavBar = ({
                   size={40}
                   className="text-black dark:text-white"
                 />
-                <p className="text-center">Drop your files here</p>
+                <p className="text-center">Drop your files here (PDF only)</p>
               </div>
             </div>
             <input

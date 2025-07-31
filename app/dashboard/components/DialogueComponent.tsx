@@ -532,6 +532,7 @@ function DialogueComponent({
                         />
                         <CommandList className="max-h-[200px]">
                           <CommandEmpty>No folders found.</CommandEmpty>
+                       
                           <CommandGroup>
                             {folders?.map((folder) => (
                               <CommandItem

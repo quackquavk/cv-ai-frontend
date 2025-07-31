@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/popover";
 import {
   Command,
-  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
@@ -481,7 +480,6 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                           Archive
                         </p>
                         <hr />
-                        {/* Nested Popover for "Move to" */}
                         <Popover>
                           <PopoverTrigger asChild>
                             <p className="flex items-center py-1 hover:cursor-pointer hover:opacity-50 justify-center">
@@ -499,7 +497,6 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                                 className="h-4"
                               />
                               <CommandList className="max-h-48">
-                                <CommandEmpty>No folders found.</CommandEmpty>
                                 <CommandGroup>
                                   {folders?.map((folder) => (
                                     <CommandItem
