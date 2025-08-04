@@ -61,8 +61,8 @@ const StripePayment = () => {
     const body = {
       plan_id: `${selectedPlan}`,
       tier: `${selectedTier}`,
-      success_url: "http://localhost:3000/user/setting",
-      cancel_url: "http://localhost:3000/user/setting",
+      success_url: process.env.NEXT_PUBLIC_BASE_URL + "/user/setting",
+      cancel_url: process.env.NEXT_PUBLIC_BASE_URL + "/user/setting",
     };
     setLoading(true);
     try {
@@ -88,8 +88,8 @@ const StripePayment = () => {
     const body = {
       plan_id: "lifetime",
       tier: "premium",
-      success_url: "http://localhost:3000/user/setting",
-      cancel_url: "http://localhost:3000/user/setting",
+      success_url: process.env.NEXT_PUBLIC_BASE_URL + "/user/setting",
+      cancel_url: process.env.NEXT_PUBLIC_BASE_URL + "/user/setting",
     };
     setLifetimeLoading(true);
     try {
