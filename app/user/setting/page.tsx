@@ -157,7 +157,7 @@ const StripePayment = () => {
             <div className="flex items-center gap-2">
               <Crown className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               <p className="text-2xl font-bold text-black dark:text-white">
-                $150.00
+                $99.00
               </p>
             </div>
             <span className="bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 text-xs font-medium px-2.5 py-0.5 rounded-full">
