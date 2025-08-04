@@ -87,10 +87,19 @@ const ListView = ({ data, searchData }: ListViewProps) => {
           );
           documentsToFetch = searchResponse.data.map((item) => item.doc_id);
         } else if (!searchData && selectFolderId) {
-          const folderResponse = await axiosInstance.get(
-            `/folder/getFiles/${selectFolderId}`
-          );
-          documentsToFetch = folderResponse.data.map((folder) => folder.doc_id);
+          // Handle private folder
+          if (selectFolderId === "private-folder") {
+            const folderResponse = await axiosInstance.get(
+              "/private_folder/getPrivateFiles/0/100"
+            );
+            documentsToFetch = (folderResponse.data.files || []).map((file) => file._id);
+          } else {
+            // Handle regular folders
+            const folderResponse = await axiosInstance.get(
+              `/folder/getFiles/${selectFolderId}`
+            );
+            documentsToFetch = folderResponse.data.map((folder) => folder.doc_id);
+          }
         } else {
           documentsToFetch = data?.map((item) => item.doc_id) ?? [];
         }

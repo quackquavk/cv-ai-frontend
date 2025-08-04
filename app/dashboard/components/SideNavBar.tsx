@@ -26,6 +26,9 @@ import {
   Settings,
   // Moon,
   // Sun,
+  FolderOpen,
+  FolderLock,
+  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -63,7 +66,7 @@ import {
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import DialogueComponent from "./DialogueComponent";
 import { MdFolderZip } from "react-icons/md";
-import { folderSelectStore, publicFolderStore } from "../store";
+import { folderSelectStore, publicFolderStore, privateFolderStore } from "../store";
 // import { useTheme } from "next-themes";
 // import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -92,10 +95,15 @@ const SideNavBar = ({
   const [dialogOpen, setDialogeOpen] = useState(false);
   const { selectFolderId } = folderSelectStore();
   const { isFolderListOpen } = publicFolderStore();
+  const { 
+    hasPrivateFolder, 
+    setHasPrivateFolder 
+  } = privateFolderStore();
   const [localFolderId, setLocalFolderId] = useState<string | null>(
     selectFolderId
   );
   const [isPageLoading, setIsPageLoading] = useState<boolean>(false);
+  const [isCreatingPrivateFolder, setIsCreatingPrivateFolder] = useState(false);
 
   const [dropdownOpen, setDropdownOpen] = useState(false); //Close the dropdown menu when necessary
 
@@ -127,10 +135,11 @@ const SideNavBar = ({
     setLocalFolderId(null);
   }, [isFolderListOpen]);
 
-  const displayedFolderName =
-    localFolderId &&
-    folderListData.find((item: any) => item.folder_id === localFolderId)
-      ?.folder_name;
+  const displayedFolderName = () => {
+    if (!localFolderId) return "Uploading to....";
+    if (localFolderId === "private-folder") return "Private Folder";
+    return folderListData.find((item: any) => item.folder_id === localFolderId)?.folder_name || "Unknown Folder";
+  };
 
   useEffect(() => {
     const folderList = async () => {
@@ -147,12 +156,28 @@ const SideNavBar = ({
     folderList();
   }, [updateFolderList]);
 
+  // Check if user has private folder on component mount
+  useEffect(() => {
+    const checkPrivateFolder = async () => {
+      if (!isAuthenticated) return;
+      try {
+        const response = await axiosInstance.get("/private_folder/hasPrivateFolder");
+        setHasPrivateFolder(response.data.has_private_folder);
+      } catch (error) {
+        console.error("Error checking private folder:", error);
+        setHasPrivateFolder(false);
+      }
+    };
+    checkPrivateFolder();
+  }, [isAuthenticated, setHasPrivateFolder]);
+
   const handleFileUpload = async (files: FileList) => {
     if (!files || files.length === 0) return;
     if (!isAuthenticated) {
       router.push("../../auth/login");
       return;
     }
+
     const formData = new FormData();
     Array.from(files).forEach((file) => {
       formData.append("files", file);
@@ -165,6 +190,9 @@ const SideNavBar = ({
         });
         return;
       }
+
+
+
       setUploading(true);
 
       const response = await axiosInstance.post(
@@ -181,22 +209,12 @@ const SideNavBar = ({
         });
 
         // Invalidate and refetch ListView data
-        // queryClient.refetchQueries({
-        //   queryKey: ["documents", selectedFolderId],
-        // });
         queryClient.invalidateQueries({
           queryKey: ["documents", selectedFolderId],
         });
         queryClient.invalidateQueries({
           queryKey: ["folderFiles", selectedFolderId],
         });
-
-        // Refectiing the initialRenderData API
-        // if (setApiData) {
-        //   await fetchUpdatedApiData(setApiData);
-        // } else {
-        //   console.warn("API Data context is not available");
-        // }
       } else {
         toast("Upload failed", {
           description: "Failed to upload files ",
@@ -253,6 +271,35 @@ const SideNavBar = ({
     setIsPageLoading(true);
     router.push("../../auth/login");
   };
+
+  // // Private folder functions
+  // const handleCreatePrivateFolder = async () => {
+  //   if (!isAuthenticated) {
+  //     toast("Authentication required", {
+  //       description: "Please log in to create a private folder",
+  //     });
+  //     return;
+  //   }
+
+  //   setIsCreatingPrivateFolder(true);
+  //   try {
+  //     const response = await axiosInstance.post("/private_folder/createPrivateFolder");
+  //     if (response.status === 200) {
+  //       setHasPrivateFolder(true);
+  //       setUpdateFolderList((prev) => !prev); // Refresh folder list to show private folder
+  //       toast("Private folder created", {
+  //         description: "Your private folder has been created successfully",
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error("Error creating private folder:", error);
+  //     toast("Failed to create private folder", {
+  //       description: error.response?.data?.detail || "An error occurred",
+  //     });
+  //   } finally {
+  //     setIsCreatingPrivateFolder(false);
+  //   }
+  // };
 
   // const isDarkMode =
   //   theme === "dark" || (theme === "system" && systemTheme === "dark");
@@ -380,15 +427,19 @@ const SideNavBar = ({
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Uploading to ....">
-                  {displayedFolderName || "Uploading to...."}
+                  {displayedFolderName()}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
+                  {/* Regular Folders */}
                   {folderListData.map((item, index) => (
                     <div key={index} className="">
                       <SelectItem value={item.folder_id}>
-                        {item.folder_name}
+                        <div className="flex items-center space-x-2">
+                          <FolderOpen className="h-4 w-4 text-gray-600" />
+                          <span>{item.folder_name}</span>
+                        </div>
                       </SelectItem>
                     </div>
                   ))}

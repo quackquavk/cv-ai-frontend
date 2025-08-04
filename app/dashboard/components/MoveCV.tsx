@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import PrivateFolderActions from "./PrivateFolderActions";
 
 const MoveCV = ({ handleCarouselClick, item, folders }) => {
   const [newFolder, setNewFolder] = useState(null);
@@ -163,6 +164,21 @@ const MoveCV = ({ handleCarouselClick, item, folders }) => {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+            <hr className="my-1" />
+
+            {/* Private Folder Actions */}
+            <div className="flex items-center justify-center">
+              <PrivateFolderActions
+                documentId={item._id}
+                documentName={item?.parsed_cv?.name || "CV"}
+                currentFolderId={currentFolder}
+                onSuccess={() => {
+                  setIsOuterPopoverOpen(false);
+                }}
+                variant="button"
+                className="w-full h-8 text-xs border-0 hover:bg-gray-100 dark:hover:bg-gray-800"
+              />
+            </div>
             <hr className="my-1" />
 
             {/* ✨ 2. Control the nested popover */}

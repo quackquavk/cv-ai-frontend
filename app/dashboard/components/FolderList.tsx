@@ -26,6 +26,9 @@ import { publicFolderStore } from "../store";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useDocumentStore } from "../store";
+import PrivateFolderActions from "./PrivateFolderActions";
+import { privateFolderStore } from "../store";
+import { FolderLock } from "lucide-react";
 
 const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
   const [folders, setFolders] = useState([]);
@@ -48,6 +51,9 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
   const [folderId, setFolderId] = useState("");
   const { selectFolderId, setSelectFolderId } = folderSelectStore();
   const { isFolderListOpen } = publicFolderStore();
+  const { hasPrivateFolder, setHasPrivateFolder } = privateFolderStore();
+  const [privateFolderData, setPrivateFolderData] = useState([]);
+  const [isCreatingPrivateFolder, setIsCreatingPrivateFolder] = useState(false);
 
   const inputRefs = useRef({});
 
@@ -65,6 +71,40 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
   useEffect(() => {
     setSelectFolderId("");
   }, [isFolderListOpen]);
+
+  // Check if user has private folder
+  useEffect(() => {
+    const checkPrivateFolder = async () => {
+      try {
+        const response = await axiosInstance.get("/private_folder/hasPrivateFolder");
+        setHasPrivateFolder(response.data.has_private_folder);
+      } catch (error) {
+        console.error("Error checking private folder:", error);
+        setHasPrivateFolder(false);
+      }
+    };
+    checkPrivateFolder();
+  }, [updateFolderList, setHasPrivateFolder]);
+
+  // Fetch private folder files when private folder is selected
+  useEffect(() => {
+    if (selectFolderId === "private-folder" && hasPrivateFolder) {
+      const fetchPrivateFiles = async () => {
+        try {
+          const response = await axiosInstance.get("/private_folder/getPrivateFiles/0/100");
+          setPrivateFolderData(response.data.files || []);
+          setFolderContents(prev => ({
+            ...prev,
+            "private-folder": response.data.files || []
+          }));
+        } catch (error) {
+          console.error("Error fetching private files:", error);
+          setPrivateFolderData([]);
+        }
+      };
+      fetchPrivateFiles();
+    }
+  }, [selectFolderId, hasPrivateFolder]);
 
   useEffect(() => {
     const fetchFoldersAndContents = async () => {
@@ -115,11 +155,29 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
   const handleAlertFile = (state: boolean) => {
     setDialogueAlertFile(state);
   };
+
+  const handleCreatePrivateFolder = async () => {
+    setIsCreatingPrivateFolder(true);
+    try {
+      const response = await axiosInstance.post("/private_folder/createPrivateFolder");
+      if (response.status === 200) {
+        setHasPrivateFolder(true);
+        setUpdateFolderList(prev => !prev);
+        toast.success("Private folder created successfully!");
+      }
+    } catch (error) {
+      if (error.response.status === 403) {
+        toast.error("Only premium users can create private folder");
+      } else {
+        toast.error("Failed to create private folder");
+      }
+    } finally {
+      setIsCreatingPrivateFolder(false);
+    }
+  };
   const toggleDropDown = async (folderId: string) => {
-    // setOpenFolder((prevOpenFolder) =>
-    //   prevOpenFolder === folderId ? "" : folderId
-    // );
-    setSelectFolderId(selectFolderId === folderId ? null : folderId);
+    const newValue = selectFolderId === folderId ? null : folderId;
+    setSelectFolderId(newValue);
   };
 
   const handleRename = async (folderId: string) => {
@@ -283,7 +341,6 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
       console.error("Error fetching document data:", error);
     }
   };
-
   return (
     <div className="w-full">
       {/* Dailogue on clikcing Select */}
@@ -319,7 +376,112 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
         />
       )}
 
-      {folders.map((folder) => (
+      {/* Private Folder Section - Top Level */}
+      <div className="mb-6">
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 px-1">
+          Private
+        </h3>
+        {hasPrivateFolder ? (
+          <div
+            key="private-folder"
+            className={`mb-2 transition-all duration-200`}
+          >
+            <div className="flex items-center flex-1 rounded">
+              <div
+                className="flex items-center w-full gap-2 cursor-pointer hover:opacity-50 bg-blue-50 dark:bg-blue-900/20 p-2 rounded-md"
+                onClick={() => toggleDropDown("private-folder")}
+              >
+                <span>
+                  {selectFolderId === "private-folder" ? (
+                    <FolderLock className="text-blue-600" />
+                  ) : (
+                    <FolderLock className="text-blue-600" />
+                  )}
+                </span>
+                <span className="ml-3 text-blue-600 font-medium">Private Folder</span>
+              </div>
+            </div>
+
+            {selectFolderId === "private-folder" && (
+              <div className="mt-2 ml-8 border-l border-blue-300 pl-4 max-w-full truncate">
+                {folderContents["private-folder"]?.length ? (
+                  folderContents["private-folder"].map((file) => (
+                    <div
+                      key={file.document_id}
+                      className="relative flex items-center justify-between p-1 text-gray-800 dark:text-gray-400 ease-in-out duration-150 delay-75 rounded w-full"
+                    >
+                      <div
+                        onClick={() => {
+                          handleCardClick(file._id);
+                        }}
+                        className="w-full hover:opacity-60 truncate flex items-center space-x-[1px] cursor-pointer"
+                      >
+                        <span>
+                          <RxHamburgerMenu />
+                        </span>
+                        <span className="px-2 py-1 text-sm truncate">
+                          {file.document_name?.replace(".pdf", "") || "Private Document"}
+                        </span>
+                      </div>
+
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button>
+                            <BsThreeDots
+                              className="text-gray-800 dark:text-gray-400 hover:opacity-60 hover:cursor-pointer"
+                              size={"15px"}
+                            />
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-28 p-1 ml-32">
+                          <p
+                            className="flex items-center py-1 hover:cursor-pointer hover:opacity-50 justify-center"
+                            onClick={() => {
+                              handleAlertFile(true);
+                              setSelectedFile({
+                                folder_id: "private-folder",
+                                file_id: file._id,
+                              });
+                            }}
+                          >
+                            Archive
+                          </p>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500 p-2">No private files yet</p>
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="mb-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCreatePrivateFolder}
+              disabled={isCreatingPrivateFolder}
+              className="w-full text-xs h-8 flex items-center justify-center"
+            >
+              {isCreatingPrivateFolder ? (
+                <div className="w-3 h-3 border border-gray-300 border-t-blue-600 rounded-full animate-spin mr-2" />
+              ) : (
+                <FolderLock className="h-3 w-3 mr-2 text-blue-600" />
+              )}
+              Create Private Folder
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Public Folders Section */}
+      <div>
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 px-1">
+          Public Folders
+        </h3>
+        {folders.map((folder) => (
         <div
           key={folder.folder_id}
           className={`mb-4 transition-all duration-200 ${
@@ -473,12 +635,25 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                             handleAlertFile(true);
                             setSelectedFile({
                               folder_id: folder.folder_id,
-                              file_id: file.doc_id,
+                              file_id: file.doc_id || file._id,
                             });
+                            
                           }}
                         >
                           Archive
                         </p>
+                        <hr />
+
+                        {/* Private Folder Actions */}
+                        <div className="flex items-center justify-center py-1">
+                          <PrivateFolderActions
+                            documentId={file.doc_id}
+                            documentName={file.doc_name}
+                            currentFolderId={folder.folder_id}
+                            variant="button"
+                            className="w-full h-6 text-xs border-0 hover:bg-gray-100 dark:hover:bg-gray-800"
+                          />
+                        </div>
                         <hr />
                         <Popover>
                           <PopoverTrigger asChild>
@@ -551,6 +726,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
           )}
         </div>
       ))}
+      </div>
     </div>
   );
 };

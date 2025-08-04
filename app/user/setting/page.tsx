@@ -16,6 +16,7 @@ import {
   CreditCard,
   Smartphone,
   Wallet,
+  Crown,
 } from "lucide-react";
 import {
   Dialog,
@@ -53,10 +54,9 @@ const BillingSettings = () => (
     </div>
   </div>
 );
-
 const StripePayment = () => {
   const [loading, setLoading] = useState(false);
-
+  const [lifetimeLoading, setLifetimeLoading] = useState(false);
   const handleClick = async (selectedPlan, selectedTier) => {
     const body = {
       plan_id: `${selectedPlan}`,
@@ -64,15 +64,12 @@ const StripePayment = () => {
       success_url: "http://localhost:3000/user/setting",
       cancel_url: "http://localhost:3000/user/setting",
     };
-
     setLoading(true);
-
     try {
       const response = await axiosInstance.post(
         "/payment/create-checkout-session",
         body
       );
-
       if (response.status === 200) {
         const url = response.data.checkout_url;
         window.location.href = url;
@@ -84,6 +81,33 @@ const StripePayment = () => {
       console.error("Error creating checkout session:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLifetimeClick = async () => {
+    const body = {
+      plan_id: "lifetime",
+      tier: "premium",
+      success_url: "http://localhost:3000/user/setting",
+      cancel_url: "http://localhost:3000/user/setting",
+    };
+    setLifetimeLoading(true);
+    try {
+      const response = await axiosInstance.post(
+        "/payment/create-checkout-session",
+        body
+      );
+      if (response.status === 200) {
+        const url = response.data.checkout_url;
+        window.location.href = url;
+      }
+    } catch (error) {
+      if (error.response.status === 400) {
+        toast.error(error.response.data.detail);
+      }
+      console.error("Error creating lifetime checkout session:", error);
+    } finally {
+      setLifetimeLoading(false);
     }
   };
 
@@ -103,7 +127,8 @@ const StripePayment = () => {
         </div>
       </div>
 
-      <div className="w-[300px]">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Annual Plan Card */}
         <Card className="flex flex-col gap-4 p-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
           <div className="flex items-center justify-between">
             <p className="text-2xl font-semibold text-black dark:text-white">
@@ -123,11 +148,52 @@ const StripePayment = () => {
             Choose Premium Plan
           </Button>
         </Card>
+
+        {/* Lifetime Plan Card */}
+        <Card className="flex flex-col gap-4 p-6 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-2 border-amber-200 dark:border-amber-800 hover:shadow-amber-100 dark:hover:shadow-amber-900/20 transition-all shadow-md">
+ 
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Crown className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              <p className="text-2xl font-bold text-black dark:text-white">
+                $150.00
+              </p>
+            </div>
+            <span className="bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 text-xs font-medium px-2.5 py-0.5 rounded-full">
+              LIFETIME
+            </span>
+          </div>
+
+          <p className="text-lg font-bold text-black dark:text-white">
+            Premium Lifetime
+          </p>
+
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            One-time payment for lifetime access to all premium features.
+            <span className="font-semibold text-red-500 dark:text-red-400">
+              {" "}
+              Limited to first 100 users only!
+            </span>
+          </p>
+
+         
+
+          <Button
+            onClick={handleLifetimeClick}
+            disabled={lifetimeLoading}
+            className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-medium"
+          >
+            {lifetimeLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : null}
+            Get Lifetime Access
+          </Button>
+        </Card>
       </div>
     </div>
   );
 };
-
 const FonePayPayment = () => {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -136,17 +202,13 @@ const FonePayPayment = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState("");
   const [paymentMessage, setPaymentMessage] = useState("");
-
   const webSocketRef = useRef(null);
-
   const handleClick = async (selectedPlan, planStatus) => {
     const body = {
       plan_id: `${selectedPlan}`,
     };
-
     setPlanStatus(planStatus);
     setLoading(true);
-
     try {
       const response = await axiosInstance.post(
         "/fonepay/create-checkout-session",
@@ -166,20 +228,15 @@ const FonePayPayment = () => {
       setLoading(false);
     }
   };
-
   const connectToWebSocket = (billId) => {
     if (webSocketRef.current) {
       webSocketRef.current.close();
     }
-
     setIsProcessing(true);
-
     const wsUrl = `${process.env.NEXT_PUBLIC_WS_URL}/${billId}`;
     const socket = new WebSocket(wsUrl);
     webSocketRef.current = socket;
-
     socket.onopen = () => {};
-
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
@@ -204,19 +261,16 @@ const FonePayPayment = () => {
         setPaymentStatus("failed");
       }
     };
-
     socket.onerror = (error) => {
       console.error("WebSocket error:", error);
       setPaymentStatus("failed");
       setPaymentMessage("Connection error. Please try again.");
       setIsProcessing(false);
     };
-
     socket.onclose = () => {
       setIsProcessing(false);
     };
   };
-
   useEffect(() => {
     return () => {
       if (webSocketRef.current) {
@@ -224,7 +278,6 @@ const FonePayPayment = () => {
       }
     };
   }, []);
-
   useEffect(() => {
     if (paymentStatus === "success") {
       const timer = setTimeout(() => {
@@ -234,7 +287,6 @@ const FonePayPayment = () => {
       return () => clearTimeout(timer);
     }
   }, [paymentStatus]);
-
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 mb-6">
@@ -250,7 +302,6 @@ const FonePayPayment = () => {
           </p>
         </div>
       </div>
-
       <div className="w-[300px]">
         <Card className="flex flex-col gap-4 p-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
           <div className="flex items-center justify-between">
@@ -272,7 +323,6 @@ const FonePayPayment = () => {
           </Button>
         </Card>
       </div>
-
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-black dark:text-white max-w-sm mx-auto">
           <DialogHeader className="text-center items-center">
@@ -325,10 +375,8 @@ const FonePayPayment = () => {
     </div>
   );
 };
-
 const RazorPayPayment = () => {
   // const [loading, setLoading] = useState(false);
-
   // const handleClick = async (selectedPlan, selectedTier) => {
   //   const body = {
   //     plan_id: `${selectedPlan}`,
@@ -336,15 +384,12 @@ const RazorPayPayment = () => {
   //     success_url: "http://localhost:3000/user/setting",
   //     cancel_url: "http://localhost:3000/user/setting",
   //   };
-
   //   setLoading(true);
-
   //   try {
   //     const response = await axiosInstance.post(
   //       "/razorpay/create-checkout-session",
   //       body
   //     );
-
   //     if (response.status === 200) {
   //       const options = {
   //         key: response.data.key_id,
@@ -367,7 +412,6 @@ const RazorPayPayment = () => {
   //           color: "#3B82F6",
   //         },
   //       };
-
   //       // const rzp = new window.Razorpay(options);
   //       // rzp.open();
   //     }
@@ -380,7 +424,6 @@ const RazorPayPayment = () => {
   //     setLoading(false);
   //   }
   // };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 mb-6">
@@ -396,7 +439,6 @@ const RazorPayPayment = () => {
           </p>
         </div>
       </div>
-
       <div className="w-[300px]">
         <Card className="flex flex-col gap-4 p-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
           <div className="flex items-center justify-between">
@@ -420,7 +462,6 @@ const RazorPayPayment = () => {
     </div>
   );
 };
-
 const PaymentSettings = () => {
   return (
     <div className="p-4 md:p-6">
@@ -432,7 +473,6 @@ const PaymentSettings = () => {
           Choose your preferred payment method and subscription plan
         </p>
       </div>
-
       <Tabs defaultValue="stripe" className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-8">
           <TabsTrigger value="stripe" className="flex items-center gap-2">
@@ -475,15 +515,12 @@ const PaymentSettings = () => {
             </div>
           </TabsTrigger>
         </TabsList>
-
         <TabsContent value="stripe" className="mt-0">
           <StripePayment />
         </TabsContent>
-
         <TabsContent value="fonepay" className="mt-0">
           <FonePayPayment />
         </TabsContent>
-
         <TabsContent value="razorpay" className="mt-0">
           <RazorPayPayment />
         </TabsContent>
@@ -491,10 +528,8 @@ const PaymentSettings = () => {
     </div>
   );
 };
-
 const AppearanceSettings = () => {
   const { theme, setTheme } = useTheme();
-
   return (
     <div className="p-4 md:p-6">
       <h2 className="text-xl font-semibold mb-4 text-black dark:text-white">
@@ -577,18 +612,15 @@ const AppearanceSettings = () => {
     </div>
   );
 };
-
 function Setting() {
   const [activeSection, setActiveSection] = useState("Billing Overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
   const showContent = () => {
     if (activeSection === "Billing Overview") return <BillingSettings />;
     if (activeSection === "Payment") return <PaymentSettings />;
     if (activeSection === "appearance") return <AppearanceSettings />;
     return <div className="p-6">Select a setting</div>;
   };
-
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-black text-black dark:text-white">
       {/* Mobile Menu Button */}
@@ -601,7 +633,6 @@ function Setting() {
       >
         <Menu size={20} className="text-black dark:text-white" />
       </button>
-
       {/* Sidebar */}
       <div
         className={`fixed md:static inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 ease-in-out
@@ -621,7 +652,6 @@ function Setting() {
               <X size={20} />
             </button>
           </div>
-
           <div className="space-y-6">
             <div>
               <div className="mb-3">
@@ -648,7 +678,6 @@ function Setting() {
                 ))}
               </div>
             </div>
-
             <div>
               <div className="mb-3">
                 <span className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 tracking-wider">
@@ -672,12 +701,10 @@ function Setting() {
           </div>
         </div>
       </div>
-
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto pt-16 md:pt-0">{showContent()}</div>
       </div>
-
       {/* Mobile Overlay */}
       {sidebarOpen && (
         <div
@@ -688,5 +715,4 @@ function Setting() {
     </div>
   );
 }
-
 export default Setting;

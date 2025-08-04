@@ -11,6 +11,7 @@ import { useSearchContext } from "@/app/dashboard/context/SearchContext";
 import { Card } from "./ui/card";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useDocumentStore } from "@/app/dashboard/store";
+import PrivateFolderActions from "@/app/dashboard/components/PrivateFolderActions";
 
 interface GridViewProps {
   data: IDocumentData[];
@@ -45,6 +46,20 @@ function GridView({ data, searchData }: GridViewProps) {
     queryKey: ["folderFiles", selectFolderId],
     queryFn: async () => {
       if (!selectFolderId) return [];
+      
+      // Handle private folder
+      if (selectFolderId === "private-folder") {
+        const res = await axiosInstance.get("/private_folder/getPrivateFiles/0/100");
+        // Map private folder files to match expected doc_id format
+        return (res.data.files || []).map(file => ({
+          ...file,
+          doc_id: file.document_id || file.doc_id,
+          doc_name: file.document_name || file.doc_name,
+          image_id: file.image_id || file.doc_id || file.document_id // Use doc_id as fallback for image_id
+        }));
+      }
+      
+      // Handle regular folders
       const res = await axiosInstance.get(`/folder/getFiles/${selectFolderId}`);
       return res.data;
     },
@@ -151,7 +166,7 @@ function GridView({ data, searchData }: GridViewProps) {
           {displayedData.map((item, index) => (
             <Card
               key={item.doc_id}
-              className="masonry-item mb-6 cursor-pointer relative hover:border-black dark:hover:border-white border-2 transition duration-500 ease-in-out"
+              className="masonry-item mb-6 cursor-pointer relative hover:border-black dark:hover:border-white border-2 transition duration-500 ease-in-out group"
               onClick={() => handleCardClick(item.doc_id)}
             >
               <Image
@@ -163,6 +178,17 @@ function GridView({ data, searchData }: GridViewProps) {
                 loading="lazy"
                 layout="responsive"
               />
+              
+              {/* Private Folder Actions - Show on hover */}
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                <PrivateFolderActions
+                  documentId={item.doc_id}
+                  documentName={item.doc_name || `CV ${index + 1}`}
+                  currentFolderId={selectFolderId}
+                  variant="icon"
+                  className="bg-white dark:bg-gray-800 shadow-lg"
+                />
+              </div>
             </Card>
           ))}
         </Masonry>

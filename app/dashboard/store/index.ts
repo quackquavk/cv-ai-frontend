@@ -13,6 +13,12 @@ interface PublicFolderState {
   toogleFolderList: () => void;
 }
 
+// Private Folder State
+interface PrivateFolderState {
+  hasPrivateFolder: boolean;
+  setHasPrivateFolder: (value: boolean) => void;
+}
+
 interface SearchState {
   formData: IFormInputData;
   setFormData: (newData) => void;
@@ -35,6 +41,12 @@ export const publicFolderStore = create<PublicFolderState>((set) => ({
   isFolderListOpen: true,
   toogleFolderList: () =>
     set((state) => ({ isFolderListOpen: !state.isFolderListOpen })),
+}));
+
+// Private Folder Store
+export const privateFolderStore = create<PrivateFolderState>((set) => ({
+  hasPrivateFolder: false,
+  setHasPrivateFolder: (value) => set({ hasPrivateFolder: value }),
 }));
 
 // FormData

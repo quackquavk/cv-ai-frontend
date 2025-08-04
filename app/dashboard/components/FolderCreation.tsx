@@ -68,7 +68,7 @@ function FolderCreation({ onFolderCreated, setUpdateFolderList }) {
 
   return (
     <div className="flex justify-between items-center">
-      <div className="text-lg font-medium flex-1">Public Folder</div>
+      <div className="text-lg font-medium flex-1">Folders</div>
       {dialogOpen && (
         <DialogueComponent
           variant="selectMultipleFolders"
@@ -91,7 +91,7 @@ function FolderCreation({ onFolderCreated, setUpdateFolderList }) {
           <PopoverContent className="w-[16rem]  absolute">
             <div className="grid gap-4">
               <div className="space-y-2">
-                <h4 className="font-semibold leading-none">Create Folder</h4>
+                <h4 className="font-semibold leading-none">Create Public Folder</h4>
               </div>
               <div>
                 <form
