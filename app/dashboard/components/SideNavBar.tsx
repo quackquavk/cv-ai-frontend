@@ -66,7 +66,11 @@ import {
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import DialogueComponent from "./DialogueComponent";
 import { MdFolderZip } from "react-icons/md";
-import { folderSelectStore, publicFolderStore, privateFolderStore } from "../store";
+import {
+  folderSelectStore,
+  publicFolderStore,
+  privateFolderStore,
+} from "../store";
 // import { useTheme } from "next-themes";
 // import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -95,15 +99,11 @@ const SideNavBar = ({
   const [dialogOpen, setDialogeOpen] = useState(false);
   const { selectFolderId } = folderSelectStore();
   const { isFolderListOpen } = publicFolderStore();
-  const { 
-    hasPrivateFolder, 
-    setHasPrivateFolder 
-  } = privateFolderStore();
+  const { hasPrivateFolder, setHasPrivateFolder } = privateFolderStore();
   const [localFolderId, setLocalFolderId] = useState<string | null>(
     selectFolderId
   );
   const [isPageLoading, setIsPageLoading] = useState<boolean>(false);
-
   const [dropdownOpen, setDropdownOpen] = useState(false); //Close the dropdown menu when necessary
 
   const queryClient = useQueryClient();
@@ -137,7 +137,10 @@ const SideNavBar = ({
   const displayedFolderName = () => {
     if (!localFolderId) return "Uploading to....";
     if (localFolderId === "private-folder") return "Private Folder";
-    return folderListData.find((item: any) => item.folder_id === localFolderId)?.folder_name || "Unknown Folder";
+    return (
+      folderListData.find((item: any) => item.folder_id === localFolderId)
+        ?.folder_name || "Unknown Folder"
+    );
   };
 
   useEffect(() => {
@@ -160,7 +163,9 @@ const SideNavBar = ({
     const checkPrivateFolder = async () => {
       if (!isAuthenticated) return;
       try {
-        const response = await axiosInstance.get("/private_folder/hasPrivateFolder");
+        const response = await axiosInstance.get(
+          "/private_folder/hasPrivateFolder"
+        );
         setHasPrivateFolder(response.data.has_private_folder);
       } catch (error) {
         console.error("Error checking private folder:", error);
@@ -176,12 +181,10 @@ const SideNavBar = ({
       router.push("../../auth/login");
       return;
     }
-
     const formData = new FormData();
     Array.from(files).forEach((file) => {
       formData.append("files", file);
     });
-
     try {
       if (!selectedFolderId) {
         toast("No Folder selected", {
@@ -190,10 +193,7 @@ const SideNavBar = ({
         return;
       }
 
-
-
       setUploading(true);
-
       const response = await axiosInstance.post(
         `/document/document?folder_id=${selectedFolderId}`,
         formData,
@@ -214,6 +214,12 @@ const SideNavBar = ({
         queryClient.invalidateQueries({
           queryKey: ["folderFiles", selectedFolderId],
         });
+
+        if (selectedFolderId === "private-folder") {
+          queryClient.invalidateQueries({
+            queryKey: ["privateFiles"],
+          });
+        }
       } else {
         toast("Upload failed", {
           description: "Failed to upload files ",

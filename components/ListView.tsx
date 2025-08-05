@@ -42,7 +42,6 @@ const ListView = ({ data, searchData }: ListViewProps) => {
   const [folders, setFolders] = useState<any[]>([]);
   const hasMounted = useRef(false);
 
-  // State to track if the document (archieve)
   const shouldRefetchDocuments = useDocumentStore(
     (state) => state.shouldRefetchDocuments
   );
@@ -51,8 +50,8 @@ const ListView = ({ data, searchData }: ListViewProps) => {
     (state) => state.setShouldRefetchDocuments
   );
 
-  // Function to fetch documents by IDs
   const fetchDocumentsByIds = async (docIds: string[]) => {
+    console.log(`docIds`, docIds);
     const documents = await axiosInstance.post("document/bulk_document", {
       document_ids: docIds,
     });
@@ -159,14 +158,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
     }
   }, [selectFolderId, searchData, shouldRefetchDocuments]);
 
-  // Cleanup effect
-  // useEffect(() => {
-  //   return () => {
-  //     queryClient.cancelQueries({ queryKey: ["documents"] });
-  //   };
-  // }, [queryClient]);
 
-  // Prefetch initial data when component mounts or data prop changes
   useEffect(() => {
     const prefetchInitialData = async () => {
       if (data && data?.length > 0 && !selectFolderId && !searchData) {
