@@ -175,6 +175,44 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
       setIsCreatingPrivateFolder(false);
     }
   };
+
+  const handlePrivateFolderActionSuccess = async (file, fromFolderId, actionType) => {
+    // Only remove the file from current folder if it was moved (not copied)
+    if (actionType === 'move') {
+      setFolderContents((prevFolderContents) => {
+        const updatedFromFolder = prevFolderContents[fromFolderId]?.filter(
+          (f) => f.doc_id !== file.doc_id
+        ) || [];
+
+        return {
+          ...prevFolderContents,
+          [fromFolderId]: updatedFromFolder,
+        };
+      });
+    }
+
+    // Refresh private folder data if private folder is currently selected
+    if (selectFolderId === "private-folder" && hasPrivateFolder) {
+      try {
+        const response = await axiosInstance.get("/private_folder/getPrivateFiles/0/100");
+        setPrivateFolderData(response.data.files || []);
+        setFolderContents(prev => ({
+          ...prev,
+          "private-folder": response.data.files || []
+        }));
+      } catch (error) {
+        console.error("Error refreshing private files:", error);
+      }
+    }
+
+    // Trigger document refetch to ensure consistency across views
+    setShouldRefetchDocuments(true);
+    
+    // For move operations, also trigger folder list update to ensure the source folder is updated
+    if (actionType === 'move') {
+      setUpdateFolderList(prev => !prev);
+    }
+  };
   const toggleDropDown = async (folderId: string) => {
     const newValue = selectFolderId === folderId ? null : folderId;
     setSelectFolderId(newValue);
@@ -652,6 +690,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                             currentFolderId={folder.folder_id}
                             variant="button"
                             className="w-full h-6 text-xs border-0 hover:bg-gray-100 dark:hover:bg-gray-800"
+                            onSuccess={(actionType) => handlePrivateFolderActionSuccess(file, folder.folder_id, actionType)}
                           />
                         </div>
                         <hr />

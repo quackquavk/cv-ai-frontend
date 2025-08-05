@@ -34,7 +34,7 @@ interface PrivateFolderActionsProps {
   documentId: string;
   documentName?: string;
   currentFolderId?: string;
-  onSuccess?: () => void;
+  onSuccess?: (actionType: 'copy' | 'move') => void;
   variant?: "button" | "dropdown" | "icon";
   className?: string;
 }
@@ -131,7 +131,8 @@ const PrivateFolderActions: React.FC<PrivateFolderActionsProps> = ({
           });
         }
         
-        onSuccess?.();
+        onSuccess?.('copy');
+        setShowCopyDialog(false);
       }
     } catch (error) {
       console.error("Error copying file:", error);
@@ -140,7 +141,6 @@ const PrivateFolderActions: React.FC<PrivateFolderActionsProps> = ({
       });
     } finally {
       setIsLoading(false);
-      setShowCopyDialog(false);
     }
   };
 
@@ -182,7 +182,8 @@ const PrivateFolderActions: React.FC<PrivateFolderActionsProps> = ({
           });
         }
         
-        onSuccess?.();
+        onSuccess?.('move');
+        setShowMoveDialog(false);
       }
     } catch (error) {
       console.error("Error moving file:", error);
@@ -191,7 +192,6 @@ const PrivateFolderActions: React.FC<PrivateFolderActionsProps> = ({
       });
     } finally {
       setIsLoading(false);
-      setShowMoveDialog(false);
     }
   };
 
@@ -229,15 +229,36 @@ const PrivateFolderActions: React.FC<PrivateFolderActionsProps> = ({
   if (variant === "button") {
     return (
       <>
-        <Button
+     <div className="flex-col items-center gap-2">
+     <Button
           variant="outline"
           size="sm"
           onClick={() => setShowCopyDialog(true)}
           disabled={isLoading}
           className={className}
         >
+          {isLoading ? (
+            <Loader2 className="h-3 w-3 animate-spin mr-1" />
+          ) : (
+            <Copy className="h-3 w-3 mr-1" />
+          )}
           Copy to Private
         </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowMoveDialog(true)}
+          disabled={isLoading}
+          className={className}
+        >
+          {isLoading ? (
+            <Loader2 className="h-3 w-3 animate-spin mr-1" />
+          ) : (
+            <Move className="h-3 w-3 mr-1" />
+          )}
+          Move to Private
+        </Button>
+     </div>
 
         {/* Copy Dialog */}
         <Dialog open={showCopyDialog} onOpenChange={setShowCopyDialog}>
@@ -263,6 +284,33 @@ const PrivateFolderActions: React.FC<PrivateFolderActionsProps> = ({
                   <Copy className="h-4 w-4 mr-2" />
                 )}
                 Copy
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        <Dialog open={showMoveDialog} onOpenChange={setShowMoveDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Move to Private Folder</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Are you sure you want to move "{documentName}" to your private folder?
+            </p>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
+              <Button 
+                onClick={moveToPrivateFolder}
+                disabled={isLoading}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Move className="h-4 w-4 mr-2" />
+                )}
+                Move
               </Button>
             </DialogFooter>
           </DialogContent>

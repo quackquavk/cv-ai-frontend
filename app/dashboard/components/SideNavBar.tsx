@@ -103,7 +103,6 @@ const SideNavBar = ({
     selectFolderId
   );
   const [isPageLoading, setIsPageLoading] = useState<boolean>(false);
-  const [isCreatingPrivateFolder, setIsCreatingPrivateFolder] = useState(false);
 
   const [dropdownOpen, setDropdownOpen] = useState(false); //Close the dropdown menu when necessary
 
