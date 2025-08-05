@@ -393,12 +393,12 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
               >
                 <span>
                   {selectFolderId === "private-folder" ? (
-                    <FolderLock className="text-blue-600" />
+                    <FolderLock className="text-green-600" />
                   ) : (
-                    <FolderLock className="text-blue-600" />
+                    <FolderLock className="" />
                   )}
                 </span>
-                <span className="ml-3 text-blue-600 font-medium">Private Folder</span>
+                <span className="ml-3  font-medium">Private Folder</span>
               </div>
             </div>
 
