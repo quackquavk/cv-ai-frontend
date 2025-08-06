@@ -24,7 +24,6 @@ import {
   DialogDescription,
   DialogHeader,
 } from "@/components/ui/dialog";
-
 // Content Components
 const BillingSettings = () => (
   <div className="p-4 md:p-6">
@@ -83,7 +82,6 @@ const StripePayment = () => {
       setLoading(false);
     }
   };
-
   const handleLifetimeClick = async () => {
     const body = {
       plan_id: "lifetime",
@@ -110,7 +108,6 @@ const StripePayment = () => {
       setLifetimeLoading(false);
     }
   };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 mb-6">
@@ -126,7 +123,6 @@ const StripePayment = () => {
           </p>
         </div>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Annual Plan Card */}
         <Card className="flex flex-col gap-4 p-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
@@ -148,11 +144,9 @@ const StripePayment = () => {
             Choose Premium Plan
           </Button>
         </Card>
-
         {/* Lifetime Plan Card */}
         <Card className="flex flex-col gap-4 p-6 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-2 border-amber-200 dark:border-amber-800 hover:shadow-amber-100 dark:hover:shadow-amber-900/20 transition-all shadow-md">
  
-
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Crown className="h-5 w-5 text-amber-600 dark:text-amber-400" />
@@ -164,11 +158,9 @@ const StripePayment = () => {
               LIFETIME
             </span>
           </div>
-
           <p className="text-lg font-bold text-black dark:text-white">
             Premium Lifetime
           </p>
-
           <p className="text-sm text-gray-600 dark:text-gray-400">
             One-time payment for lifetime access to all premium features.
             <span className="font-semibold text-red-500 dark:text-red-400">
@@ -176,9 +168,7 @@ const StripePayment = () => {
               Limited to first 100 users only!
             </span>
           </p>
-
          
-
           <Button
             onClick={handleLifetimeClick}
             disabled={lifetimeLoading}
@@ -196,6 +186,7 @@ const StripePayment = () => {
 };
 const FonePayPayment = () => {
   const [loading, setLoading] = useState(false);
+  const [lifetimeLoading, setLifetimeLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [qrValue, setQrValue] = useState("");
   const [planStatus, setPlanStatus] = useState("");
@@ -203,6 +194,7 @@ const FonePayPayment = () => {
   const [paymentStatus, setPaymentStatus] = useState("");
   const [paymentMessage, setPaymentMessage] = useState("");
   const webSocketRef = useRef(null);
+  
   const handleClick = async (selectedPlan, planStatus) => {
     const body = {
       plan_id: `${selectedPlan}`,
@@ -228,6 +220,33 @@ const FonePayPayment = () => {
       setLoading(false);
     }
   };
+  
+  const handleLifetimeClick = async () => {
+    const body = {
+      plan_id: "lifetime",
+    };
+    setPlanStatus("Lifetime");
+    setLifetimeLoading(true);
+    try {
+      const response = await axiosInstance.post(
+        "/fonepay/create-checkout-session",
+        body
+      );
+      if (response.status === 200) {
+        setQrValue(response?.data?.qr_message);
+        setOpen(true);
+        connectToWebSocket(response?.data?.payment_id);
+      }
+    } catch (error) {
+      if (error.response.status === 400) {
+        toast.error(error.response.data.detail);
+      }
+      console.error("Error creating lifetime checkout session:", error);
+    } finally {
+      setLifetimeLoading(false);
+    }
+  };
+  
   const connectToWebSocket = (billId) => {
     if (webSocketRef.current) {
       webSocketRef.current.close();
@@ -271,6 +290,7 @@ const FonePayPayment = () => {
       setIsProcessing(false);
     };
   };
+  
   useEffect(() => {
     return () => {
       if (webSocketRef.current) {
@@ -278,6 +298,7 @@ const FonePayPayment = () => {
       }
     };
   }, []);
+  
   useEffect(() => {
     if (paymentStatus === "success") {
       const timer = setTimeout(() => {
@@ -287,6 +308,7 @@ const FonePayPayment = () => {
       return () => clearTimeout(timer);
     }
   }, [paymentStatus]);
+  
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 mb-6">
@@ -302,7 +324,9 @@ const FonePayPayment = () => {
           </p>
         </div>
       </div>
-      <div className="w-[300px]">
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Annual Plan Card */}
         <Card className="flex flex-col gap-4 p-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
           <div className="flex items-center justify-between">
             <p className="text-2xl font-semibold text-black dark:text-white">
@@ -316,13 +340,49 @@ const FonePayPayment = () => {
           <Button
             onClick={() => handleClick("annual", "Premium")}
             disabled={loading}
-            className="w-full bg-[#ce2027] hover:bg-[#a61a20]] text-white"
+            className="w-full bg-[#ce2027] hover:bg-[#a61a20] text-white"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
             Choose Premium Plan
           </Button>
         </Card>
+        
+        {/* Lifetime Plan Card */}
+        <Card className="flex flex-col gap-4 p-6 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-2 border-amber-200 dark:border-amber-800 hover:shadow-amber-100 dark:hover:shadow-amber-900/20 transition-all shadow-md">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Crown className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              <p className="text-2xl font-bold text-black dark:text-white">
+                NPR 9,999.00
+              </p>
+            </div>
+            <span className="bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 text-xs font-medium px-2.5 py-0.5 rounded-full">
+              LIFETIME
+            </span>
+          </div>
+          <p className="text-lg font-bold text-black dark:text-white">
+            Premium Lifetime
+          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            One-time payment for lifetime access to all premium features.
+            <span className="font-semibold text-red-500 dark:text-red-400">
+              {" "}
+              Limited to first 100 users only!
+            </span>
+          </p>
+          <Button
+            onClick={handleLifetimeClick}
+            disabled={lifetimeLoading}
+            className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-medium"
+          >
+            {lifetimeLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : null}
+            Get Lifetime Access
+          </Button>
+        </Card>
       </div>
+      
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-black dark:text-white max-w-sm mx-auto">
           <DialogHeader className="text-center items-center">
@@ -351,7 +411,9 @@ const FonePayPayment = () => {
             </div>
             <div className="text-gray-600 dark:text-gray-400">
               {"Amount: " +
-                (planStatus === "Basic" ? "20 USD / month" : "100 USD / year")}
+                (planStatus === "Basic" ? "20 USD / month" : 
+                 planStatus === "Premium" ? "100 USD / year" : 
+                 planStatus === "Lifetime" ? "99 USD one-time" : "")}
             </div>
             {isProcessing && (
               <div className="mt-4 flex items-center gap-2">
