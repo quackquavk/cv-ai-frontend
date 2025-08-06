@@ -202,7 +202,6 @@ const SideNavBar = ({
         }
       );
       if (response.status === 200) {
-        setUpdateFolderList((prev) => !prev);
         toast("Uploaded successfully", {
           description: "The file has been uploaded successfully",
         });
@@ -219,6 +218,9 @@ const SideNavBar = ({
           queryClient.invalidateQueries({
             queryKey: ["privateFiles"],
           });
+        } else {
+          // Only update folder list for public folders
+          setUpdateFolderList((prev) => !prev);
         }
       } else {
         toast("Upload failed", {

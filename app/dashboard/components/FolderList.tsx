@@ -29,7 +29,7 @@ import { useDocumentStore } from "../store";
 import PrivateFolderActions from "./PrivateFolderActions";
 import { privateFolderStore } from "../store";
 import { FolderLock } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 // Skeleton loader component for private files
 const PrivateFilesSkeleton = () => {
@@ -76,6 +76,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
   const setShouldRefetchDocuments = useDocumentStore(
     (state) => state.setShouldRefetchDocuments
   );
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (editingFolder && inputRefs.current[editingFolder]) {
@@ -87,7 +88,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
     setSelectFolderId("");
   }, [isFolderListOpen]);
 
-  // Check if user has private folder
+  // Check if user has private folder - only run once on mount
   useEffect(() => {
     const checkPrivateFolder = async () => {
       try {
@@ -101,7 +102,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
       }
     };
     checkPrivateFolder();
-  }, [updateFolderList, setHasPrivateFolder]);
+  }, [setHasPrivateFolder]); // Removed updateFolderList dependency
 
   // TanStack Query for private files
   const fetchPrivateFiles = async () => {
@@ -118,26 +119,28 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
   } = useQuery({
     queryKey: ["privateFiles"],
     queryFn: fetchPrivateFiles,
-    enabled: selectFolderId === "private-folder" && hasPrivateFolder,
+    enabled: hasPrivateFolder,
+    staleTime: 30000, // Cache for 30 seconds to prevent unnecessary refetches
+    gcTime: 300000, // Keep in cache for 5 minutes to prevent data loss
+    retry: 1, // Reduce retries to prevent excessive requests
   });
 
   // Update folderContents when privateFiles data changes
   useEffect(() => {
-    if (privateFiles) {
+    if (privateFiles && hasPrivateFolder) {
       setFolderContents((prev) => ({
         ...prev,
         "private-folder": privateFiles,
       }));
     }
-  }, [privateFiles]);
+  }, [privateFiles, hasPrivateFolder]);
 
-  // Fetch private folder files when private folder is selected or updateFolderList changes
+  // Only refetch when private folder is first selected, not on every updateFolderList change
   useEffect(() => {
-    if (selectFolderId === "private-folder" && hasPrivateFolder) {
-      // Use TanStack Query to refetch when needed
+    if (selectFolderId === "private-folder" && hasPrivateFolder && !privateFiles) {
       refetchPrivateFiles();
     }
-  }, [selectFolderId, hasPrivateFolder, updateFolderList, refetchPrivateFiles]);
+  }, [selectFolderId, hasPrivateFolder, refetchPrivateFiles, privateFiles]);
 
   // Fetch public folders and their contents
   useEffect(() => {
@@ -167,7 +170,14 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
           (acc, content) => ({ ...acc, ...content }),
           {}
         );
-        setFolderContents(contentsObject);
+        setFolderContents((prevContents) => ({
+          ...prevContents,
+          ...contentsObject,
+          // Preserve private folder data if it exists
+          ...(prevContents["private-folder"] && {
+            "private-folder": prevContents["private-folder"]
+          })
+        }));
       } catch (error) {
         console.error("Error fetching folders:", error);
       }
@@ -195,7 +205,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
       );
       if (response.status === 200) {
         setHasPrivateFolder(true);
-        setUpdateFolderList((prev) => !prev);
+        // No need to trigger folder list update for private folder creation
         toast.success("Private folder created successfully!");
       }
     } catch (error) {
@@ -228,13 +238,13 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
       });
     }
     // Refresh private folder data using TanStack Query
-    if (selectFolderId === "private-folder" && hasPrivateFolder) {
-      refetchPrivateFiles();
-    }
+    queryClient.invalidateQueries({
+      queryKey: ["privateFiles"],
+    });
     // Trigger document refetch to ensure consistency across views
     setShouldRefetchDocuments(true);
-    // For move operations, also trigger folder list update
-    if (actionType === "move") {
+    // For move operations from public folders, trigger folder list update
+    if (actionType === "move" && fromFolderId !== "private-folder") {
       setUpdateFolderList((prev) => !prev);
     }
   };
@@ -242,8 +252,8 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
   const toggleDropDown = async (folderId: string) => {
     const newValue = selectFolderId === folderId ? null : folderId;
     setSelectFolderId(newValue);
-    // If opening the private folder, make sure to refetch data
-    if (newValue === "private-folder" && hasPrivateFolder) {
+    // If opening the private folder for the first time or data is stale, refetch
+    if (newValue === "private-folder" && hasPrivateFolder && !privateFiles) {
       refetchPrivateFiles();
     }
   };
@@ -333,9 +343,11 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
           [toFolderId]: updatedToFolder,
         };
       });
-      // If moving to private folder, refetch private files
+      // If moving to private folder, invalidate query to trigger refetch
       if (toFolderId === "private-folder") {
-        refetchPrivateFiles();
+        queryClient.invalidateQueries({
+          queryKey: ["privateFiles"],
+        });
       }
       setShouldRefetchDocuments(true);
       toast.success("File moved successfully!");
@@ -365,9 +377,11 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
           [folderId]: updatedToFolder,
         };
       });
-      // If moving to private folder, refetch private files
+      // If moving to private folder, invalidate query to trigger refetch
       if (folderId === "private-folder") {
-        refetchPrivateFiles();
+        queryClient.invalidateQueries({
+          queryKey: ["privateFiles"],
+        });
       }
       setShouldRefetchDocuments(true);
       toast.success("File moved successfully!");
@@ -412,7 +426,6 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
       console.error("Error fetching document data:", error);
     }
   };
-
   return (
     <div className="w-full">
       {/* Dailogue on clikcing Select */}
@@ -472,10 +485,10 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
             </div>
             {selectFolderId === "private-folder" && (
               <>
-                {isPrivateFilesLoading ? (
+                {isPrivateFilesLoading && !folderContents["private-folder"]?.length ? (
                   <PrivateFilesSkeleton />
                 ) : folderContents["private-folder"]?.length ? (
-                  <div className="mt-2 ml-8 border-l border-blue-300 pl-4 max-w-full truncate">
+                  <div className="mt-2 ml-8 border-l border-gray-500 pl-4 max-w-full truncate">
                     {folderContents["private-folder"].map((file) => (
                       <div
                         key={file.document_id}
@@ -522,11 +535,11 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                       </div>
                     ))}
                   </div>
-                ) : (
+                ) : !isPrivateFilesLoading ? (
                   <p className="text-sm text-gray-500 p-2">
                     No private files yet
                   </p>
-                )}
+                ) : null}
               </>
             )}
           </div>
