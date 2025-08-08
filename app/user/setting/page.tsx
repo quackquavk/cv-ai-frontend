@@ -17,6 +17,7 @@ import {
   Smartphone,
   Wallet,
   Crown,
+  ArrowLeft,
 } from "lucide-react";
 import {
   Dialog,
@@ -24,35 +25,8 @@ import {
   DialogDescription,
   DialogHeader,
 } from "@/components/ui/dialog";
-// Content Components
-const BillingSettings = () => (
-  <div className="p-4 md:p-6">
-    <h2 className="text-xl font-semibold mb-4 text-black dark:text-white">
-      Billing Settings
-    </h2>
-    <p className="text-gray-600 dark:text-gray-400 mb-6">
-      Manage your billing preferences and payment methods.
-    </p>
-    <div className="space-y-4">
-      <Card className="p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
-        <h3 className="font-medium text-black dark:text-white">
-          Payment History
-        </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          View your past transactions and invoices
-        </p>
-      </Card>
-      <Card className="p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
-        <h3 className="font-medium text-black dark:text-white">
-          Billing Address
-        </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          Update your billing information
-        </p>
-      </Card>
-    </div>
-  </div>
-);
+import { useRouter } from "next/navigation";
+
 const StripePayment = () => {
   const [loading, setLoading] = useState(false);
   const [lifetimeLoading, setLifetimeLoading] = useState(false);
@@ -674,15 +648,49 @@ const AppearanceSettings = () => {
     </div>
   );
 };
-function Setting() {
+const BillingSettings = () => (
+  <div className="p-4 md:p-6">
+    <h2 className="text-xl font-semibold mb-4 text-black dark:text-white">
+      Billing Settings
+    </h2>
+    <p className="text-gray-600 dark:text-gray-400 mb-6">
+      Manage your billing preferences and payment methods.
+    </p>
+    <div className="space-y-4">
+      <Card className="p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
+        <h3 className="font-medium text-black dark:text-white">
+          Payment History
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          View your past transactions and invoices
+        </p>
+      </Card>
+      <Card className="p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
+        <h3 className="font-medium text-black dark:text-white">
+          Billing Address
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          Update your billing information
+        </p>
+      </Card>
+    </div>
+  </div>
+);
+
+// StripePayment, FonePayPayment, RazorPayPayment, PaymentSettings, and AppearanceSettings components remain unchanged
+
+export default function Setting() {
+  const router = useRouter(); // Added this hook
   const [activeSection, setActiveSection] = useState("Billing Overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
   const showContent = () => {
     if (activeSection === "Billing Overview") return <BillingSettings />;
     if (activeSection === "Payment") return <PaymentSettings />;
     if (activeSection === "appearance") return <AppearanceSettings />;
     return <div className="p-6">Select a setting</div>;
   };
+  
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-black text-black dark:text-white">
       {/* Mobile Menu Button */}
@@ -695,6 +703,7 @@ function Setting() {
       >
         <Menu size={20} className="text-black dark:text-white" />
       </button>
+      
       {/* Sidebar */}
       <div
         className={`fixed md:static inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 ease-in-out
@@ -714,6 +723,17 @@ function Setting() {
               <X size={20} />
             </button>
           </div>
+          
+          {/* Added back button here */}
+          <Button
+            onClick={() => router.push("/dashboard")}
+            variant="outline"
+            className="w-full flex items-center justify-center gap-2 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            <ArrowLeft size={16} />
+            Back to Dashboard
+          </Button>
+          
           <div className="space-y-6">
             <div>
               <div className="mb-3">
@@ -763,10 +783,12 @@ function Setting() {
           </div>
         </div>
       </div>
+      
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto pt-16 md:pt-0">{showContent()}</div>
       </div>
+      
       {/* Mobile Overlay */}
       {sidebarOpen && (
         <div
@@ -777,4 +799,3 @@ function Setting() {
     </div>
   );
 }
-export default Setting;
