@@ -166,7 +166,7 @@ function GridView({ data, searchData }: GridViewProps) {
               />
               
               {/* Private Folder Actions - Show on hover */}
-              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+              {/* <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
                 <PrivateFolderActions
                   documentId={item.doc_id}
                   documentName={item.doc_name || `CV ${index + 1}`}
@@ -174,7 +174,7 @@ function GridView({ data, searchData }: GridViewProps) {
                   variant="icon"
                   className="bg-white dark:bg-gray-800 shadow-lg"
                 />
-              </div>
+              </div> */}
             </Card>
           ))}
         </Masonry>

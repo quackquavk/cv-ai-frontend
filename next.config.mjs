@@ -21,6 +21,7 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "api.cvai.dev",
+        pathname: "/cv_images/**",
       },
     ],
   },
