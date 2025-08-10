@@ -353,11 +353,12 @@ function DialogueComponent({
     if (selectedFiles.length > 0) {
       if (folderId !== null) {
         try {
-          await axiosInstance.post(`/folder/moveFiles`, {
-            from_folder: id,
-            to_folder: folderId,
-            document_id: selectedFiles,
-          });
+          await axiosInstance.post(
+            `/document/move?to_folder_id=${folderId}`,
+            {
+              document_ids: selectedFiles,
+            }
+          );
 
           setArchieveFiles((prevFolderContents) => {
             const updatedFromFolder = prevFolderContents[id].filter(

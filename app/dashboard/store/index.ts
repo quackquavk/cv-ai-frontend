@@ -17,6 +17,14 @@ interface PublicFolderState {
 interface PrivateFolderState {
   hasPrivateFolder: boolean;
   setHasPrivateFolder: (value: boolean) => void;
+  privateRootId: string | null;
+  setPrivateRootId: (value: string | null) => void;
+  privateSubfolders: { folder_id: string; name: string }[];
+  setPrivateSubfolders: (
+    value: { folder_id: string; name: string }[]
+  ) => void;
+  lastUpdatedFolderId: string | null;
+  setLastUpdatedFolderId: (value: string | null) => void;
 }
 
 interface SearchState {
@@ -47,6 +55,12 @@ export const publicFolderStore = create<PublicFolderState>((set) => ({
 export const privateFolderStore = create<PrivateFolderState>((set) => ({
   hasPrivateFolder: false,
   setHasPrivateFolder: (value) => set({ hasPrivateFolder: value }),
+  privateRootId: null,
+  setPrivateRootId: (value) => set({ privateRootId: value }),
+  privateSubfolders: [],
+  setPrivateSubfolders: (value) => set({ privateSubfolders: value }),
+  lastUpdatedFolderId: null,
+  setLastUpdatedFolderId: (value) => set({ lastUpdatedFolderId: value }),
 }));
 
 // FormData

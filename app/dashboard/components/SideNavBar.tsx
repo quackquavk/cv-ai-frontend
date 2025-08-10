@@ -99,7 +99,7 @@ const SideNavBar = ({
   const [dialogOpen, setDialogeOpen] = useState(false);
   const { selectFolderId } = folderSelectStore();
   const { isFolderListOpen } = publicFolderStore();
-  const { hasPrivateFolder, setHasPrivateFolder } = privateFolderStore();
+  const { hasPrivateFolder, setHasPrivateFolder, privateSubfolders } = privateFolderStore();
   const [localFolderId, setLocalFolderId] = useState<string | null>(
     selectFolderId
   );
@@ -136,11 +136,10 @@ const SideNavBar = ({
 
   const displayedFolderName = () => {
     if (!localFolderId) return "Uploading to....";
-    if (localFolderId === "private-folder") return "Private Folder";
-    return (
-      folderListData.find((item: any) => item.folder_id === localFolderId)
-        ?.folder_name || "Unknown Folder"
-    );
+    const publicName = folderListData.find((item: any) => item.folder_id === localFolderId)?.folder_name;
+    if (publicName) return publicName;
+    const privateName = privateSubfolders.find((pf) => pf.folder_id === localFolderId)?.name;
+    return privateName || "Unknown Folder";
   };
 
   useEffect(() => {
@@ -163,10 +162,8 @@ const SideNavBar = ({
     const checkPrivateFolder = async () => {
       if (!isAuthenticated) return;
       try {
-        const response = await axiosInstance.get(
-          "/private_folder/hasPrivateFolder"
-        );
-        setHasPrivateFolder(response.data.has_private_folder);
+        const response = await axiosInstance.get("/folder/private/root");
+        setHasPrivateFolder(!!response.data?.folder_id);
       } catch (error) {
         console.error("Error checking private folder:", error);
         setHasPrivateFolder(false);
@@ -214,14 +211,8 @@ const SideNavBar = ({
           queryKey: ["folderFiles", selectedFolderId],
         });
 
-        if (selectedFolderId === "private-folder") {
-          queryClient.invalidateQueries({
-            queryKey: ["privateFiles"],
-          });
-        } else {
-          // Only update folder list for public folders
-          setUpdateFolderList((prev) => !prev);
-        }
+        // update lists after upload
+        setUpdateFolderList((prev) => !prev);
       } else {
         toast("Upload failed", {
           description: "Failed to upload files ",
@@ -437,21 +428,32 @@ const SideNavBar = ({
                   {displayedFolderName()}
                 </SelectValue>
               </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {/* Regular Folders */}
-                  {folderListData.map((item, index) => (
-                    <div key={index} className="">
-                      <SelectItem value={item.folder_id}>
-                        <div className="flex items-center space-x-2">
-                          <FolderOpen className="h-4 w-4 text-gray-600" />
-                          <span>{item.folder_name}</span>
-                        </div>
-                      </SelectItem>
-                    </div>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
+               <SelectContent>
+                 <SelectGroup>
+                   {/* Public Folders */}
+                   {folderListData.map((item, index) => (
+                     <div key={`pub-${index}`} className="">
+                       <SelectItem value={item.folder_id}>
+                         <div className="flex items-center space-x-2">
+                           <FolderOpen className="h-4 w-4 text-gray-600" />
+                           <span>{item.folder_name}</span>
+                         </div>
+                       </SelectItem>
+                     </div>
+                   ))}
+                   {/* Private Subfolders */}
+                   {hasPrivateFolder && privateSubfolders.map((pf, index) => (
+                     <div key={`pri-${index}`} className="">
+                       <SelectItem value={pf.folder_id}>
+                         <div className="flex items-center space-x-2">
+                           <FolderLock className="h-4 w-4 text-gray-600" />
+                           <span>{pf.name}</span>
+                         </div>
+                       </SelectItem>
+                     </div>
+                   ))}
+                 </SelectGroup>
+               </SelectContent>
             </Select>
           </div>
 

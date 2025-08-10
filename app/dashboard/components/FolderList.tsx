@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { FaChevronDown } from "react-icons/fa";
 import { RxHamburgerMenu } from "react-icons/rx";
 import axiosInstance from "@/utils/axiosConfig";
-import { Check } from "lucide-react";
+import { Check, ExternalLink, Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Popover,
@@ -25,11 +25,19 @@ import { FaRegFolder, FaRegFolderOpen } from "react-icons/fa";
 import { publicFolderStore } from "../store";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useDocumentStore } from "../store";
 import PrivateFolderActions from "./PrivateFolderActions";
 import { privateFolderStore } from "../store";
-import { FolderLock } from "lucide-react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { FolderLock, Plus } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 
 // Skeleton loader component for private files
 const PrivateFilesSkeleton = () => {
@@ -69,8 +77,19 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
   const [folderId, setFolderId] = useState("");
   const { selectFolderId, setSelectFolderId } = folderSelectStore();
   const { isFolderListOpen } = publicFolderStore();
-  const { hasPrivateFolder, setHasPrivateFolder } = privateFolderStore();
+  const {
+    hasPrivateFolder,
+    setHasPrivateFolder,
+    privateRootId,
+    setPrivateRootId,
+    privateSubfolders,
+    setPrivateSubfolders,
+    lastUpdatedFolderId,
+  } = privateFolderStore();
   const [isCreatingPrivateFolder, setIsCreatingPrivateFolder] = useState(false);
+  const [isCreatePrivateSubfolderOpen, setIsCreatePrivateSubfolderOpen] =
+    useState(false);
+  const [newPrivateSubfolderName, setNewPrivateSubfolderName] = useState("");
   const inputRefs = useRef({});
   // State to track the changes (archive files)
   const setShouldRefetchDocuments = useDocumentStore(
@@ -88,59 +107,58 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
     setSelectFolderId("");
   }, [isFolderListOpen]);
 
-  // Check if user has private folder - only run once on mount
+  // Ensure/get private root, then list private subfolders
   useEffect(() => {
-    const checkPrivateFolder = async () => {
+    const initPrivate = async () => {
       try {
-        const response = await axiosInstance.get(
-          "/private_folder/hasPrivateFolder"
-        );
-        setHasPrivateFolder(response.data.has_private_folder);
+        const rootRes = await axiosInstance.get("/folder/private/root");
+        const rootId = rootRes.data?.folder_id;
+        if (rootId) {
+          setPrivateRootId(rootId);
+          setHasPrivateFolder(true);
+          // fetch subfolders under private root
+          const childrenRes = await axiosInstance.get(
+            `/folder/children?parent_id=${rootId}&include_private=true`
+          );
+          const subs = (childrenRes.data || [])
+            .filter((f) => f.visibility === "private")
+            .map((f) => ({
+              folder_id: f.folder_id,
+              name: f.name || f.folder_name,
+            }));
+          setPrivateSubfolders(subs);
+          // fetch contents for each private subfolder
+          const privateContentsPromises = subs.map((sf) =>
+            axiosInstance
+              .get(`/folder/getFiles/${sf.folder_id}`)
+              .then((res) => ({ [sf.folder_id]: res.data || [] }))
+              .catch(() => ({ [sf.folder_id]: [] }))
+          );
+          const privateContents = await Promise.all(privateContentsPromises);
+          const privateContentsObject = privateContents.reduce(
+            (acc, content) => ({ ...acc, ...content }),
+            {}
+          );
+          setFolderContents((prev) => ({ ...prev, ...privateContentsObject }));
+        } else {
+          setHasPrivateFolder(false);
+        }
       } catch (error) {
-        console.error("Error checking private folder:", error);
+        // 401/403 implies unauthenticated/non-premium
         setHasPrivateFolder(false);
+        setPrivateRootId(null);
+        setPrivateSubfolders([]);
       }
     };
-    checkPrivateFolder();
-  }, [setHasPrivateFolder]); // Removed updateFolderList dependency
+    initPrivate();
+  }, [setHasPrivateFolder, setPrivateRootId, setPrivateSubfolders]);
 
-  // TanStack Query for private files
-  const fetchPrivateFiles = async () => {
-    const response = await axiosInstance.get(
-      "/private_folder/getPrivateFiles/0/100"
-    );
-    return response.data.files || [];
-  };
-
-  const { 
-    data: privateFiles, 
-    isLoading: isPrivateFilesLoading, 
-    refetch: refetchPrivateFiles 
-  } = useQuery({
-    queryKey: ["privateFiles"],
-    queryFn: fetchPrivateFiles,
-    enabled: hasPrivateFolder,
-    staleTime: 30000, // Cache for 30 seconds to prevent unnecessary refetches
-    gcTime: 300000, // Keep in cache for 5 minutes to prevent data loss
-    retry: 1, // Reduce retries to prevent excessive requests
-  });
-
-  // Update folderContents when privateFiles data changes
+  // When a private subfolder was just updated by copy/move elsewhere, refetch its contents
   useEffect(() => {
-    if (privateFiles && hasPrivateFolder) {
-      setFolderContents((prev) => ({
-        ...prev,
-        "private-folder": privateFiles,
-      }));
+    if (lastUpdatedFolderId) {
+      refetchFolderFiles(lastUpdatedFolderId);
     }
-  }, [privateFiles, hasPrivateFolder]);
-
-  // Only refetch when private folder is first selected, not on every updateFolderList change
-  useEffect(() => {
-    if (selectFolderId === "private-folder" && hasPrivateFolder && !privateFiles) {
-      refetchPrivateFiles();
-    }
-  }, [selectFolderId, hasPrivateFolder, refetchPrivateFiles, privateFiles]);
+  }, [lastUpdatedFolderId]);
 
   // Fetch public folders and their contents
   useEffect(() => {
@@ -173,10 +191,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
         setFolderContents((prevContents) => ({
           ...prevContents,
           ...contentsObject,
-          // Preserve private folder data if it exists
-          ...(prevContents["private-folder"] && {
-            "private-folder": prevContents["private-folder"]
-          })
+          // preserve any previously loaded private subfolder contents
         }));
       } catch (error) {
         console.error("Error fetching folders:", error);
@@ -197,32 +212,22 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
     setDialogueAlertFile(state);
   };
 
-  const handleCreatePrivateFolder = async () => {
-    setIsCreatingPrivateFolder(true);
+  // Helper: fetch content for a folder and merge into state
+  const refetchFolderFiles = async (targetFolderId: string) => {
     try {
-      const response = await axiosInstance.post(
-        "/private_folder/createPrivateFolder"
-      );
-      if (response.status === 200) {
-        setHasPrivateFolder(true);
-        // No need to trigger folder list update for private folder creation
-        toast.success("Private folder created successfully!");
-      }
-    } catch (error) {
-      if (error.response.status === 403) {
-        toast.error("Only premium users can create private folder");
-      } else {
-        toast.error("Failed to create private folder");
-      }
-    } finally {
-      setIsCreatingPrivateFolder(false);
+      const res = await axiosInstance.get(`/folder/getFiles/${targetFolderId}`);
+      const files = res.data || [];
+      setFolderContents((prev) => ({ ...prev, [targetFolderId]: files }));
+    } catch (e) {
+      // noop
     }
   };
 
   const handlePrivateFolderActionSuccess = async (
     file,
     fromFolderId,
-    actionType
+    actionType: "copy" | "move",
+    toFolderId?: string
   ) => {
     // Only remove the file from current folder if it was moved (not copied)
     if (actionType === "move") {
@@ -237,14 +242,14 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
         };
       });
     }
-    // Refresh private folder data using TanStack Query
-    queryClient.invalidateQueries({
-      queryKey: ["privateFiles"],
-    });
+    // Refresh target private subfolder contents (if provided)
+    if (toFolderId) {
+      await refetchFolderFiles(toFolderId);
+    }
     // Trigger document refetch to ensure consistency across views
     setShouldRefetchDocuments(true);
     // For move operations from public folders, trigger folder list update
-    if (actionType === "move" && fromFolderId !== "private-folder") {
+    if (actionType === "move") {
       setUpdateFolderList((prev) => !prev);
     }
   };
@@ -252,10 +257,6 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
   const toggleDropDown = async (folderId: string) => {
     const newValue = selectFolderId === folderId ? null : folderId;
     setSelectFolderId(newValue);
-    // If opening the private folder for the first time or data is stale, refetch
-    if (newValue === "private-folder" && hasPrivateFolder && !privateFiles) {
-      refetchPrivateFiles();
-    }
   };
 
   const handleRename = async (folderId: string) => {
@@ -321,17 +322,15 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
       return;
     }
     try {
-      await axiosInstance.post(`/folder/moveFiles`, {
-        from_folder: fromFolderId,
-        to_folder: toFolderId,
-        document_id: [file.doc_id],
+      await axiosInstance.post(`/document/move?to_folder_id=${toFolderId}`, {
+        document_ids: [file.doc_id],
       });
       // Update folderContents state
       setFolderContents((prevFolderContents) => {
         // Remove file from the source folder
-        const updatedFromFolder = prevFolderContents[fromFolderId].filter(
-          (f) => f.doc_id !== file.doc_id
-        );
+        const updatedFromFolder = (
+          prevFolderContents[fromFolderId] || []
+        ).filter((f) => f.doc_id !== file.doc_id);
         // Add file to the target folder
         const updatedToFolder = [
           ...(prevFolderContents[toFolderId] || []),
@@ -343,12 +342,6 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
           [toFolderId]: updatedToFolder,
         };
       });
-      // If moving to private folder, invalidate query to trigger refetch
-      if (toFolderId === "private-folder") {
-        queryClient.invalidateQueries({
-          queryKey: ["privateFiles"],
-        });
-      }
       setShouldRefetchDocuments(true);
       toast.success("File moved successfully!");
     } catch (error) {
@@ -361,15 +354,13 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
 
   const handleMove = async (file) => {
     try {
-      await axiosInstance.post(`/folder/moveFiles`, {
-        from_folder: selectFolderId,
-        to_folder: folderId,
-        document_id: [file.doc_id],
+      await axiosInstance.post(`/document/move?to_folder_id=${folderId}`, {
+        document_ids: [file.doc_id],
       });
       setFolderContents((prevFolderContents) => {
-        const updatedFromFolder = prevFolderContents[selectFolderId].filter(
-          (f) => f.doc_id !== file.doc_id
-        );
+        const updatedFromFolder = (
+          prevFolderContents[selectFolderId] || []
+        ).filter((f) => f.doc_id !== file.doc_id);
         const updatedToFolder = [...(prevFolderContents[folderId] || []), file];
         return {
           ...prevFolderContents,
@@ -377,12 +368,6 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
           [folderId]: updatedToFolder,
         };
       });
-      // If moving to private folder, invalidate query to trigger refetch
-      if (folderId === "private-folder") {
-        queryClient.invalidateQueries({
-          queryKey: ["privateFiles"],
-        });
-      }
       setShouldRefetchDocuments(true);
       toast.success("File moved successfully!");
     } catch (error) {
@@ -458,54 +443,229 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
           setArchieveFiles={setFolderContents}
         />
       )}
-      {/* Private Folder Section - Top Level */}
+      {/* Private Subfolders Section */}
       <div className="mb-6">
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 px-1">
-          Private
-        </h3>
-        {hasPrivateFolder ? (
-          <div
-            key="private-folder"
-            className={`mb-2 transition-all duration-200`}
-          >
-            <div className="flex items-center flex-1 rounded">
-              <div
-                className="flex items-center w-full gap-2 cursor-pointer hover:opacity-50 bg-blue-50 dark:bg-blue-900/20 p-2 rounded-md"
-                onClick={() => toggleDropDown("private-folder")}
+        <div className="flex items-center justify-between mb-2 px-1">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+            Private Folders
+          </h3>
+          {hasPrivateFolder && (
+            <>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 px-2"
+                onClick={() => setIsCreatePrivateSubfolderOpen(true)}
+                disabled={isCreatingPrivateFolder}
               >
-                <span>
-                  {selectFolderId === "private-folder" ? (
-                    <FolderLock className="text-green-600" />
-                  ) : (
-                    <FolderLock className="" />
-                  )}
-                </span>
-                <span className="ml-3  font-medium">Private Folder</span>
+                <Plus className="h-3 w-3 mr-1" /> New
+              </Button>
+              <Dialog
+                open={isCreatePrivateSubfolderOpen}
+                onOpenChange={setIsCreatePrivateSubfolderOpen}
+              >
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Create private</DialogTitle>
+                  </DialogHeader>
+                  <div className="mt-2">
+                    <Input
+                      placeholder="Enter subfolder name"
+                      value={newPrivateSubfolderName}
+                      onChange={(e) =>
+                        setNewPrivateSubfolderName(e.target.value)
+                      }
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsCreatePrivateSubfolderOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={async () => {
+                        if (!newPrivateSubfolderName.trim() || !privateRootId)
+                          return;
+                        setIsCreatingPrivateFolder(true);
+                        try {
+                          const res = await axiosInstance.post(
+                            `/folder/create`,
+                            {
+                              name: newPrivateSubfolderName.trim(),
+                              parent_id: privateRootId,
+                              visibility: "private",
+                            }
+                          );
+                          const newFolder = {
+                            folder_id: res.data?.folder_id,
+                            name:
+                              res.data?.folder_name ||
+                              newPrivateSubfolderName.trim(),
+                          };
+                          setPrivateSubfolders([
+                            ...privateSubfolders,
+                            newFolder,
+                          ]);
+                          setFolderContents((prev) => ({
+                            ...prev,
+                            [newFolder.folder_id]: [],
+                          }));
+                          setNewPrivateSubfolderName("");
+                          setIsCreatePrivateSubfolderOpen(false);
+                          toast.success("Private subfolder created");
+                        } catch (e) {
+                          toast.error("Failed to create subfolder");
+                        } finally {
+                          setIsCreatingPrivateFolder(false);
+                        }
+                      }}
+                      disabled={
+                        isCreatingPrivateFolder ||
+                        !newPrivateSubfolderName.trim()
+                      }
+                    >
+                      {isCreatingPrivateFolder ? "Creating..." : "Create"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </>
+          )}
+        </div>
+        {!hasPrivateFolder && (
+          <div className="text-xs text-gray-600 dark:text-gray-400 px-1 flex items-center gap-1">
+            Upgrade to access private folders.{" "}
+            <Link
+              href="/user/setting"
+              target="_blank"
+              className="text-blue-600 underline underline-offset-2"
+            >
+              <ExternalLink size={14} />
+            </Link>
+          </div>
+        )}
+        {hasPrivateFolder && privateSubfolders.length === 0 && (
+          <div className="text-xs text-gray-600 dark:text-gray-400 px-1 flex items-center gap-2">
+            No private subfolders yet.
+          </div>
+        )}
+        {hasPrivateFolder &&
+          privateSubfolders.map((pf) => (
+            <div
+              key={pf.folder_id}
+              className={`mb-4 transition-all duration-200 ${
+                draggedOverFolder === pf.folder_id
+                  ? "opacity-50 bg-gray-700/30"
+                  : ""
+              }`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={() => handleDrop(pf.folder_id)}
+            >
+              <div className="flex items-center flex-1 rounded">
+                {editingFolder === pf.folder_id ? (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleRename(pf.folder_id);
+                    }}
+                    className="flex-1 ml-12"
+                  >
+                    <Input
+                      type="text"
+                      value={newFolderName}
+                      onChange={(e) => setNewFolderName(e.target.value.trim())}
+                      onBlur={() => setEditingFolder(null)}
+                      className="w-full rounded p-1"
+                      ref={(el) => {
+                        if (el) inputRefs.current[pf.folder_id] = el;
+                      }}
+                    />
+                    <button type="submit" className="hidden"></button>
+                  </form>
+                ) : (
+                  <div
+                    className="flex items-center w-full gap-2 cursor-pointer hover:opacity-50"
+                    onClick={() => toggleDropDown(pf.folder_id)}
+                  >
+                    <span>
+                      {selectFolderId === pf.folder_id ? (
+                        <FaRegFolderOpen />
+                      ) : (
+                        <FaRegFolder />
+                      )}
+                    </span>
+                    <span className="ml-5 flex items-center gap-2">
+                      {pf.name}
+                    </span>
+                  </div>
+                )}
+                <div className="flex  items-center gap-4 ">
+                  <div
+                    className="flex gap-4 cursor-pointer"
+                    onClick={() => toggleDropDown(pf.folder_id)}
+                  >
+                    <span
+                      className={`ml-auto hover:opacity-50 items-center justify-center  flex transform transition-transform duration-300 ${
+                        selectFolderId === pf.folder_id
+                          ? "rotate-180"
+                          : "rotate-0"
+                      }`}
+                    >
+                      <FaChevronDown />
+                    </span>
+                  </div>
+                  <div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          onClick={() => {
+                            setSelectedFolder(pf.folder_id);
+                          }}
+                        >
+                          <BsThreeDotsVertical />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-32 p-1 px-6 cursor-pointer ml-36">
+                        <p
+                          className="py-1 w-full hover:opacity-50"
+                          onClick={() => {
+                            setEditingFolder(pf.folder_id);
+                            setNewFolderName(pf.name);
+                          }}
+                        >
+                          Rename
+                        </p>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
               </div>
-            </div>
-            {selectFolderId === "private-folder" && (
-              <>
-                {isPrivateFilesLoading && !folderContents["private-folder"]?.length ? (
-                  <PrivateFilesSkeleton />
-                ) : folderContents["private-folder"]?.length ? (
-                  <div className="mt-2 ml-8 border-l border-gray-500 pl-4 max-w-full truncate">
-                    {folderContents["private-folder"].map((file) => (
+              {selectFolderId === pf.folder_id && (
+                <div className="mt-2 ml-6 border-l  border-gray-600 pl-4 max-w-full truncate">
+                  {folderContents[pf.folder_id]?.length ? (
+                    folderContents[pf.folder_id].map((file) => (
                       <div
-                        key={file.document_id}
-                        className="relative flex items-center justify-between p-1 text-gray-800 dark:text-gray-400 ease-in-out duration-150 delay-75 rounded w-full"
+                        key={file.doc_id}
+                        className="relative flex items-center justify-between p-1 text-gray-800 dark:text-gray-400 ease-in-out duration-150 delay-75 rounded w-full "
                       >
                         <div
-                          onClick={() => {
-                            handleCardClick(file._id);
-                          }}
+                          key={file.doc_id}
+                          onClick={() => handleCardClick(file.doc_id)}
                           className="w-full hover:opacity-60 truncate flex items-center space-x-[1px] cursor-pointer"
+                          draggable
+                          onDragStart={() =>
+                            handleDragStart(file, pf.folder_id)
+                          }
+                          onDragEnd={handleDragEnd}
                         >
                           <span>
                             <RxHamburgerMenu />
                           </span>
-                          <span className="px-2 py-1 text-sm truncate">
-                            {file.document_name?.replace(".pdf", "") ||
-                              "Private Document"}
+                          <span className="px-2  py-1 text-sm truncate">
+                            {file.doc_name?.replace(".pdf", "")}
                           </span>
                         </div>
                         <Popover>
@@ -523,8 +683,8 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                               onClick={() => {
                                 handleAlertFile(true);
                                 setSelectedFile({
-                                  folder_id: "private-folder",
-                                  file_id: file._id,
+                                  folder_id: pf.folder_id,
+                                  file_id: file.doc_id || file._id,
                                 });
                               }}
                             >
@@ -533,34 +693,16 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                           </PopoverContent>
                         </Popover>
                       </div>
-                    ))}
-                  </div>
-                ) : !isPrivateFilesLoading ? (
-                  <p className="text-sm text-gray-500 p-2">
-                    No private files yet
-                  </p>
-                ) : null}
-              </>
-            )}
-          </div>
-        ) : (
-          <div className="mb-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCreatePrivateFolder}
-              disabled={isCreatingPrivateFolder}
-              className="w-full text-xs h-8 flex items-center justify-center"
-            >
-              {isCreatingPrivateFolder ? (
-                <div className="w-3 h-3 border border-gray-300 border-t-blue-600 rounded-full animate-spin mr-2" />
-              ) : (
-                <FolderLock className="h-3 w-3 mr-2 text-blue-600" />
+                    ))
+                  ) : (
+                    <div className="text-gray-800 dark:text-gray-400 italic">
+                      {`No PDF's uploaded.`}
+                    </div>
+                  )}
+                </div>
               )}
-              Create Private Folder
-            </Button>
-          </div>
-        )}
+            </div>
+          ))}
       </div>
       {/* Public Folders Section */}
       <div>
@@ -732,13 +874,14 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                               currentFolderId={folder.folder_id}
                               variant="button"
                               className="w-full h-6 text-xs border-0 hover:bg-gray-100 dark:hover:bg-gray-800"
-                              onSuccess={(actionType) =>
+                              onSuccess={(actionType, toFolderId) => {
                                 handlePrivateFolderActionSuccess(
                                   file,
                                   folder.folder_id,
-                                  actionType
-                                )
-                              }
+                                  actionType,
+                                  toFolderId
+                                );
+                              }}
                             />
                           </div>
                           <hr />

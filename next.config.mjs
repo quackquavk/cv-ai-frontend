@@ -35,16 +35,21 @@ const nextConfig = {
   //   ],
   // },
   // Vs Code
-  // images: {
-  //   remotePatterns: [
-  //     {
-  //       protocol: "http",
-  //       hostname: "127.0.0.1",
-  //       port: "8000",
-  //       pathname: "/cv_images/**",
-  //     },
-  //   ],
-  // },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "8000",
+        pathname: "/cv_images/**",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        pathname: "/**",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

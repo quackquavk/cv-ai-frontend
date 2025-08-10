@@ -96,11 +96,10 @@ const MoveCV = ({ handleCarouselClick, item, folders }) => {
       return;
     }
     try {
-      const response = await axiosInstance.post("/folder/moveFiles", {
-        from_folder: currentFolder,
-        to_folder: folderId,
-        document_id: [item._id],
-      });
+      const response = await axiosInstance.post(
+        `/document/move?to_folder_id=${folderId}`,
+        { document_ids: [item._id] }
+      );
       if (response.status === 200) {
         toast.success("File moved successfully!");
         setNewFolder(null);

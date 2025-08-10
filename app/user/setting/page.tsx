@@ -537,7 +537,7 @@ const PaymentSettings = () => {
               </div>
             </div>
           </TabsTrigger>
-          <TabsTrigger value="razorpay" className="flex items-center gap-2">
+          {/* <TabsTrigger value="razorpay" className="flex items-center gap-2">
             <div className="flex flex-col">
               <div className="flex text-lg items-center justify-center">
                 <Wallet className="font-semibold" />
@@ -549,7 +549,7 @@ const PaymentSettings = () => {
                 </span>
               </div>
             </div>
-          </TabsTrigger>
+          </TabsTrigger> */}
         </TabsList>
         <TabsContent value="stripe" className="mt-0">
           <StripePayment />

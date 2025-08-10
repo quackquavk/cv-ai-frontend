@@ -44,14 +44,12 @@ export const PrivateFolderProvider: React.FC<PrivateFolderProviderProps> = ({ ch
   // Check if user has private folder
   const checkPrivateFolder = async (): Promise<boolean> => {
     if (!isAuthenticated) return false;
-    
     try {
-      const response = await axiosInstance.get("/private_folder/hasPrivateFolder");
-      const hasFolder = response.data.has_private_folder;
+      const response = await axiosInstance.get("/folder/private/root");
+      const hasFolder = !!response.data?.folder_id;
       setHasPrivateFolder(hasFolder);
       return hasFolder;
     } catch (error) {
-      console.error("Error checking private folder:", error);
       setHasPrivateFolder(false);
       return false;
     }
@@ -66,8 +64,8 @@ export const PrivateFolderProvider: React.FC<PrivateFolderProviderProps> = ({ ch
 
     setIsLoading(true);
     try {
-      const response = await axiosInstance.get("/private_folder/getPrivateFiles/0/100");
-      setPrivateFiles(response.data.files || []);
+      // Not used in new architecture (private files by subfolder); keeping empty
+      setPrivateFiles([]);
     } catch (error) {
       console.error("Error fetching private files:", error);
       setPrivateFiles([]);
@@ -81,11 +79,10 @@ export const PrivateFolderProvider: React.FC<PrivateFolderProviderProps> = ({ ch
     if (!isAuthenticated) return false;
 
     try {
-      const response = await axiosInstance.post("/private_folder/createPrivateFolder");
-      if (response.status === 200) {
-        setHasPrivateFolder(true);
-        return true;
-      }
+      const response = await axiosInstance.get("/folder/private/root");
+      const hasRoot = !!response.data?.folder_id;
+      setHasPrivateFolder(hasRoot);
+      return hasRoot;
     } catch (error) {
       console.error("Error creating private folder:", error);
     }
@@ -97,14 +94,8 @@ export const PrivateFolderProvider: React.FC<PrivateFolderProviderProps> = ({ ch
     if (!isAuthenticated) return false;
 
     try {
-      const response = await axiosInstance.post("/private_folder/copyFilesToPrivateFolder", {
-        document_id: documentId,
-      });
-      
-      if (response.status === 200) {
-        await refreshPrivateFiles();
-        return true;
-      }
+      // Prefer UI-specific action components now
+      return false;
     } catch (error) {
       console.error("Error copying file to private folder:", error);
     }
@@ -116,14 +107,7 @@ export const PrivateFolderProvider: React.FC<PrivateFolderProviderProps> = ({ ch
     if (!isAuthenticated) return false;
 
     try {
-      const response = await axiosInstance.post("/private_folder/moveFilesToPrivateFolder", {
-        document_id: documentId,
-      });
-      
-      if (response.status === 200) {
-        await refreshPrivateFiles();
-        return true;
-      }
+      return false;
     } catch (error) {
       console.error("Error moving file to private folder:", error);
     }
@@ -135,12 +119,7 @@ export const PrivateFolderProvider: React.FC<PrivateFolderProviderProps> = ({ ch
     if (!isAuthenticated) return false;
 
     try {
-      const response = await axiosInstance.delete(`/private_folder/deleteFileFromPrivateFolder/${documentId}`);
-      
-      if (response.status === 200) {
-        await refreshPrivateFiles();
-        return true;
-      }
+      return false;
     } catch (error) {
       console.error("Error deleting file from private folder:", error);
     }
@@ -152,14 +131,7 @@ export const PrivateFolderProvider: React.FC<PrivateFolderProviderProps> = ({ ch
     if (!isAuthenticated || documentIds.length === 0) return false;
 
     try {
-      const response = await axiosInstance.post("/private_folder/deletePrivateFiles", {
-        document_ids: documentIds,
-      });
-      
-      if (response.status === 200) {
-        await refreshPrivateFiles();
-        return true;
-      }
+      return false;
     } catch (error) {
       console.error("Error deleting files from private folder:", error);
     }

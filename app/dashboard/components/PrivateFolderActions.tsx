@@ -29,12 +29,20 @@ import {
   Loader2 
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface PrivateFolderActionsProps {
   documentId: string;
   documentName?: string;
   currentFolderId?: string;
-  onSuccess?: (actionType: 'copy' | 'move') => void;
+  onSuccess?: (actionType: 'copy' | 'move', toFolderId?: string) => void | Promise<void>;
   variant?: "button" | "dropdown" | "icon";
   className?: string;
 }
@@ -49,21 +57,20 @@ const PrivateFolderActions: React.FC<PrivateFolderActionsProps> = ({
 }) => {
   const userContext = useContext(UserContext);
   const { isAuthenticated } = userContext;
-  const { hasPrivateFolder, setHasPrivateFolder } = privateFolderStore();
+  const { hasPrivateFolder, setHasPrivateFolder, privateSubfolders, setLastUpdatedFolderId } = privateFolderStore();
   
   const [isLoading, setIsLoading] = useState(false);
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showMoveDialog, setShowMoveDialog] = useState(false);
   const [showCopyDialog, setShowCopyDialog] = useState(false);
-  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+  const [selectedPrivateFolderId, setSelectedPrivateFolderId] = useState<string | "">("");
 
   const queryClient = useQueryClient();
 
   // Check if user has private folder
   const checkPrivateFolder = async () => {
     try {
-      const response = await axiosInstance.get("/private_folder/hasPrivateFolder");
-      const hasFolder = response.data.has_private_folder;
+      const response = await axiosInstance.get("/folder/private/root");
+      const hasFolder = !!response.data?.folder_id;
       setHasPrivateFolder(hasFolder);
       return hasFolder;
     } catch (error) {
@@ -72,31 +79,7 @@ const PrivateFolderActions: React.FC<PrivateFolderActionsProps> = ({
     }
   };
 
-  // Create private folder
-  const createPrivateFolder = async () => {
-    setIsCreatingFolder(true);
-    try {
-      const response = await axiosInstance.post("/private_folder/createPrivateFolder");
-      if (response.status === 200) {
-        setHasPrivateFolder(true);
-        toast("Private folder created", {
-          description: "Your private folder has been created successfully",
-        });
-        setShowCreateDialog(false);
-        return true;
-      }
-    } catch (error) {
-      console.error("Error creating private folder:", error);
-      toast("Failed to create private folder", {
-        description: error.response?.data?.detail || "An error occurred",
-      });
-    } finally {
-      setIsCreatingFolder(false);
-    }
-    return false;
-  };
-
-  // Copy file to private folder
+  // Copy file to a selected private subfolder
   const copyToPrivateFolder = async () => {
     if (!isAuthenticated) {
       toast("Authentication required", {
@@ -110,12 +93,20 @@ const PrivateFolderActions: React.FC<PrivateFolderActionsProps> = ({
       // Check if user has private folder first
       const hasFolder = await checkPrivateFolder();
       if (!hasFolder) {
-        setShowCreateDialog(true);
+        toast("Private folders are premium", {
+          description: "Upgrade to use private folders.",
+        });
         return;
       }
 
-      const response = await axiosInstance.post("/private_folder/copyFilesToPrivateFolder", {
-        document_id: documentId,
+      const targetFolderId = selectedPrivateFolderId || privateSubfolders?.[0]?.folder_id;
+      if (!targetFolderId) {
+        toast("No private subfolders", { description: "Create a private subfolder first." });
+        return;
+      }
+
+      const response = await axiosInstance.post(`/document/copy?to_folder_id=${targetFolderId}`, {
+        document_ids: [documentId],
       });
 
       if (response.status === 200) {
@@ -131,7 +122,8 @@ const PrivateFolderActions: React.FC<PrivateFolderActionsProps> = ({
           });
         }
         
-        onSuccess?.('copy');
+        setLastUpdatedFolderId(targetFolderId);
+        onSuccess?.('copy', targetFolderId);
         setShowCopyDialog(false);
       }
     } catch (error) {
@@ -144,7 +136,7 @@ const PrivateFolderActions: React.FC<PrivateFolderActionsProps> = ({
     }
   };
 
-  // Move file to private folder
+  // Move file to a selected private subfolder
   const moveToPrivateFolder = async () => {
     if (!isAuthenticated) {
       toast("Authentication required", {
@@ -158,13 +150,20 @@ const PrivateFolderActions: React.FC<PrivateFolderActionsProps> = ({
       // Check if user has private folder first
       const hasFolder = await checkPrivateFolder();
       if (!hasFolder) {
-        setShowCreateDialog(true);
+        toast("Private folders are premium", {
+          description: "Upgrade to use private folders.",
+        });
         return;
       }
 
-      const response = await axiosInstance.post("/private_folder/moveFilesToPrivateFolder", {
-        document_id: documentId,
-      });
+      const targetFolderId = selectedPrivateFolderId || privateSubfolders?.[0]?.folder_id;
+      if (!targetFolderId) {
+        toast("No private subfolders", { description: "Create a private subfolder first." });
+        return;
+      }
+
+      const response = await axiosInstance.post(`/document/move?to_folder_id=${targetFolderId}`,
+        { document_ids: [documentId] });
 
       if (response.status === 200) {
         toast("File moved successfully", {
@@ -182,7 +181,8 @@ const PrivateFolderActions: React.FC<PrivateFolderActionsProps> = ({
           });
         }
         
-        onSuccess?.('move');
+        setLastUpdatedFolderId(targetFolderId);
+        onSuccess?.('move', targetFolderId);
         setShowMoveDialog(false);
       }
     } catch (error) {
@@ -195,16 +195,11 @@ const PrivateFolderActions: React.FC<PrivateFolderActionsProps> = ({
     }
   };
 
-  const handleCreateAndProceed = async (action: "copy" | "move") => {
-    const created = await createPrivateFolder();
-    if (created) {
-      if (action === "copy") {
-        await copyToPrivateFolder();
-      } else {
-        await moveToPrivateFolder();
-      }
+  React.useEffect(() => {
+    if (privateSubfolders?.length && !selectedPrivateFolderId) {
+      setSelectedPrivateFolderId(privateSubfolders[0].folder_id);
     }
-  };
+  }, [privateSubfolders, selectedPrivateFolderId]);
 
   if (!isAuthenticated) {
     // Show login prompt instead of hiding completely
@@ -266,6 +261,20 @@ const PrivateFolderActions: React.FC<PrivateFolderActionsProps> = ({
             <DialogHeader>
               <DialogTitle>Copy to Private Folder</DialogTitle>
             </DialogHeader>
+            <div className="mb-3">
+              <Select value={selectedPrivateFolderId} onValueChange={(v) => setSelectedPrivateFolderId(v)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select private subfolder" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {privateSubfolders.map((pf) => (
+                      <SelectItem key={pf.folder_id} value={pf.folder_id}>{pf.name}</SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Are you sure you want to copy "{documentName}" to your private folder?
             </p>
@@ -275,7 +284,7 @@ const PrivateFolderActions: React.FC<PrivateFolderActionsProps> = ({
               </DialogClose>
               <Button 
                 onClick={copyToPrivateFolder}
-                disabled={isLoading}
+                disabled={isLoading || !selectedPrivateFolderId}
                 className="bg-blue-600 hover:bg-blue-700"
               >
                 {isLoading ? (
@@ -293,6 +302,20 @@ const PrivateFolderActions: React.FC<PrivateFolderActionsProps> = ({
             <DialogHeader>
               <DialogTitle>Move to Private Folder</DialogTitle>
             </DialogHeader>
+            <div className="mb-3">
+              <Select value={selectedPrivateFolderId} onValueChange={(v) => setSelectedPrivateFolderId(v)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select private subfolder" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {privateSubfolders.map((pf) => (
+                      <SelectItem key={pf.folder_id} value={pf.folder_id}>{pf.name}</SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Are you sure you want to move "{documentName}" to your private folder?
             </p>
@@ -302,7 +325,7 @@ const PrivateFolderActions: React.FC<PrivateFolderActionsProps> = ({
               </DialogClose>
               <Button 
                 onClick={moveToPrivateFolder}
-                disabled={isLoading}
+                disabled={isLoading || !selectedPrivateFolderId}
                 className="bg-blue-600 hover:bg-blue-700"
               >
                 {isLoading ? (
@@ -406,41 +429,26 @@ const PrivateFolderActions: React.FC<PrivateFolderActionsProps> = ({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Create Private Folder Dialog */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create Private Folder</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            You don't have a private folder yet. Would you like to create one and then proceed with the action?
-          </p>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button 
-              onClick={() => handleCreateAndProceed("copy")}
-              disabled={isCreatingFolder}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              {isCreatingFolder ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <FolderLock className="h-4 w-4 mr-2" />
-              )}
-              Create & Copy
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* Copy Dialog */}
       <Dialog open={showCopyDialog} onOpenChange={setShowCopyDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Copy to Private Folder</DialogTitle>
           </DialogHeader>
+          <div className="mb-3">
+            <Select value={selectedPrivateFolderId} onValueChange={(v) => setSelectedPrivateFolderId(v)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select private subfolder" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {privateSubfolders.map((pf) => (
+                    <SelectItem key={pf.folder_id} value={pf.folder_id}>{pf.name}</SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Are you sure you want to copy "{documentName}" to your private folder? 
             The file will remain in the current folder and a copy will be created in your private folder.
@@ -451,7 +459,7 @@ const PrivateFolderActions: React.FC<PrivateFolderActionsProps> = ({
             </DialogClose>
             <Button 
               onClick={copyToPrivateFolder}
-              disabled={isLoading}
+              disabled={isLoading || !selectedPrivateFolderId}
               className="bg-blue-600 hover:bg-blue-700"
             >
               {isLoading ? (
@@ -471,6 +479,20 @@ const PrivateFolderActions: React.FC<PrivateFolderActionsProps> = ({
           <DialogHeader>
             <DialogTitle>Move to Private Folder</DialogTitle>
           </DialogHeader>
+          <div className="mb-3">
+            <Select value={selectedPrivateFolderId} onValueChange={(v) => setSelectedPrivateFolderId(v)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select private subfolder" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {privateSubfolders.map((pf) => (
+                    <SelectItem key={pf.folder_id} value={pf.folder_id}>{pf.name}</SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Are you sure you want to move "{documentName}" to your private folder? 
             The file will be removed from the current folder and moved to your private folder.
@@ -481,7 +503,7 @@ const PrivateFolderActions: React.FC<PrivateFolderActionsProps> = ({
             </DialogClose>
             <Button 
               onClick={moveToPrivateFolder}
-              disabled={isLoading}
+              disabled={isLoading || !selectedPrivateFolderId}
               variant="destructive"
             >
               {isLoading ? (

@@ -46,20 +46,6 @@ function GridView({ data, searchData }: GridViewProps) {
     queryKey: ["folderFiles", selectFolderId],
     queryFn: async () => {
       if (!selectFolderId) return [];
-      
-      // Handle private folder
-      if (selectFolderId === "private-folder") {
-        const res = await axiosInstance.get("/private_folder/getPrivateFiles/0/100");
-        // Map private folder files to match expected doc_id format
-        return (res.data.files || []).map(file => ({
-          ...file,
-          doc_id: file.document_id || file.doc_id,
-          doc_name: file.document_name || file.doc_name,
-          image_id: file.image_id || file.doc_id || file.document_id // Use doc_id as fallback for image_id
-        }));
-      }
-      
-      // Handle regular folders
       const res = await axiosInstance.get(`/folder/getFiles/${selectFolderId}`);
       return res.data;
     },
