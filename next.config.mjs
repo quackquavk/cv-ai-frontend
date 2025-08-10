@@ -8,6 +8,7 @@ const nextConfig = {
   reactStrictMode: false,
   // Production
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
@@ -17,6 +18,7 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "lh3.googleusercontent.com",
+        pathname: "/**",
       },
       {
         protocol: "https",
@@ -36,21 +38,6 @@ const nextConfig = {
   //   ],
   // },
   // Vs Code
-  images: {
-    remotePatterns: [
-      {
-        protocol: "http",
-        hostname: "localhost",
-        port: "8000",
-        pathname: "/cv_images/**",
-      },
-      {
-        protocol: "https",
-        hostname: "lh3.googleusercontent.com",
-        pathname: "/**",
-      },
-    ],
-  },
 };
 
 export default nextConfig;
