@@ -26,6 +26,7 @@ import {
   DialogHeader,
 } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
+import { RazorpayService, PlanType } from "@/utils/razorpay";
 
 const StripePayment = () => {
   const [loading, setLoading] = useState(false);
@@ -412,54 +413,25 @@ const FonePayPayment = () => {
   );
 };
 const RazorPayPayment = () => {
-  // const [loading, setLoading] = useState(false);
-  // const handleClick = async (selectedPlan, selectedTier) => {
-  //   const body = {
-  //     plan_id: `${selectedPlan}`,
-  //     tier: `${selectedTier}`,
-  //     success_url: "http://localhost:3000/user/setting",
-  //     cancel_url: "http://localhost:3000/user/setting",
-  //   };
-  //   setLoading(true);
-  //   try {
-  //     const response = await axiosInstance.post(
-  //       "/razorpay/create-checkout-session",
-  //       body
-  //     );
-  //     if (response.status === 200) {
-  //       const options = {
-  //         key: response.data.key_id,
-  //         amount: response.data.amount,
-  //         currency: response.data.currency,
-  //         name: "Brand Builder",
-  //         description: `${selectedTier} Plan Subscription`,
-  //         order_id: response.data.order_id,
-  //         handler: (response) => {
-  //           toast.success("Payment successful!");
-  //           // Handle successful payment
-  //           console.log("Payment successful:", response);
-  //         },
-  //         prefill: {
-  //           name: "Customer Name",
-  //           email: "customer@example.com",
-  //           contact: "9999999999",
-  //         },
-  //         theme: {
-  //           color: "#3B82F6",
-  //         },
-  //       };
-  //       // const rzp = new window.Razorpay(options);
-  //       // rzp.open();
-  //     }
-  //   } catch (error) {
-  //     if (error.response?.status === 400) {
-  //       toast.error(error.response.data.detail);
-  //     }
-  //     console.error("Error creating checkout session:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+  const [loadingPlan, setLoadingPlan] = useState<PlanType | null>(null);
+  const razorpayService = new RazorpayService();
+
+  const handleSubscribe = async (plan: PlanType) => {
+    setLoadingPlan(plan);
+    await razorpayService.initiatePayment({
+      plan,
+      onSuccess: () => {
+        toast.success("Payment successful!");
+        setLoadingPlan(null);
+      },
+      onError: (err) => {
+        const message = err?.message || "Payment failed";
+        toast.error(message);
+        setLoadingPlan(null);
+      },
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 mb-6">
@@ -475,23 +447,38 @@ const RazorPayPayment = () => {
           </p>
         </div>
       </div>
-      <div className="w-[300px]">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl">
         <Card className="flex flex-col gap-4 p-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
           <div className="flex items-center justify-between">
-            <p className="text-2xl font-semibold text-black dark:text-white">
-              INR 7,000.00
-            </p>
+            <p className="text-2xl font-semibold text-black dark:text-white">INR 999.00</p>
+            <span className="text-gray-600 dark:text-gray-400">/monthly</span>
+          </div>
+          <p className="text-lg font-semibold text-black dark:text-white">Monthly Plan</p>
+          <Button onClick={() => handleSubscribe("monthly")} disabled={loadingPlan === "monthly"} className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+            {loadingPlan === "monthly" ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            Subscribe Monthly
+          </Button>
+        </Card>
+        <Card className="flex flex-col gap-4 p-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+          <div className="flex items-center justify-between">
+            <p className="text-2xl font-semibold text-black dark:text-white">INR 7000.00</p>
             <span className="text-gray-600 dark:text-gray-400">/annually</span>
           </div>
-          <p className="text-lg font-semibold text-black dark:text-white">
-            Premium Plan
-          </p>
-          <Button
-            // onClick={() => handleClick("annual", "premium")}
-            // disabled={loading}
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-          >
-            Choose Premium Plan
+          <p className="text-lg font-semibold text-black dark:text-white">Annual Plan</p>
+          <Button onClick={() => handleSubscribe("annual")} disabled={loadingPlan === "annual"} className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+            {loadingPlan === "annual" ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            Subscribe Annually
+          </Button>
+        </Card>
+        <Card className="flex flex-col gap-4 p-6 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-2 border-amber-200 dark:border-amber-800 hover:shadow-amber-100 dark:hover:shadow-amber-900/20 transition-all shadow-md">
+          <div className="flex items-center justify-between">
+            <p className="text-2xl font-bold text-black dark:text-white">INR 9999.00</p>
+            <span className="bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 text-xs font-medium px-2.5 py-0.5 rounded-full">LIFETIME</span>
+          </div>
+          <p className="text-lg font-bold text-black dark:text-white">Lifetime Deal</p>
+          <Button onClick={() => handleSubscribe("lifetime")} disabled={loadingPlan === "lifetime"} className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-medium">
+            {loadingPlan === "lifetime" ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            Get Lifetime Access
           </Button>
         </Card>
       </div>
@@ -537,7 +524,7 @@ const PaymentSettings = () => {
               </div>
             </div>
           </TabsTrigger>
-          {/* <TabsTrigger value="razorpay" className="flex items-center gap-2">
+          <TabsTrigger value="razorpay" className="flex items-center gap-2">
             <div className="flex flex-col">
               <div className="flex text-lg items-center justify-center">
                 <Wallet className="font-semibold" />
@@ -549,7 +536,7 @@ const PaymentSettings = () => {
                 </span>
               </div>
             </div>
-          </TabsTrigger> */}
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="stripe" className="mt-0">
           <StripePayment />

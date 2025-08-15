@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/Theme/theme-provider";
 import GoogleAnalytics from "./components/GoogleAnalytics";
 import PageTracker from "./components/PageTracker";
 import { Suspense } from "react";
+import Script from "next/script";
 import { UserProvider } from "@/context/UserContext";
 
 const geistSans = localFont({
@@ -36,6 +37,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen`}
       >
+        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
         {gaMeasurementId && (
           <>
             <GoogleAnalytics GA_MEASUREMENT_ID={gaMeasurementId} />
