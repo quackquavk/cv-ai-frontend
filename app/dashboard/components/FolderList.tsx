@@ -35,7 +35,7 @@ import {
 import { useDocumentStore } from "../store";
 import PrivateFolderActions from "./PrivateFolderActions";
 import { privateFolderStore } from "../store";
-import { FolderLock, Plus } from "lucide-react";
+import { CirclePlus, FolderLock, FolderOpen, Plus } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 
@@ -76,7 +76,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
   const [dialogAlertFile, setDialogueAlertFile] = useState(false);
   const [folderId, setFolderId] = useState("");
   const { selectFolderId, setSelectFolderId } = folderSelectStore();
-  const { isFolderListOpen } = publicFolderStore();
+  const { isFolderListOpen, isPrivateSectionOpen, togglePrivateSection, isPublicSectionOpen, togglePublicSection } = publicFolderStore();
   const {
     hasPrivateFolder,
     setHasPrivateFolder,
@@ -446,20 +446,32 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
       {/* Private Subfolders Section */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2 px-1">
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-            Private Folders
-          </h3>
-          {hasPrivateFolder && (
-            <>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-7 px-2"
-                onClick={() => setIsCreatePrivateSubfolderOpen(true)}
-                disabled={isCreatingPrivateFolder}
-              >
-                <Plus className="h-3 w-3 mr-1" /> New
-              </Button>
+          <div className="flex items-center justify-between w-full cursor-pointer" onClick={togglePrivateSection}>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold  text-gray-700 dark:text-gray-300">
+                Private Folders
+              </h3>
+            </div>
+            <div className="flex items-center gap-2">
+              {hasPrivateFolder && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsCreatePrivateSubfolderOpen(true);
+                  }}
+                  disabled={isCreatingPrivateFolder}
+                >
+                  <CirclePlus className="h-3 w-3 mr-1" /> 
+                </Button>
+              )}
+              <span className={`transform transition-transform duration-300 ${isPrivateSectionOpen ? "rotate-180" : "rotate-0"}`}>
+                <FaChevronDown />
+              </span>
+            </div>
+          </div>
               <Dialog
                 open={isCreatePrivateSubfolderOpen}
                 onOpenChange={setIsCreatePrivateSubfolderOpen}
@@ -531,10 +543,11 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-            </>
-          )}
+            
         </div>
-        {!hasPrivateFolder && (
+        {isPrivateSectionOpen && (
+          <>
+            {!hasPrivateFolder && (
           <div className="text-xs text-gray-600 dark:text-gray-400 px-1 flex items-center gap-1">
             Upgrade to access private folders.{" "}
             <Link
@@ -701,15 +714,38 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                   )}
                 </div>
               )}
-            </div>
-          ))}
+                      </div>
+        ))}
+          </>
+        )}
       </div>
       {/* Public Folders Section */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 px-1">
-          Public Folders
-        </h3>
-        {folders.map((folder) => (
+        <div className="flex items-center justify-between mb-2 px-1 mb-">
+          <div className="flex items-center justify-between w-full cursor-pointer" onClick={togglePublicSection}>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold   text-gray-700 dark:text-gray-300">
+                Public Folders
+              </h3>
+            </div>
+            <div className="flex items-center gap-2">
+              {/* 
+                size="sm"
+                variant="ghost"
+                className="h-7 px-2"
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+              >
+                <CirclePlus className="h-3 w-3 mr-1" /> 
+              </> */}
+              <span className={`transform transition-transform duration-300 ${isPublicSectionOpen ? "rotate-180" : "rotate-0"}`}>
+                <FaChevronDown />
+              </span>
+            </div>
+          </div>
+        </div>
+        {isPublicSectionOpen && folders.map((folder) => (
           <div
             key={folder.folder_id}
             className={`mb-4 transition-all duration-200 ${

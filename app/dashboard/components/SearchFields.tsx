@@ -7,7 +7,7 @@ import { ViewContext } from "../context/ViewContext";
 import LinearTagsInput from "./SearchInput/LinearTagsInput";
 import { Search, SearchX, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { folderSelectStore } from "../store";
+import { folderSelectStore, publicFolderStore, privateFolderStore } from "../store";
 import ToogleView from "./ToogleView";
 import { IoMdHelpCircleOutline } from "react-icons/io";
 import {
@@ -25,6 +25,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import axiosInstance from "@/utils/axiosConfig";
 
 const SearchFields = () => {
   const searchContext = useContext(SearchContext);
@@ -48,6 +49,8 @@ const SearchFields = () => {
   });
 
   const { selectFolderId } = folderSelectStore();
+  const { isPublicSectionOpen, isPrivateSectionOpen, isFolderListOpen } = publicFolderStore();
+  const { privateSubfolders } = privateFolderStore();
   if (!searchContext) {
     throw new Error(
       "SearchContext must be used within a SearchContext.Provider"
@@ -140,7 +143,7 @@ const SearchFields = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSearchData(formData);
+    await performSearch();
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -152,7 +155,7 @@ const SearchFields = () => {
   };
 
   // Disable Enter key for input fields to prevent submission
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     // if (e.key === "Enter") {
     //   e.preventDefault();
     //   if (e.currentTarget.name === "prompt" && addressRef.current) {
@@ -161,8 +164,56 @@ const SearchFields = () => {
     // }
     if (e.shiftKey && e.key === "Enter") {
       e.preventDefault();
-      setSearchData(formData);
+      await performSearch();
     }
+  };
+
+  // Compute which folders to search based on selection and section visibility
+  const computeFoldersScope = async (): Promise<string[]> => {
+    // 1) If a specific folder is selected, search only that folder
+    if (selectFolderId) {
+      return [selectFolderId];
+    }
+
+    // 2) If both public and private sections are active/open, search all (no restriction)
+    if (isPublicSectionOpen && isPrivateSectionOpen) {
+      return [];
+    }
+
+    // 3) Public-only (either explicitly only public is active OR
+    // the folder list is collapsed and private is not active)
+    if ((isPublicSectionOpen && !isPrivateSectionOpen) || (!isFolderListOpen && !isPrivateSectionOpen)) {
+      try {
+        const res = await axiosInstance.get("/folder/getAllFolders");
+        const publicFolderIds: string[] = (res.data || []).map(
+          (f: any) => f.folder_id
+        );
+        return publicFolderIds;
+      } catch (err) {
+        console.error("Failed to fetch public folders:", err);
+        return [];
+      }
+    }
+
+    // 4) Private-only
+    if (!isPublicSectionOpen && isPrivateSectionOpen) {
+      const privateIds = (privateSubfolders || []).map((pf) => pf.folder_id);
+      return privateIds;
+    }
+
+    // 5) Default: no restriction
+    return [];
+  };
+
+  // Build and submit the search payload with the computed scope
+  const performSearch = async (overrides: Partial<IFormInputData> = {}) => {
+    const foldersScope = await computeFoldersScope();
+    const nextPayload: IFormInputData = {
+      ...formData,
+      ...overrides,
+      foldersToSearch: foldersScope.length > 0 ? foldersScope : [""],
+    };
+    setSearchData(nextPayload);
   };
 
   return (
@@ -446,10 +497,7 @@ const SearchFields = () => {
                 ...formData,
                 sort_order: value,
               });
-              setSearchData({
-                ...formData,
-                sort_order: value,
-              });
+              performSearch({ sort_order: value });
             }}
           >
             <SelectTrigger className="w-full md:w-[120px]">
