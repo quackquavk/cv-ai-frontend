@@ -11,6 +11,10 @@ interface FolderSelectStore {
 interface PublicFolderState {
   isFolderListOpen: boolean;
   toogleFolderList: () => void;
+  isPublicSectionOpen: boolean;
+  togglePublicSection: () => void;
+  isPrivateSectionOpen: boolean;
+  togglePrivateSection: () => void;
 }
 
 // Private Folder State
@@ -49,6 +53,12 @@ export const publicFolderStore = create<PublicFolderState>((set) => ({
   isFolderListOpen: true,
   toogleFolderList: () =>
     set((state) => ({ isFolderListOpen: !state.isFolderListOpen })),
+  isPublicSectionOpen: true,
+  togglePublicSection: () =>
+    set((state) => ({ isPublicSectionOpen: !state.isPublicSectionOpen })),
+  isPrivateSectionOpen: true,
+  togglePrivateSection: () =>
+    set((state) => ({ isPrivateSectionOpen: !state.isPrivateSectionOpen })),
 }));
 
 // Private Folder Store
