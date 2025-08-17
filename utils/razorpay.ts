@@ -45,7 +45,7 @@ export class RazorpayService {
 
   async initiatePayment(options: PaymentOptions) {
     try {
-      const orderResponse = await axiosInstance.post("/razorpay/create-order", { plan: options.plan }, { withCredentials: true });
+      const orderResponse = await axiosInstance.post("/razorpay/create-order?plan=" + options.plan, { withCredentials: true });
 
       if (orderResponse.status !== 200) {
         throw new Error(orderResponse.data.detail || "Failed to create order");
