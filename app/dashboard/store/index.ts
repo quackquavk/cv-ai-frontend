@@ -23,9 +23,9 @@ interface PrivateFolderState {
   setHasPrivateFolder: (value: boolean) => void;
   privateRootId: string | null;
   setPrivateRootId: (value: string | null) => void;
-  privateSubfolders: { folder_id: string; name: string }[];
+  privateSubfolders: { folder_id: string; name: string }[] | any[];
   setPrivateSubfolders: (
-    value: { folder_id: string; name: string }[]
+    value: { folder_id: string; name: string }[] | any
   ) => void;
   lastUpdatedFolderId: string | null;
   setLastUpdatedFolderId: (value: string | null) => void;

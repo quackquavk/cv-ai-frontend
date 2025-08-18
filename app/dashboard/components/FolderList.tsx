@@ -56,6 +56,8 @@ const PrivateFilesSkeleton = () => {
   );
 };
 
+
+
 // Logic part of FolderList component with fixes
 const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
   const [folders, setFolders] = useState([]);
@@ -87,15 +89,38 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
     lastUpdatedFolderId,
   } = privateFolderStore();
   const [isCreatingPrivateFolder, setIsCreatingPrivateFolder] = useState(false);
-  const [isCreatePrivateSubfolderOpen, setIsCreatePrivateSubfolderOpen] =
-    useState(false);
+  const [isCreatePrivateSubfolderOpen, setIsCreatePrivateSubfolderOpen] = useState(false);
   const [newPrivateSubfolderName, setNewPrivateSubfolderName] = useState("");
   const inputRefs = useRef({});
+  
+  // New state for folder positioning
+  const [folderOrder, setFolderOrder] = useState({
+    public: [],
+    private: []
+  });
+  const [draggedFolder, setDraggedFolder] = useState(null);
+  const [folderDragOver, setFolderDragOver] = useState(null);
+  const [dropPosition, setDropPosition] = useState(null);
+  
   // State to track the changes (archive files)
-  const setShouldRefetchDocuments = useDocumentStore(
-    (state) => state.setShouldRefetchDocuments
-  );
+  const setShouldRefetchDocuments = useDocumentStore((state) => state.setShouldRefetchDocuments);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const savedOrder = localStorage.getItem('folderOrder');
+    if (savedOrder) {
+      try {
+        setFolderOrder(JSON.parse(savedOrder));
+      } catch (e) {
+        console.error('Error parsing folder order from localStorage', e);
+      }
+    }
+  }, []);
+
+  // Save folder order to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('folderOrder', JSON.stringify(folderOrder));
+  }, [folderOrder]);
 
   useEffect(() => {
     if (editingFolder && inputRefs.current[editingFolder]) {
@@ -164,10 +189,25 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
   useEffect(() => {
     const fetchFoldersAndContents = async () => {
       try {
-        const foldersResponse = await axiosInstance.get(
-          "/folder/getAllFolders"
-        );
-        const fetchedFolders = foldersResponse.data;
+        const foldersResponse = await axiosInstance.get("/folder/getAllFolders");
+        let fetchedFolders = foldersResponse.data;
+        
+        // Apply saved order if available
+        if (folderOrder.public.length > 0) {
+          fetchedFolders = [...fetchedFolders].sort((a, b) => {
+            const aIndex = folderOrder.public.indexOf(a.folder_id);
+            const bIndex = folderOrder.public.indexOf(b.folder_id);
+            
+            // If both folders have a defined position, sort by that
+            if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+            // If only one has a position, it comes first
+            if (aIndex !== -1) return -1;
+            if (bIndex !== -1) return 1;
+            // Otherwise maintain original order
+            return 0;
+          });
+        }
+        
         setFolders(fetchedFolders);
         const contentsPromises = fetchedFolders.map((folder) =>
           axiosInstance
@@ -198,7 +238,24 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
       }
     };
     fetchFoldersAndContents();
-  }, [updateFolderList]);
+  }, [updateFolderList, folderOrder.public]);
+
+  // Apply saved order to private folders when they're loaded
+  useEffect(() => {
+    if (privateSubfolders.length > 0 && folderOrder.private.length > 0) {
+      const orderedSubfolders = [...privateSubfolders].sort((a, b) => {
+        const aIndex = folderOrder.private.indexOf(a.folder_id);
+        const bIndex = folderOrder.private.indexOf(b.folder_id);
+        
+        if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+        if (aIndex !== -1) return -1;
+        if (bIndex !== -1) return 1;
+        return 0;
+      });
+      
+      setPrivateSubfolders(orderedSubfolders);
+    }
+  }, [privateSubfolders, folderOrder.private]);
 
   const handleDialogue = (state: boolean) => {
     setDialogueOpen(state);
@@ -376,6 +433,112 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
     }
   };
 
+  // Helper function to reorder an array
+  const reorderArray = (array, sourceId, targetId, position) => {
+    const newArray = [...array];
+    const sourceIndex = newArray.findIndex(item => item.folder_id === sourceId);
+    const targetIndex = newArray.findIndex(item => item.folder_id === targetId);
+    
+    if (sourceIndex === -1) return newArray;
+    
+    const [sourceItem] = newArray.splice(sourceIndex, 1);
+    
+    let insertIndex = targetIndex;
+    if (position === 'below') {
+      insertIndex = targetIndex + 1;
+    }
+    
+    if (targetIndex === -1) {
+      newArray.push(sourceItem);
+    } else {
+      // Adjust insertIndex if the source was before the target and we are moving below
+      if (sourceIndex < targetIndex && position === 'below') {
+        insertIndex = targetIndex;
+      }
+      newArray.splice(insertIndex, 0, sourceItem);
+    }
+    
+    return newArray;
+  };
+
+  // New functions for folder drag and drop
+  const handleFolderDragStart = (e, folderId, type) => {
+    setDraggedFolder({ folderId, type });
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', e.target.innerHTML);
+  };
+
+  const handleFolderDragOver = (e, folderId, type) => {
+    e.preventDefault();
+    if (draggedFolder && draggedFolder.type === type) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      const height = rect.height;
+      
+      // Determine if we're in the top or bottom half of the folder
+      const position = y < height / 2 ? 'above' : 'below';
+      
+      setFolderDragOver({ folderId, type, position });
+    }
+  };
+
+  const handleFolderDragLeave = () => {
+    setFolderDragOver(null);
+  };
+
+  const handleFolderDrop = (e, targetFolderId, type) => {
+    e.preventDefault();
+    if (!draggedFolder || draggedFolder.type !== type) return;
+    
+    const sourceFolderId = draggedFolder.folderId;
+    if (sourceFolderId === targetFolderId) {
+      setFolderDragOver(null);
+      return;
+    }
+    
+    // Update folder order state
+    setFolderOrder(prev => {
+      const newOrder = { ...prev };
+      const section = type;
+      const sourceIndex = newOrder[section].indexOf(sourceFolderId);
+      const targetIndex = newOrder[section].indexOf(targetFolderId);
+      
+      // Remove source from its current position
+      if (sourceIndex !== -1) {
+        newOrder[section].splice(sourceIndex, 1);
+      } else {
+        // If source wasn't in the order array, add it
+        newOrder[section].push(sourceFolderId);
+      }
+      
+      // Determine insert position based on drop position
+      let insertIndex = targetIndex !== -1 ? targetIndex : newOrder[section].length;
+      
+      if (folderDragOver && folderDragOver.position === 'below') {
+        insertIndex = targetIndex !== -1 ? targetIndex + 1 : newOrder[section].length;
+      }
+      
+      // Insert source at the calculated position
+      newOrder[section].splice(insertIndex, 0, sourceFolderId);
+      
+      return newOrder;
+    });
+    
+    // Update the local arrays immediately for UI responsiveness
+    if (type === 'public') {
+      setFolders(prevFolders => 
+        reorderArray(prevFolders, sourceFolderId, targetFolderId, folderDragOver.position)
+      ) ;
+    } else if (type === 'private') {
+      setPrivateSubfolders(prevSubfolders => 
+        reorderArray(prevSubfolders, sourceFolderId, targetFolderId, folderDragOver.position) 
+      );
+    }
+    
+    setDraggedFolder(null);
+    setFolderDragOver(null);
+  };
+
   const fetchDocumentsByIds = async (docIds: string[]) => {
     const promises = docIds.map((docId) =>
       axiosInstance.get(`/document/cv/${docId}`).then((res) => res.data)
@@ -411,6 +574,22 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
       console.error("Error fetching document data:", error);
     }
   };
+
+  // Helper to render drop indicator
+  const renderDropIndicator = (folderId, type, position) => {
+    if (!folderDragOver || folderDragOver.type !== type || folderDragOver.folderId !== folderId) {
+      return null;
+    }
+    
+    return (
+      <div 
+        className={`absolute left-0 right-0 h-0.5 bg-blue-500 transition-all duration-200 ${
+          position === 'above' ? 'top-0' : 'bottom-0'
+        }`}
+      />
+    );
+  };
+
   return (
     <div className="w-full">
       {/* Dailogue on clikcing Select */}
@@ -568,7 +747,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
           privateSubfolders.map((pf) => (
             <div
               key={pf.folder_id}
-              className={`mb-4 transition-all duration-200 ${
+              className={`mb-4 transition-all duration-200 relative ${
                 draggedOverFolder === pf.folder_id
                   ? "opacity-50 bg-gray-700/30"
                   : ""
@@ -577,7 +756,17 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
               onDragLeave={handleDragLeave}
               onDrop={() => handleDrop(pf.folder_id)}
             >
-              <div className="flex items-center flex-1 rounded">
+              {/* Drop indicator above */}
+              {renderDropIndicator(pf.folder_id, 'private', 'above')}
+              
+              <div 
+                className="flex items-center flex-1 rounded"
+                draggable
+                onDragStart={(e) => handleFolderDragStart(e, pf.folder_id, 'private')}
+                onDragOver={(e) => handleFolderDragOver(e, pf.folder_id, 'private')}
+                onDragLeave={handleFolderDragLeave}
+                onDrop={(e) => handleFolderDrop(e, pf.folder_id, 'private')}
+              >
                 {editingFolder === pf.folder_id ? (
                   <form
                     onSubmit={(e) => {
@@ -656,6 +845,10 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                   </div>
                 </div>
               </div>
+              
+              {/* Drop indicator below */}
+              {renderDropIndicator(pf.folder_id, 'private', 'below')}
+              
               {selectFolderId === pf.folder_id && (
                 <div className="mt-2 ml-6 border-l  border-gray-600 pl-4 max-w-full truncate">
                   {folderContents[pf.folder_id]?.length ? (
@@ -714,8 +907,8 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                   )}
                 </div>
               )}
-                      </div>
-        ))}
+            </div>
+          ))}
           </>
         )}
       </div>
@@ -729,16 +922,6 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
               </h3>
             </div>
             <div className="flex items-center gap-2">
-              {/* 
-                size="sm"
-                variant="ghost"
-                className="h-7 px-2"
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-              >
-                <CirclePlus className="h-3 w-3 mr-1" /> 
-              </> */}
               <span className={`transform transition-transform duration-300 ${isPublicSectionOpen ? "rotate-180" : "rotate-0"}`}>
                 <FaChevronDown />
               </span>
@@ -748,7 +931,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
         {isPublicSectionOpen && folders.map((folder) => (
           <div
             key={folder.folder_id}
-            className={`mb-4 transition-all duration-200 ${
+            className={`mb-4 transition-all duration-200 relative ${
               draggedOverFolder === folder.folder_id
                 ? "opacity-50 bg-gray-700/30"
                 : ""
@@ -757,7 +940,17 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
             onDragLeave={handleDragLeave}
             onDrop={() => handleDrop(folder.folder_id)}
           >
-            <div className="flex items-center flex-1 rounded">
+            {/* Drop indicator above */}
+            {renderDropIndicator(folder.folder_id, 'public', 'above')}
+            
+            <div 
+              className="flex items-center flex-1 rounded"
+              draggable
+              onDragStart={(e) => handleFolderDragStart(e, folder.folder_id, 'public')}
+              onDragOver={(e) => handleFolderDragOver(e, folder.folder_id, 'public')}
+              onDragLeave={handleFolderDragLeave}
+              onDrop={(e) => handleFolderDrop(e, folder.folder_id, 'public')}
+            >
               {editingFolder === folder.folder_id ? (
                 <form
                   onSubmit={(e) => {
@@ -854,6 +1047,10 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                 </div>
               </div>
             </div>
+            
+            {/* Drop indicator below */}
+            {renderDropIndicator(folder.folder_id, 'public', 'below')}
+            
             {selectFolderId === folder.folder_id && (
               <div className="mt-2 ml-6 border-l  border-gray-600 pl-4 max-w-full truncate">
                 {folderContents[folder.folder_id]?.length ? (
