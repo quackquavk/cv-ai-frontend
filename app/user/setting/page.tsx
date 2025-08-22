@@ -1,3 +1,4 @@
+
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
@@ -24,6 +25,7 @@ import {
   Zap,
   Users,
   Globe,
+  RefreshCw,
 } from "lucide-react";
 import {
   Dialog,
@@ -33,7 +35,6 @@ import {
 } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
 import { RazorpayService, PlanType } from "@/utils/razorpay";
-
 // Reusable TrustIndicators component
 const TrustIndicators = ({ indicators }) => (
   <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
@@ -45,7 +46,6 @@ const TrustIndicators = ({ indicators }) => (
     ))}
   </div>
 );
-
 // Reusable PricingCard component
 const PricingCard = ({
   title,
@@ -61,6 +61,7 @@ const PricingCard = ({
   limitedOffer = false,
   paymentMethod = "",
   buttonColor = "blue",
+  isSubscription = false,
 }) => {
   // Button color classes based on the prop
   const buttonClasses = {
@@ -70,7 +71,6 @@ const PricingCard = ({
     amber:
       "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600",
   };
-
   return (
     <Card
       className={`flex flex-col gap-5 p-6 ${
@@ -95,7 +95,6 @@ const PricingCard = ({
           {discountBadge}
         </div>
       )}
-
       {/* Popular Badge */}
       {isPopular && (
         <div className="absolute top-0 right-0 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg flex items-center gap-1">
@@ -103,7 +102,6 @@ const PricingCard = ({
           BEST VALUE
         </div>
       )}
-
       {/* Price */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -117,7 +115,6 @@ const PricingCard = ({
         </div>
         <span className="text-gray-600 dark:text-gray-400">{period}</span>
       </div>
-
       {/* Title */}
       <p
         className={`text-lg ${
@@ -126,7 +123,6 @@ const PricingCard = ({
       >
         {title}
       </p>
-
       {/* Features */}
       <div className="space-y-2">
         <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -154,7 +150,15 @@ const PricingCard = ({
           ))}
         </ul>
       </div>
-
+      {/* Subscription Info */}
+      {isSubscription && (
+        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
+          <p className="text-sm text-blue-800 dark:text-blue-200 font-medium flex items-center gap-1">
+            <RefreshCw className="h-4 w-4" />
+            Recurring subscription. Cancel anytime.
+          </p>
+        </div>
+      )}
       {/* Limited Offer */}
       {limitedOffer && (
         <div className="bg-amber-100 dark:bg-amber-900/30 rounded-lg p-3 border border-amber-200 dark:border-amber-800">
@@ -164,7 +168,6 @@ const PricingCard = ({
           </p>
         </div>
       )}
-
       {/* CTA Button */}
       <div className="mt-auto">
         <Button
@@ -183,6 +186,8 @@ const PricingCard = ({
             </>
           ) : isLifetime ? (
             "Get Lifetime Access"
+          ) : isSubscription ? (
+            `Subscribe to ${title}`
           ) : (
             `Choose ${title}`
           )}
@@ -190,13 +195,14 @@ const PricingCard = ({
         <p className="text-xs text-center text-gray-500 dark:text-gray-500 mt-2">
           {isLifetime
             ? "One-time payment. Lifetime access."
+            : isSubscription
+            ? "Recurring payment. Cancel anytime."
             : "Cancel anytime. 30-day money-back guarantee."}
         </p>
       </div>
     </Card>
   );
 };
-
 // Define the premium features once to use across all payment methods
 const premiumFeatures = [
   { text: "Private Folder" },
@@ -204,16 +210,13 @@ const premiumFeatures = [
   { text: "Access to linkedin bots" },
   { text: "Priority support" },
 ];
-
 const lifetimeFeatures = [
   ...premiumFeatures,
   { text: "All future updates", highlight: true },
 ];
-
 const StripePayment = () => {
   const [loading, setLoading] = useState(false);
   const [lifetimeLoading, setLifetimeLoading] = useState(false);
-
   const handleClick = async (selectedPlan, selectedTier) => {
     const body = {
       plan_id: `${selectedPlan}`,
@@ -240,7 +243,6 @@ const StripePayment = () => {
       setLoading(false);
     }
   };
-
   const handleLifetimeClick = async () => {
     const body = {
       plan_id: "lifetime",
@@ -267,7 +269,6 @@ const StripePayment = () => {
       setLifetimeLoading(false);
     }
   };
-
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-3 mb-2">
@@ -283,7 +284,6 @@ const StripePayment = () => {
           </p>
         </div>
       </div>
-
       {/* Trust indicators */}
       <TrustIndicators
         indicators={[
@@ -292,7 +292,6 @@ const StripePayment = () => {
           { icon: <Zap className="h-4 w-4" />, text: "Instant Access" },
         ]}
       />
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Annual Plan Card */}
         <PricingCard
@@ -304,8 +303,8 @@ const StripePayment = () => {
           onButtonClick={() => handleClick("annual", "premium")}
           discountBadge="Popular"
           buttonColor="blue"
+          isSubscription={true}
         />
-
         {/* Lifetime Plan Card */}
         <PricingCard
           title="Premium Lifetime"
@@ -323,7 +322,6 @@ const StripePayment = () => {
     </div>
   );
 };
-
 const FonePayPayment = () => {
   const [loading, setLoading] = useState(false);
   const [lifetimeLoading, setLifetimeLoading] = useState(false);
@@ -334,7 +332,6 @@ const FonePayPayment = () => {
   const [paymentStatus, setPaymentStatus] = useState("");
   const [paymentMessage, setPaymentMessage] = useState("");
   const webSocketRef = useRef(null);
-
   const handleClick = async (selectedPlan, planStatus) => {
     const body = {
       plan_id: `${selectedPlan}`,
@@ -360,7 +357,6 @@ const FonePayPayment = () => {
       setLoading(false);
     }
   };
-
   const handleLifetimeClick = async () => {
     const body = {
       plan_id: "lifetime",
@@ -386,7 +382,6 @@ const FonePayPayment = () => {
       setLifetimeLoading(false);
     }
   };
-
   const connectToWebSocket = (billId) => {
     if (webSocketRef.current) {
       webSocketRef.current.close();
@@ -430,7 +425,6 @@ const FonePayPayment = () => {
       setIsProcessing(false);
     };
   };
-
   useEffect(() => {
     return () => {
       if (webSocketRef.current) {
@@ -438,7 +432,6 @@ const FonePayPayment = () => {
       }
     };
   }, []);
-
   useEffect(() => {
     if (paymentStatus === "success") {
       const timer = setTimeout(() => {
@@ -448,7 +441,6 @@ const FonePayPayment = () => {
       return () => clearTimeout(timer);
     }
   }, [paymentStatus]);
-
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-3 mb-2">
@@ -464,7 +456,6 @@ const FonePayPayment = () => {
           </p>
         </div>
       </div>
-
       {/* Trust indicators */}
       <TrustIndicators
         indicators={[
@@ -472,7 +463,6 @@ const FonePayPayment = () => {
           { icon: <Zap className="h-4 w-4" />, text: "Instant Access" },
         ]}
       />
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Annual Plan Card */}
         <PricingCard
@@ -485,8 +475,8 @@ const FonePayPayment = () => {
           onButtonClick={() => handleClick("annual", "Premium")}
           discountBadge="Popular"
           buttonColor="red"
+          isSubscription={true}
         />
-
         {/* Lifetime Plan Card */}
         <PricingCard
           title="Premium Lifetime"
@@ -502,7 +492,6 @@ const FonePayPayment = () => {
           buttonColor="amber"
         />
       </div>
-
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-black dark:text-white max-w-sm mx-auto">
           <DialogHeader className="text-center items-center">
@@ -571,27 +560,42 @@ const FonePayPayment = () => {
     </div>
   );
 };
-
 const RazorPayPayment = () => {
   const [loadingPlan, setLoadingPlan] = useState<PlanType | null>(null);
   const razorpayService = new RazorpayService();
-
   const handleSubscribe = async (plan: PlanType) => {
     setLoadingPlan(plan);
-    await razorpayService.initiatePayment({
-      plan,
-      onSuccess: () => {
-        toast.success("Payment successful!");
-        setLoadingPlan(null);
-      },
-      onError: (err) => {
-        const message = err?.message || "Payment failed";
-        toast.error(err.response.data.detail);
-        setLoadingPlan(null);
-      },
-    });
+    
+    // Use subscription method for annual plan
+    if (plan === "annual") {
+      await razorpayService.initiateSubscription({
+        plan,
+        onSuccess: () => {
+          toast.success("Subscription activated successfully!");
+          setLoadingPlan(null);
+        },
+        onError: (err) => {
+          const message = err?.message || "Subscription failed";
+          toast.error(err.response?.data?.detail || message);
+          setLoadingPlan(null);
+        },
+      });
+    } else {
+      // Use regular payment method for lifetime plan
+      await razorpayService.initiatePayment({
+        plan,
+        onSuccess: () => {
+          toast.success("Payment successful!");
+          setLoadingPlan(null);
+        },
+        onError: (err) => {
+          const message = err?.message || "Payment failed";
+          toast.error(err.response?.data?.detail || message);
+          setLoadingPlan(null);
+        },
+      });
+    }
   };
-
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-3 mb-2">
@@ -607,7 +611,6 @@ const RazorPayPayment = () => {
           </p>
         </div>
       </div>
-
       {/* Trust indicators */}
       <TrustIndicators
         indicators={[
@@ -615,7 +618,6 @@ const RazorPayPayment = () => {
           { icon: <Zap className="h-4 w-4" />, text: "Instant Access" },
         ]}
       />
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <PricingCard
           title="Annual Plan"
@@ -627,8 +629,8 @@ const RazorPayPayment = () => {
           onButtonClick={() => handleSubscribe("annual")}
           discountBadge="Popular"
           buttonColor="purple"
+          isSubscription={true}
         />
-
         <PricingCard
           title="Lifetime Deal"
           price="9999.00"
@@ -646,7 +648,6 @@ const RazorPayPayment = () => {
     </div>
   );
 };
-
 const PaymentSettings = () => {
   return (
     <div className="p-4 md:p-6">
@@ -659,7 +660,6 @@ const PaymentSettings = () => {
           time.
         </p>
       </div>
-
       <Tabs defaultValue="stripe" className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-8 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
           <TabsTrigger
@@ -699,7 +699,6 @@ const PaymentSettings = () => {
             </span>
           </TabsTrigger>
         </TabsList>
-
         <TabsContent value="stripe" className="mt-0">
           <StripePayment />
         </TabsContent>
@@ -710,22 +709,9 @@ const PaymentSettings = () => {
           <RazorPayPayment />
         </TabsContent>
       </Tabs>
-
-      {/* <div className="mt-12 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
-        <h3 className="font-bold text-lg text-blue-800 dark:text-blue-200 mb-2">
-          Need help choosing?
-        </h3>
-        <p className="text-blue-700 dark:text-blue-300 mb-4">
-          Our support team is available 24/7 to help you select the right plan for your needs.
-        </p>
-        <Button variant="outline" className="border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30">
-          Contact Support
-        </Button>
-      </div> */}
     </div>
   );
 };
-
 const AppearanceSettings = () => {
   const { theme, setTheme } = useTheme();
   return (
@@ -810,7 +796,6 @@ const AppearanceSettings = () => {
     </div>
   );
 };
-
 const BillingSettings = () => (
   <div className="p-4 md:p-6">
     <h2 className="text-xl font-semibold mb-4 text-black dark:text-white">
@@ -839,19 +824,16 @@ const BillingSettings = () => (
     </div>
   </div>
 );
-
 export default function Setting() {
   const router = useRouter();
   const [activeSection, setActiveSection] = useState("Billing Overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
   const showContent = () => {
     if (activeSection === "Billing Overview") return <BillingSettings />;
     if (activeSection === "Payment") return <PaymentSettings />;
     if (activeSection === "appearance") return <AppearanceSettings />;
     return <div className="p-6">Select a setting</div>;
   };
-
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-black text-black dark:text-white">
       {/* Mobile Menu Button */}
@@ -864,7 +846,6 @@ export default function Setting() {
       >
         <Menu size={20} className="text-black dark:text-white" />
       </button>
-
       {/* Sidebar */}
       <div
         className={`fixed md:static inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 ease-in-out
@@ -884,7 +865,6 @@ export default function Setting() {
               <X size={20} />
             </button>
           </div>
-
           {/* Added back button here */}
           <Button
             onClick={() => router.push("/dashboard")}
@@ -894,7 +874,6 @@ export default function Setting() {
             <ArrowLeft size={16} />
             Back to Dashboard
           </Button>
-
           <div className="space-y-6">
             <div>
               <div className="mb-3">
@@ -944,12 +923,10 @@ export default function Setting() {
           </div>
         </div>
       </div>
-
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto pt-16 md:pt-0">{showContent()}</div>
       </div>
-
       {/* Mobile Overlay */}
       {sidebarOpen && (
         <div
