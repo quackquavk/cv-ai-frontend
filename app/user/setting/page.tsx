@@ -50,6 +50,7 @@ const TrustIndicators = ({ indicators }) => (
 const PricingCard = ({
   title,
   price,
+  originalPrice = null,
   period,
   features,
   isLifetime = false,
@@ -108,10 +109,18 @@ const PricingCard = ({
           {isPopular && (
             <Crown className="h-6 w-6 text-amber-600 dark:text-amber-400" />
           )}
-          <p className="text-3xl font-bold text-black dark:text-white">
-            {currency}
-            {price}
-          </p>
+          <div className="flex items-center gap-3">
+            <p className="text-3xl font-bold text-black dark:text-white">
+              {currency}
+              {price}
+            </p>
+            {originalPrice && (
+              <p className="text-xl font-medium text-gray-500 dark:text-gray-400 line-through">
+                {currency}
+                {originalPrice}
+              </p>
+            )}
+          </div>
         </div>
         <span className="text-gray-600 dark:text-gray-400">{period}</span>
       </div>
@@ -204,15 +213,16 @@ const PricingCard = ({
   );
 };
 // Define the premium features once to use across all payment methods
-const premiumFeatures = [
+const lifetimeFeatures = [
   { text: "Private Folder" },
   { text: "Unlimited CV uploads" },
   { text: "Access to linkedin bots" },
-  { text: "Priority support" },
+  // { text: "Priority support" },
 ];
-const lifetimeFeatures = [
-  ...premiumFeatures,
-  { text: "All future updates", highlight: true },
+const premiumFeatures = [
+  ...lifetimeFeatures,
+  { text: "Priority support" },
+  {text: "All future updates"}
 ];
 const StripePayment = () => {
   const [loading, setLoading] = useState(false);
@@ -296,7 +306,8 @@ const StripePayment = () => {
         {/* Annual Plan Card */}
         <PricingCard
           title="Premium Plan"
-          price="100.00"
+          price="99"
+          originalPrice="149"
           period="/year"
           features={premiumFeatures}
           loading={loading}
@@ -308,7 +319,8 @@ const StripePayment = () => {
         {/* Lifetime Plan Card */}
         <PricingCard
           title="Premium Lifetime"
-          price="99.00"
+          price="299"
+          originalPrice="499"
           period=""
           features={lifetimeFeatures}
           isLifetime={true}
@@ -468,6 +480,7 @@ const FonePayPayment = () => {
         <PricingCard
           title="Premium Plan"
           price="10,000.00"
+          // originalPrice="19,999.00"
           period="/year"
           currency="NPR "
           features={premiumFeatures}
@@ -481,6 +494,7 @@ const FonePayPayment = () => {
         <PricingCard
           title="Premium Lifetime"
           price="14,999.00"
+          // originalPrice="39,999.00"
           period=""
           currency="NPR "
           features={lifetimeFeatures}
@@ -622,6 +636,7 @@ const RazorPayPayment = () => {
         <PricingCard
           title="Annual Plan"
           price="7000.00"
+          // originalPrice="12,000.00"
           period="/year"
           currency="INR "
           features={premiumFeatures}
@@ -634,6 +649,7 @@ const RazorPayPayment = () => {
         <PricingCard
           title="Lifetime Deal"
           price="9999.00"
+          // originalPrice="24,999.00"
           period=""
           currency="INR "
           features={lifetimeFeatures}
