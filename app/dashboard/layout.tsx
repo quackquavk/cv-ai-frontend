@@ -51,11 +51,11 @@ export default function DashboardLayout({
                     />
                   </div>
 
-                  {/* Hamburger menu for mobile - positioned at top left */}
+                  {/* Mobile Hamburger - Floating Button */}
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="sticky top-[38px] left-4 z-50 lg:hidden bg-[#ECEBE2] dark:bg-[#3A3A3A] hover:bg-orange-100"
+                    className="absolute top-4 left-4 z-50 lg:hidden bg-[#ECEBE2] dark:bg-[#3A3A3A] hover:bg-orange-100"
                     onClick={toggleMobileSidebar}
                   >
                     <Menu className="h-6 w-6" />
@@ -89,7 +89,6 @@ export default function DashboardLayout({
                   <SidebarInset className="transition-[width] ease-out duration-200 transform-gpu flex-grow overflow-auto w-full">
                     <div className="px-6 flex flex-col gap-8 w-full h-full">
                       <div className="pt-4">
-                        {/* Removed hamburger from here and moved to fixed position */}
                         <SearchFields />
                       </div>
                       <div className="flex-grow w-full">{children}</div>

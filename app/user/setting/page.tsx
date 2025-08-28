@@ -212,13 +212,20 @@ const PricingCard = ({
     </Card>
   );
 };
-// Define the premium features once to use across all payment methods
+// Define the features for all plans
+const freeFeatures = [
+  { text: "Basic features" },
+  { text: "Limited searches" },
+  { text: "Claim your CV" },
+];
+
 const lifetimeFeatures = [
   { text: "Private Folder" },
   { text: "Unlimited CV uploads" },
   { text: "Access to linkedin bots" },
   // { text: "Priority support" },
 ];
+
 const premiumFeatures = [
   ...lifetimeFeatures,
   { text: "Priority support" },
@@ -330,6 +337,22 @@ const StripePayment = () => {
           limitedOffer={true}
           buttonColor="amber"
         />
+      </div>
+      
+      {/* Free Plan */}
+      <div className="mt-8 flex justify-left">
+        <div className="w-full max-w-md">
+          <PricingCard
+            title="Free Plan"
+            price="0"
+            period="/forever"
+            features={freeFeatures}
+            loading={false}
+            onButtonClick={() => window.location.href = "/dashboard"}
+            buttonColor="blue"
+            isSubscription={false}
+          />
+        </div>
       </div>
     </div>
   );
@@ -506,6 +529,24 @@ const FonePayPayment = () => {
           buttonColor="amber"
         />
       </div>
+      
+      {/* Free Plan */}
+      <div className="mt-8 flex justify-left">
+        <div className="w-full max-w-md">
+          <PricingCard
+            title="Free Plan"
+            price="0"
+            period="/forever"
+            currency="NPR "
+            features={freeFeatures}
+            loading={false}
+            onButtonClick={() => window.location.href = "/dashboard"}
+            buttonColor="red"
+            isSubscription={false}
+          />
+        </div>
+      </div>
+      
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-black dark:text-white max-w-sm mx-auto">
           <DialogHeader className="text-center items-center">
@@ -660,6 +701,23 @@ const RazorPayPayment = () => {
           limitedOffer={true}
           buttonColor="amber"
         />
+      </div>
+      
+      {/* Free Plan */}
+      <div className="mt-8 flex justify-left">
+        <div className="w-full max-w-md">
+          <PricingCard
+            title="Free Plan"
+            price="0"
+            period="/forever"
+            currency="INR "
+            features={freeFeatures}
+            loading={false}
+            onButtonClick={() => window.location.href = "/dashboard"}
+            buttonColor="purple"
+            isSubscription={false}
+          />
+        </div>
       </div>
     </div>
   );
