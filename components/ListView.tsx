@@ -215,8 +215,16 @@ const ListView = ({ data, searchData }: ListViewProps) => {
     );
   }
 
-  const allDocuments =
-    infiniteData?.pages.flatMap((page: any) => page.documents) ?? [];
+  const allDocuments = infiniteData?.pages.flatMap((page: any) => page.documents) ?? [];
+  
+  // Only sort when a folder is selected, otherwise keep original order
+  const sortedDocuments = selectFolderId 
+    ? allDocuments.sort((a: any, b: any) => {
+        const nameA = (a?.doc_name || a?.parsed_cv?.name || '').toLowerCase();
+        const nameB = (b?.doc_name || b?.parsed_cv?.name || '').toLowerCase();
+        return nameA.localeCompare(nameB);
+      })
+    : allDocuments;
   const formatName = (name: string | undefined): string => {
     if (!name) return "undefined";
     return name.trim().replace(/\s+/g, "-");
@@ -236,11 +244,11 @@ const ListView = ({ data, searchData }: ListViewProps) => {
 
   return (
     <div className="flex flex-col w-full max-w-[100vw] rounded-md sm:p-2 gap-3 sm:gap-5 items-center">
-      {allDocuments?.length === 0 || !isFolderListOpen ? (
+      {sortedDocuments?.length === 0 || !isFolderListOpen ? (
         <p className="text-gray-600">No Document Available...</p>
       ) : (
         <>
-          {allDocuments.map((item: any) => (
+          {sortedDocuments.map((item: any) => (
             <Link
               legacyBehavior={false}
               key={item._id}

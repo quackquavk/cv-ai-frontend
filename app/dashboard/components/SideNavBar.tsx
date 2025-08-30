@@ -19,13 +19,9 @@ import type { IFolderData } from "@/interfaces/FolderData";
 import {
   ChevronLeft,
   ChevronRight,
-  LogOut,
   LogIn,
-  // User,
   X,
   Settings,
-  // Moon,
-  // Sun,
   FolderOpen,
   FolderLock,
   Plus,
@@ -45,24 +41,7 @@ import {
   SidebarHeader,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  // DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuGroup,
-} from "@/components/ui/dropdown-menu";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogClose,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import DialogueComponent from "./DialogueComponent";
 import { MdFolderZip } from "react-icons/md";
@@ -104,7 +83,6 @@ const SideNavBar = ({
     selectFolderId
   );
   const [isPageLoading, setIsPageLoading] = useState<boolean>(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false); //Close the dropdown menu when necessary
 
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -260,15 +238,6 @@ const SideNavBar = ({
   };
 
   // console.log("ImageURL", user.picture);
-
-  const handleLogOut = async (e) => {
-    e.preventDefault();
-    await axiosInstance.get("/user/logout");
-    setDropdownOpen(false); // Close the dropdown menu
-    setIsAuthenticated(false);
-    setIsPageLoading(true);
-    router.push("../../auth/login");
-  };
 
   // // Private folder functions
   // const handleCreatePrivateFolder = async () => {
@@ -518,169 +487,59 @@ const SideNavBar = ({
               isCollapsed && " border-none"
             }`}
           >
-            <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-              <DropdownMenuTrigger asChild>
-                <div
-                  className={`flex items-center w-[80%] ${
-                    isCollapsed ? "justify-center" : "space-x-3 md:rounded-md"
-                  } cursor-pointer p-2 transition-colors`}
-                >
-                  <Avatar>
-                    {loading ? (
-                      <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
-                    ) : isAuthenticated ? (
-                      <AvatarImage src={user?.picture} alt="User" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-red-600 overflow-hidden"></div>
-                    )}
-                  </Avatar>
-
+            {/* Profile Section - Click to go to settings */}
+            {isAuthenticated ? (
+              <Link
+                href="../../user/setting"
+                onClick={() => setIsPageLoading(true)}
+                className={`flex items-center w-[80%] ${
+                  isCollapsed ? "justify-center" : "space-x-3 md:rounded-md"
+                } cursor-pointer p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md`}
+              >
+                <Avatar>
                   {loading ? (
-                    <div className="flex flex-col gap-1">
-                      <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mb-1" />
-                      <div className="h-3 w-28 bg-gray-200 rounded animate-pulse" />
-                    </div>
-                  ) : !isCollapsed && isAuthenticated ? (
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {user?.full_name}
-                      </p>
-                      <p className="text-xs text-gray-400 truncate">
-                        {user?.email}
-                      </p>
-                    </div>
+                    <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
                   ) : (
+                    <AvatarImage src={user?.picture} alt="User" />
+                  )}
+                </Avatar>
+
+                {loading ? (
+                  <div className="flex flex-col gap-1">
+                    <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mb-1" />
+                    <div className="h-3 w-28 bg-gray-200 rounded animate-pulse" />
+                  </div>
+                ) : !isCollapsed ? (
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">
+                      {user?.full_name}
+                    </p>
+                    <p className="text-xs text-gray-400 truncate">
+                      {user?.email}
+                    </p>
+                  </div>
+                ) : null}
+              </Link>
+            ) : (
+              <div className="flex items-center w-[80%] justify-center">
+                <Link
+                  href="../../auth/login"
+                  onClick={() => setIsPageLoading(true)}
+                  className="flex items-center space-x-2 cursor-pointer p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md"
+                >
+                  <div className="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center">
+                    <LogIn className="h-5 w-5 text-white" />
+                  </div>
+                  {!isCollapsed && (
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-red-600 font-medium truncate">
-                        User Not Login
+                        Click to Login
                       </p>
                     </div>
                   )}
-                </div>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent matchWidth={true} align="end" forceMount>
-                <DropdownMenuGroup className="flex flex-col w-full">
-                  {/* Profile */}
-                  {/* {isAuthenticated && (
-                    <div>
-                      <DropdownMenuItem className="cursor-pointer">
-                        <User className="h-4 w-4" />
-                        <span>Profile</span>
-                      </DropdownMenuItem>
-                    </div>
-                  )}
-                  {/* {isAuthenticated && <DropdownMenuSeparator />} */}
-                  {/* Theme */}
-                  {/* <div className="flex items-center justify-between gap-4 px-2 py-2">
-                    <div
-                      className={`flex items-center gap-2 cursor-pointer ${
-                        !isDarkMode
-                          ? "text-primary font-medium"
-                          : "text-muted-foreground"
-                      }`}
-                      onClick={() => setTheme("light")}
-                    >
-                      <Sun
-                        className={cn(
-                          "h-5 w-5",
-                          !isDarkMode
-                            ? "text-yellow-500 fill-yellow-500"
-                            : "text-muted-foreground"
-                        )}
-                      />
-                      <span>Light</span>
-                    </div>
-
-                    <button
-                      onClick={() => setTheme(isDarkMode ? "light" : "dark")}
-                      className={cn(
-                        "relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                        isDarkMode ? "bg-blue-900" : "bg-yellow-400"
-                      )}
-                    >
-                      <span
-                        className={cn(
-                          "pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform",
-                          isDarkMode ? "translate-x-6" : "translate-x-1"
-                        )}
-                      />
-                    </button>
-
-                    <div
-                      className={`flex items-center gap-2 cursor-pointer ${
-                        isDarkMode
-                          ? "text-primary font-medium"
-                          : "text-muted-foreground"
-                      }`}
-                      onClick={() => setTheme("dark")}
-                    >
-                      <Moon
-                        className={cn(
-                          "h-5 w-5",
-                          isDarkMode
-                            ? "text-blue-400 fill-blue-900"
-                            : "text-muted-foreground"
-                        )}
-                      />
-                      <span>Dark</span>
-                    </div>
-                  </div> */}
-                  {/* <DropdownMenuSeparator /> */}
-                  {/* Log Out */}
-                  {isAuthenticated && (
-                    <div className="cursor-pointer">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <DropdownMenuItem
-                            className="cursor-pointer"
-                            onSelect={(e) => {
-                              // Prevent the dropdown from closing when clicking this item
-                              e.preventDefault();
-                            }}
-                          >
-                            <LogOut className="mr-2 h-4 w-4" />
-                            <span>Log out</span>
-                          </DropdownMenuItem>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>
-                              Are you sure want to sign out ?
-                            </DialogTitle>
-                          </DialogHeader>
-                          <DialogFooter>
-                            <DialogClose asChild>
-                              <Button onClick={() => setDropdownOpen(false)}>
-                                Cancel
-                              </Button>
-                            </DialogClose>
-                            <DialogClose>
-                              <Button
-                                className="bg-red-600 hover:bg-red-500 text-white"
-                                onClick={(e) => handleLogOut(e)}
-                              >
-                                Log Out
-                              </Button>
-                            </DialogClose>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  )}
-                  {!isAuthenticated && (
-                    <Link
-                      href={"../../auth/login"}
-                      onClick={() => setIsPageLoading(true)}
-                    >
-                      <DropdownMenuItem className="cursor-pointer">
-                        <LogIn className="mr-2 h-4 w-4" />
-                        <span>Log in</span>
-                      </DropdownMenuItem>
-                    </Link>
-                  )}
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </Link>
+              </div>
+            )}
 
             {!isCollapsed && (
               <div className="cursor-pointer group p-2 rounded-md transition-colors duration-500 hover:bg-gray-200 dark:hover:bg-gray-700">

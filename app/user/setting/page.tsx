@@ -1,6 +1,5 @@
-
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from "next-themes";
@@ -26,6 +25,7 @@ import {
   Users,
   Globe,
   RefreshCw,
+  LogOut,
 } from "lucide-react";
 import {
   Dialog,
@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
 import { RazorpayService, PlanType } from "@/utils/razorpay";
+import { UserContext } from "@/context/UserContext";
 // Reusable TrustIndicators component
 const TrustIndicators = ({ indicators }) => (
   <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
@@ -229,7 +230,7 @@ const lifetimeFeatures = [
 const premiumFeatures = [
   ...lifetimeFeatures,
   { text: "Priority support" },
-  {text: "All future updates"}
+  { text: "All future updates" },
 ];
 const StripePayment = () => {
   const [loading, setLoading] = useState(false);
@@ -287,7 +288,7 @@ const StripePayment = () => {
     }
   };
   return (
-    <div className="space-y-8">
+      <div className="space-y-8 mt-12">
       <div className="flex items-center gap-3 mb-2">
         <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
           <CreditCard className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -338,7 +339,7 @@ const StripePayment = () => {
           buttonColor="amber"
         />
       </div>
-      
+
       {/* Free Plan */}
       <div className="mt-8 flex justify-left">
         <div className="w-full max-w-md">
@@ -348,7 +349,7 @@ const StripePayment = () => {
             period="/forever"
             features={freeFeatures}
             loading={false}
-            onButtonClick={() => window.location.href = "/dashboard"}
+            onButtonClick={() => (window.location.href = "/dashboard")}
             buttonColor="blue"
             isSubscription={false}
           />
@@ -477,7 +478,7 @@ const FonePayPayment = () => {
     }
   }, [paymentStatus]);
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 mt-12">
       <div className="flex items-center gap-3 mb-2">
         <div className="p-2 bg-[#fdd8d9] dark:bg-[#ce2027]/20 rounded-lg">
           <Smartphone className="h-5 w-5 text-[#ce2027]" />
@@ -529,7 +530,7 @@ const FonePayPayment = () => {
           buttonColor="amber"
         />
       </div>
-      
+
       {/* Free Plan */}
       <div className="mt-8 flex justify-left">
         <div className="w-full max-w-md">
@@ -540,13 +541,13 @@ const FonePayPayment = () => {
             currency="NPR "
             features={freeFeatures}
             loading={false}
-            onButtonClick={() => window.location.href = "/dashboard"}
+            onButtonClick={() => (window.location.href = "/dashboard")}
             buttonColor="red"
             isSubscription={false}
           />
         </div>
       </div>
-      
+
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-black dark:text-white max-w-sm mx-auto">
           <DialogHeader className="text-center items-center">
@@ -620,7 +621,7 @@ const RazorPayPayment = () => {
   const razorpayService = new RazorpayService();
   const handleSubscribe = async (plan: PlanType) => {
     setLoadingPlan(plan);
-    
+
     // Use subscription method for annual plan
     if (plan === "annual") {
       await razorpayService.initiateSubscription({
@@ -652,7 +653,7 @@ const RazorPayPayment = () => {
     }
   };
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 mt-12">
       <div className="flex items-center gap-3 mb-2">
         <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
           <Wallet className="h-5 w-5 text-purple-600 dark:text-purple-400" />
@@ -702,7 +703,7 @@ const RazorPayPayment = () => {
           buttonColor="amber"
         />
       </div>
-      
+
       {/* Free Plan */}
       <div className="mt-8 flex justify-left">
         <div className="w-full max-w-md">
@@ -713,7 +714,7 @@ const RazorPayPayment = () => {
             currency="INR "
             features={freeFeatures}
             loading={false}
-            onButtonClick={() => window.location.href = "/dashboard"}
+            onButtonClick={() => (window.location.href = "/dashboard")}
             buttonColor="purple"
             isSubscription={false}
           />
@@ -724,7 +725,7 @@ const RazorPayPayment = () => {
 };
 const PaymentSettings = () => {
   return (
-    <div className="p-4 md:p-6">
+    <div className="p-4 md:p-6 pt-4">
       <div className="flex flex-col gap-2 mb-8">
         <h2 className="text-2xl font-bold text-black dark:text-white">
           Choose Your Plan
@@ -734,52 +735,61 @@ const PaymentSettings = () => {
           time.
         </p>
       </div>
-      <Tabs defaultValue="stripe" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-8 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+      <Tabs defaultValue="stripe" className="w-full ">
+        <TabsList className="grid w-full grid-cols-3 gap-2 mb-8 p-2 rounded-xl shadow-sm bg-transparent shadow-none">
           <TabsTrigger
             value="stripe"
-            className="flex flex-col items-center gap-1 py-3 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 rounded-md transition-all"
+            className="w-full flex flex-col items-center justify-center gap-1.5 py-3 px-4 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 rounded-lg transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 shadow-sm data-[state=active]:shadow-md border border-transparent data-[state=active]:border-gray-200 dark:data-[state=active]:border-gray-700"
           >
             <div className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5" />
-              <span className="font-medium">Stripe</span>
+              <CreditCard className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <span className="font-semibold text-gray-900 dark:text-gray-100">
+                Stripe
+              </span>
             </div>
-            <span className="text-xs text-gray-600 dark:text-gray-400">
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
               International
             </span>
           </TabsTrigger>
+
           <TabsTrigger
             value="fonepay"
-            className="flex flex-col items-center gap-1 py-3 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 rounded-md transition-all"
+            className="w-full flex flex-col items-center justify-center gap-1.5 py-3 px-4 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 rounded-lg transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 shadow-sm data-[state=active]:shadow-md border border-transparent data-[state=active]:border-gray-200 dark:data-[state=active]:border-gray-700"
           >
             <div className="flex items-center gap-2">
-              <Smartphone className="h-5 w-5" />
-              <span className="font-medium">FonePay</span>
+              <Smartphone className="h-5 w-5 text-green-600 dark:text-green-400" />
+              <span className="font-semibold text-gray-900 dark:text-gray-100">
+                FonePay
+              </span>
             </div>
-            <span className="text-xs text-gray-600 dark:text-gray-400">
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
               Nepal
             </span>
           </TabsTrigger>
+
           <TabsTrigger
             value="razorpay"
-            className="flex flex-col items-center gap-1 py-3 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 rounded-md transition-all"
+            className="w-full flex flex-col items-center justify-center gap-1.5 py-3 px-4 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 rounded-lg transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 shadow-sm data-[state=active]:shadow-md border border-transparent data-[state=active]:border-gray-200 dark:data-[state=active]:border-gray-700"
           >
             <div className="flex items-center gap-2">
-              <Wallet className="h-5 w-5" />
-              <span className="font-medium">RazorPay</span>
+              <Wallet className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              <span className="font-semibold text-gray-900 dark:text-gray-100">
+                RazorPay
+              </span>
             </div>
-            <span className="text-xs text-gray-600 dark:text-gray-400">
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
               India
             </span>
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="stripe" className="mt-0">
+
+        <TabsContent value="stripe">
           <StripePayment />
         </TabsContent>
-        <TabsContent value="fonepay" className="mt-0">
+        <TabsContent value="fonepay" >
           <FonePayPayment />
         </TabsContent>
-        <TabsContent value="razorpay" className="mt-0">
+        <TabsContent value="razorpay" >
           <RazorPayPayment />
         </TabsContent>
       </Tabs>
@@ -900,8 +910,23 @@ const BillingSettings = () => (
 );
 export default function Setting() {
   const router = useRouter();
-  const [activeSection, setActiveSection] = useState("Billing Overview");
+  const [activeSection, setActiveSection] = useState("Payment");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const userContext = useContext(UserContext);
+  const { setIsAuthenticated } = userContext;
+
+  const handleLogOut = async () => {
+    try {
+      await axiosInstance.get("/user/logout");
+      setIsAuthenticated(false);
+      router.push("/auth/login");
+      toast.success("Logged out successfully");
+    } catch (error) {
+      console.error("Error logging out:", error);
+      toast.error("Error logging out");
+    }
+  };
+
   const showContent = () => {
     if (activeSection === "Billing Overview") return <BillingSettings />;
     if (activeSection === "Payment") return <PaymentSettings />;
@@ -956,7 +981,7 @@ export default function Setting() {
                 </span>
               </div>
               <div className="space-y-1">
-                {["Billing Overview", "Payment"].map((item) => (
+                {["Payment", "Billing Overview"].map((item) => (
                   <button
                     key={item}
                     onClick={() => {
@@ -994,12 +1019,24 @@ export default function Setting() {
                 Theme
               </button>
             </div>
+
+            {/* Logout Button */}
+            <div className="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <Button
+                onClick={handleLogOut}
+                variant="outline"
+                className="w-full flex items-center justify-center gap-2 border-red-300 dark:border-red-700 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
+              >
+                <LogOut size={16} />
+                Log Out
+              </Button>
+            </div>
           </div>
         </div>
       </div>
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto pt-16 md:pt-0">{showContent()}</div>
+        <div className="max-w-4xl mx-auto pt-24 md:pt-0">{showContent()}</div>
       </div>
       {/* Mobile Overlay */}
       {sidebarOpen && (

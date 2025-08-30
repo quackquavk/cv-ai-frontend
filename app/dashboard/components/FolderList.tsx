@@ -852,7 +852,13 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
               {selectFolderId === pf.folder_id && (
                 <div className="mt-2 ml-6 border-l  border-gray-600 pl-4 max-w-full truncate">
                   {folderContents[pf.folder_id]?.length ? (
-                    folderContents[pf.folder_id].map((file) => (
+                    folderContents[pf.folder_id]
+                      .sort((a, b) => {
+                        const nameA = (a.doc_name || '').toLowerCase();
+                        const nameB = (b.doc_name || '').toLowerCase();
+                        return nameA.localeCompare(nameB);
+                      })
+                      .map((file) => (
                       <div
                         key={file.doc_id}
                         className="relative flex items-center justify-between p-1 text-gray-800 dark:text-gray-400 ease-in-out duration-150 delay-75 rounded w-full "
@@ -1054,7 +1060,13 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
             {selectFolderId === folder.folder_id && (
               <div className="mt-2 ml-6 border-l  border-gray-600 pl-4 max-w-full truncate">
                 {folderContents[folder.folder_id]?.length ? (
-                  folderContents[folder.folder_id].map((file) => (
+                  folderContents[folder.folder_id]
+                    .sort((a, b) => {
+                      const nameA = (a.doc_name || '').toLowerCase();
+                      const nameB = (b.doc_name || '').toLowerCase();
+                      return nameA.localeCompare(nameB);
+                    })
+                    .map((file) => (
                     <div
                       key={file.doc_id}
                       className="relative flex items-center justify-between p-1 text-gray-800 dark:text-gray-400 ease-in-out duration-150 delay-75 rounded w-full "
