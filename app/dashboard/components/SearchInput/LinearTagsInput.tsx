@@ -1,9 +1,9 @@
 import React, { useState, useEffect, KeyboardEvent, useRef } from "react";
-import { X } from "lucide-react";
+import { X, Crown } from "lucide-react";
 import { PiPlusCircleThin } from "react-icons/pi";
 // import { Input } from "@/components/ui/input";
 
-const LinearTagsInput = ({ tags, setTags, onShiftEnter }) => {
+const LinearTagsInput = ({ tags, setTags, onShiftEnter, onUpgradeToPro, isPremium }) => {
   const [inputValue, setInputValue] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -119,6 +119,13 @@ const LinearTagsInput = ({ tags, setTags, onShiftEnter }) => {
     inputRef.current?.focus();
   };
 
+  const handleUpgradeClick = (e) => {
+    e.stopPropagation();
+    if (onUpgradeToPro) {
+      onUpgradeToPro();
+    }
+  };
+
   return (
     <div className="w-full relative ">
       <div
@@ -155,7 +162,7 @@ const LinearTagsInput = ({ tags, setTags, onShiftEnter }) => {
             </button>
           </span>
         ))}
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 flex-1">
           <div>
             <input
               ref={inputRef}
@@ -189,6 +196,15 @@ const LinearTagsInput = ({ tags, setTags, onShiftEnter }) => {
             </div>
           )}
         </div>
+        
+        {/* Upgrade to Pro Button */}
+        {!isPremium && <button
+          onClick={handleUpgradeClick}
+          className="ml-auto flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-[#ff6600] to-[#283f73] text-white text-sm font-medium rounded-md  transition-all duration-200 shadow-sm hover:shadow-md whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+        >
+          <Crown size={16} />
+          Upgrade to Pro
+        </button>}
       </div>
     </div>
   );

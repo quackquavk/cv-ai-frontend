@@ -26,12 +26,16 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import axiosInstance from "@/utils/axiosConfig";
+import { UserContext } from "@/context/UserContext";
+import { useRouter } from "next/navigation";
 
 const SearchFields = () => {
   const searchContext = useContext(SearchContext);
   const { setSearchData } = searchContext;
   const viewContext = useContext(ViewContext);
   const [tags, setTags] = useState<string[]>([]);
+  const { user } = useContext(UserContext);
+  const router = useRouter();
   // const inputRefs = useRef(null);
   // const addressRef = useRef(null);
   const [formData, setFormData] = useState<IFormInputData>({
@@ -215,6 +219,9 @@ const SearchFields = () => {
     };
     setSearchData(nextPayload);
   };
+  const handleUpgradeToPro = () => {
+    router.push("/user/setting");
+  };
 
   return (
     <div className="w-full mt-3 flex flex-col gap-4 justify-center">
@@ -224,9 +231,11 @@ const SearchFields = () => {
           <div className="justify-start flex py-2 mb-5">
             <div className="flex w-full max-w-full justify-start">
               <LinearTagsInput
+                isPremium={user?.premium}
                 tags={tags}
                 setTags={setTags}
                 onShiftEnter={handleSubmit}
+                onUpgradeToPro={handleUpgradeToPro}
               />
             </div>
           </div>
