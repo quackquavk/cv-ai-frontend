@@ -7,7 +7,7 @@ import { ApiDataProvider } from "./context/ApiDataContext";
 import { SearchProvider } from "./context/SearchContext";
 import { SpinnerProvider } from "./context/SpinnerContext";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import Spinner from "@/components/ui/Spinner/Spinner";
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
@@ -36,7 +36,6 @@ export default function DashboardLayout({
           <SearchProvider>
             <ApiDataProvider>
               <SpinnerProvider>
-                <Spinner />
                 <div className="h-screen flex w-full overflow-hidden relative">
                   {/* Desktop Sidebar */}
                   <div

@@ -68,7 +68,7 @@ export const privateFolderStore = create<PrivateFolderState>((set) => ({
   privateRootId: null,
   setPrivateRootId: (value) => set({ privateRootId: value }),
   privateSubfolders: [],
-  setPrivateSubfolders: (value) => set({ privateSubfolders: value }),
+  setPrivateSubfolders: (value) => {set({ privateSubfolders: value }); console.log("privateSubfolders", value)},
   lastUpdatedFolderId: null,
   setLastUpdatedFolderId: (value) => set({ lastUpdatedFolderId: value }),
 }));

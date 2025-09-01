@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { FaChevronDown } from "react-icons/fa";
 import { RxHamburgerMenu } from "react-icons/rx";
 import axiosInstance from "@/utils/axiosConfig";
@@ -36,7 +36,7 @@ import { useDocumentStore } from "../store";
 import PrivateFolderActions from "./PrivateFolderActions";
 import { privateFolderStore } from "../store";
 import { CirclePlus, FolderLock, FolderOpen, Plus } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery, useQueries } from "@tanstack/react-query";
 import Link from "next/link";
 
 // Skeleton loader component for private files
@@ -152,19 +152,6 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
               name: f.name || f.folder_name,
             }));
           setPrivateSubfolders(subs);
-          // fetch contents for each private subfolder
-          const privateContentsPromises = subs.map((sf) =>
-            axiosInstance
-              .get(`/folder/getFiles/${sf.folder_id}`)
-              .then((res) => ({ [sf.folder_id]: res.data || [] }))
-              .catch(() => ({ [sf.folder_id]: [] }))
-          );
-          const privateContents = await Promise.all(privateContentsPromises);
-          const privateContentsObject = privateContents.reduce(
-            (acc, content) => ({ ...acc, ...content }),
-            {}
-          );
-          setFolderContents((prev) => ({ ...prev, ...privateContentsObject }));
         } else {
           setHasPrivateFolder(false);
         }
@@ -185,65 +172,154 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
     }
   }, [lastUpdatedFolderId]);
 
-  // Fetch public folders and their contents
-  useEffect(() => {
-    const fetchFoldersAndContents = async () => {
-      try {
-        const foldersResponse = await axiosInstance.get("/folder/getAllFolders");
-        let fetchedFolders = foldersResponse.data;
-        
-        // Apply saved order if available
-        if (folderOrder.public.length > 0) {
-          fetchedFolders = [...fetchedFolders].sort((a, b) => {
-            const aIndex = folderOrder.public.indexOf(a.folder_id);
-            const bIndex = folderOrder.public.indexOf(b.folder_id);
-            
-            // If both folders have a defined position, sort by that
-            if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
-            // If only one has a position, it comes first
-            if (aIndex !== -1) return -1;
-            if (bIndex !== -1) return 1;
-            // Otherwise maintain original order
-            return 0;
-          });
-        }
-        
-        setFolders(fetchedFolders);
-        const contentsPromises = fetchedFolders.map((folder) =>
-          axiosInstance
-            .get(`/folder/getFiles/${folder.folder_id}`)
-            .then((response) => ({
-              [folder.folder_id]: response.data || [],
-            }))
-            .catch((error) => {
-              console.error(
-                `Error fetching contents for folder ${folder.folder_id}:`,
-                error
-              );
-              return { [folder.folder_id]: [] };
-            })
-        );
-        const allContents = await Promise.all(contentsPromises);
-        const contentsObject = allContents.reduce(
-          (acc, content) => ({ ...acc, ...content }),
-          {}
-        );
-        setFolderContents((prevContents) => ({
-          ...prevContents,
-          ...contentsObject,
-          // preserve any previously loaded private subfolder contents
-        }));
-      } catch (error) {
-        console.error("Error fetching folders:", error);
+  // Fetch public folders using TanStack Query
+  const {
+    data: fetchedFolders = [],
+    isLoading: foldersLoading,
+  } = useQuery({
+    queryKey: ["folders", "public"],
+    queryFn: async () => {
+      const response = await axiosInstance.get("/folder/getAllFolders");
+      let folders = response.data;
+      
+      // Apply saved order if available
+      if (folderOrder.public.length > 0) {
+        folders = [...folders].sort((a, b) => {
+          const aIndex = folderOrder.public.indexOf(a.folder_id);
+          const bIndex = folderOrder.public.indexOf(b.folder_id);
+          
+          // If both folders have a defined position, sort by that
+          if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+          // If only one has a position, it comes first
+          if (aIndex !== -1) return -1;
+          if (bIndex !== -1) return 1;
+          // Otherwise maintain original order
+          return 0;
+        });
       }
-    };
-    fetchFoldersAndContents();
-  }, [updateFolderList, folderOrder.public]);
+      
+      return folders;
+    },
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+  });
 
-  // Apply saved order to private folders when they're loaded
+  // Update local folders state when query data changes (only if different)
   useEffect(() => {
+    if (fetchedFolders && fetchedFolders.length > 0) {
+      setFolders(prevFolders => {
+        // Only update if the data has actually changed
+        if (JSON.stringify(prevFolders) !== JSON.stringify(fetchedFolders)) {
+          return fetchedFolders;
+        }
+        return prevFolders;
+      });
+    }
+  }, [fetchedFolders]);
+
+  // Fetch folder contents using TanStack Query for each folder
+  const folderContentQueries = useQueries({
+    queries: fetchedFolders.map((folder) => ({
+      queryKey: ["folderFiles", folder.folder_id],
+      queryFn: async () => {
+        const response = await axiosInstance.get(`/folder/getFiles/${folder.folder_id}`);
+        return response.data || [];
+      },
+      staleTime: 1000 * 60 * 2, // Cache for 2 minutes
+      enabled: !!folder.folder_id,
+    })),
+  });
+
+  // Update folderContents when query results change (with stable dependencies)
+  useEffect(() => {
+    const allContents: Record<string, any[]> = {};
+    let hasChanges = false;
+    
+    folderContentQueries.forEach((query, index) => {
+      if (query.data && fetchedFolders[index]) {
+        const folderId = fetchedFolders[index].folder_id;
+        const data = Array.isArray(query.data) ? query.data : [];
+        allContents[folderId] = data;
+        hasChanges = true;
+      }
+    });
+    
+    if (hasChanges) {
+      setFolderContents((prevContents) => {
+        // Only update if there are actual changes
+        const hasRealChanges = Object.keys(allContents).some(folderId => {
+          const prevData = prevContents[folderId] || [];
+          const newData = allContents[folderId] || [];
+          return JSON.stringify(prevData) !== JSON.stringify(newData);
+        });
+        
+        if (hasRealChanges) {
+          return {
+            ...prevContents,
+            ...allContents,
+          };
+        }
+        return prevContents;
+      });
+    }
+  }, [
+    folderContentQueries.map(q => q.isSuccess && q.data ? JSON.stringify(q.data) : '').join('|'),
+    fetchedFolders.map(f => f.folder_id).join(',')
+  ]);
+
+  // Fetch private folder contents using TanStack Query
+  const privateContentQueries = useQueries({
+    queries: privateSubfolders.map((subfolder) => ({
+      queryKey: ["folderFiles", subfolder.folder_id],
+      queryFn: async () => {
+        const response = await axiosInstance.get(`/folder/getFiles/${subfolder.folder_id}`);
+        return response.data || [];
+      },
+      staleTime: 1000 * 60 * 2, // Cache for 2 minutes
+      enabled: !!subfolder.folder_id && hasPrivateFolder,
+    })),
+  });
+
+  // Update private folder contents when query results change (with stable dependencies)
+  useEffect(() => {
+    const privateContents: Record<string, any[]> = {};
+    let hasChanges = false;
+    
+    privateContentQueries.forEach((query, index) => {
+      if (query.data && privateSubfolders[index]) {
+        const folderId = privateSubfolders[index].folder_id;
+        const data = Array.isArray(query.data) ? query.data : [];
+        privateContents[folderId] = data;
+        hasChanges = true;
+      }
+    });
+    
+    if (hasChanges) {
+      setFolderContents((prevContents) => {
+        // Only update if there are actual changes
+        const hasRealChanges = Object.keys(privateContents).some(folderId => {
+          const prevData = prevContents[folderId] || [];
+          const newData = privateContents[folderId] || [];
+          return JSON.stringify(prevData) !== JSON.stringify(newData);
+        });
+        
+        if (hasRealChanges) {
+          return {
+            ...prevContents,
+            ...privateContents,
+          };
+        }
+        return prevContents;
+      });
+    }
+  }, [
+    privateContentQueries.map(q => q.isSuccess && q.data ? JSON.stringify(q.data) : '').join('|'),
+    privateSubfolders.map(f => f.folder_id).join(',')
+  ]);
+
+  // Apply saved order to private folders when they're loaded (render-time sorting to avoid state loops)
+  const displayPrivateSubfolders = useMemo(() => {
     if (privateSubfolders.length > 0 && folderOrder.private.length > 0) {
-      const orderedSubfolders = [...privateSubfolders].sort((a, b) => {
+      return [...privateSubfolders].sort((a, b) => {
         const aIndex = folderOrder.private.indexOf(a.folder_id);
         const bIndex = folderOrder.private.indexOf(b.folder_id);
         
@@ -252,9 +328,8 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
         if (bIndex !== -1) return 1;
         return 0;
       });
-      
-      setPrivateSubfolders(orderedSubfolders);
     }
+    return privateSubfolders;
   }, [privateSubfolders, folderOrder.private]);
 
   const handleDialogue = (state: boolean) => {
@@ -286,29 +361,39 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
     actionType: "copy" | "move",
     toFolderId?: string
   ) => {
-    // Only remove the file from current folder if it was moved (not copied)
+    // Use TanStack Query cache updates for instant UI updates
     if (actionType === "move") {
-      setFolderContents((prevFolderContents) => {
-        const updatedFromFolder =
-          prevFolderContents[fromFolderId]?.filter(
-            (f) => f.doc_id !== file.doc_id
-          ) || [];
-        return {
-          ...prevFolderContents,
-          [fromFolderId]: updatedFromFolder,
-        };
-      });
+      // Remove file from source folder cache
+      queryClient.setQueryData(
+        ["folderFiles", fromFolderId],
+        (oldData: any) => {
+          if (!oldData) return oldData;
+          return oldData.filter((f: any) => f.doc_id !== file.doc_id);
+        }
+      );
     }
-    // Refresh target private subfolder contents (if provided)
+    
+    // Add file to target folder cache (for both copy and move)
     if (toFolderId) {
-      await refetchFolderFiles(toFolderId);
+      queryClient.setQueryData(
+        ["folderFiles", toFolderId],
+        (oldData: any) => {
+          if (!oldData) return [file];
+          // Check if file already exists to avoid duplicates
+          const fileExists = oldData.some((f: any) => f.doc_id === file.doc_id);
+          if (fileExists) return oldData;
+          return [...oldData, file];
+        }
+      );
     }
-    // Trigger document refetch to ensure consistency across views
+    
+    // Invalidate document queries for ListView/GridView updates
+    queryClient.invalidateQueries({
+      queryKey: ["documents"],
+    });
+    
+    // Trigger document refetch flag for components that still use it
     setShouldRefetchDocuments(true);
-    // For move operations from public folders, trigger folder list update
-    if (actionType === "move") {
-      setUpdateFolderList((prev) => !prev);
-    }
   };
 
   const toggleDropDown = async (folderId: string) => {
@@ -378,63 +463,117 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
       toast.error("File already in same folder");
       return;
     }
+    
+    // Optimistic update - update cache immediately
+    queryClient.setQueryData(
+      ["folderFiles", fromFolderId],
+      (oldData: any) => {
+        if (!oldData) return oldData;
+        return oldData.filter((f: any) => f.doc_id !== file.doc_id);
+      }
+    );
+    
+    queryClient.setQueryData(
+      ["folderFiles", toFolderId],
+      (oldData: any) => {
+        if (!oldData) return [file];
+        return [...oldData, file];
+      }
+    );
+    
     try {
       await axiosInstance.post(`/document/move?to_folder_id=${toFolderId}`, {
         document_ids: [file.doc_id],
       });
-      // Update folderContents state
-      setFolderContents((prevFolderContents) => {
-        // Remove file from the source folder
-        const updatedFromFolder = (
-          prevFolderContents[fromFolderId] || []
-        ).filter((f) => f.doc_id !== file.doc_id);
-        // Add file to the target folder
-        const updatedToFolder = [
-          ...(prevFolderContents[toFolderId] || []),
-          file,
-        ];
-        return {
-          ...prevFolderContents,
-          [fromFolderId]: updatedFromFolder,
-          [toFolderId]: updatedToFolder,
-        };
+      
+      // Invalidate document queries for ListView/GridView updates
+      queryClient.invalidateQueries({
+        queryKey: ["documents"],
       });
+      
       setShouldRefetchDocuments(true);
       toast.success("File moved successfully!");
     } catch (error) {
       console.error("Error moving file:", error);
       toast.error("Failed to move the file. Please try again.");
+      
+      // Revert optimistic update on error
+      queryClient.setQueryData(
+        ["folderFiles", fromFolderId],
+        (oldData: any) => {
+          if (!oldData) return [file];
+          return [...oldData, file];
+        }
+      );
+      
+      queryClient.setQueryData(
+        ["folderFiles", toFolderId],
+        (oldData: any) => {
+          if (!oldData) return oldData;
+          return oldData.filter((f: any) => f.doc_id !== file.doc_id);
+        }
+      );
     } finally {
       setDraggedFile(null);
     }
   };
 
   const handleMove = async (file) => {
+    // Optimistic update - update cache immediately
+    queryClient.setQueryData(
+      ["folderFiles", selectFolderId],
+      (oldData: any) => {
+        if (!oldData) return oldData;
+        return oldData.filter((f: any) => f.doc_id !== file.doc_id);
+      }
+    );
+    
+    queryClient.setQueryData(
+      ["folderFiles", folderId],
+      (oldData: any) => {
+        if (!oldData) return [file];
+        return [...oldData, file];
+      }
+    );
+    
     try {
       await axiosInstance.post(`/document/move?to_folder_id=${folderId}`, {
         document_ids: [file.doc_id],
       });
-      setFolderContents((prevFolderContents) => {
-        const updatedFromFolder = (
-          prevFolderContents[selectFolderId] || []
-        ).filter((f) => f.doc_id !== file.doc_id);
-        const updatedToFolder = [...(prevFolderContents[folderId] || []), file];
-        return {
-          ...prevFolderContents,
-          [selectFolderId]: updatedFromFolder,
-          [folderId]: updatedToFolder,
-        };
+      
+      // Invalidate document queries for ListView/GridView updates
+      queryClient.invalidateQueries({
+        queryKey: ["documents"],
       });
+      
       setShouldRefetchDocuments(true);
       toast.success("File moved successfully!");
     } catch (error) {
       console.error("Error !!", error);
       toast.error("Failed to move the file. Please try again.");
+      
+      // Revert optimistic update on error
+      queryClient.setQueryData(
+        ["folderFiles", selectFolderId],
+        (oldData: any) => {
+          if (!oldData) return [file];
+          return [...oldData, file];
+        }
+      );
+      
+      queryClient.setQueryData(
+        ["folderFiles", folderId],
+        (oldData: any) => {
+          if (!oldData) return oldData;
+          return oldData.filter((f: any) => f.doc_id !== file.doc_id);
+        }
+      );
     }
   };
 
   // Helper function to reorder an array
   const reorderArray = (array, sourceId, targetId, position) => {
+   
     const newArray = [...array];
     const sourceIndex = newArray.findIndex(item => item.folder_id === sourceId);
     const targetIndex = newArray.findIndex(item => item.folder_id === targetId);
@@ -530,8 +669,8 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
         reorderArray(prevFolders, sourceFolderId, targetFolderId, folderDragOver.position)
       ) ;
     } else if (type === 'private') {
-      setPrivateSubfolders(prevSubfolders => 
-        reorderArray(prevSubfolders, sourceFolderId, targetFolderId, folderDragOver.position) 
+      setPrivateSubfolders(
+        reorderArray(privateSubfolders, sourceFolderId, targetFolderId, folderDragOver.position) 
       );
     }
     
@@ -744,7 +883,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
           </div>
         )}
         {hasPrivateFolder &&
-          privateSubfolders.map((pf) => (
+          displayPrivateSubfolders.map((pf) => (
             <div
               key={pf.folder_id}
               className={`mb-4 transition-all duration-200 relative ${

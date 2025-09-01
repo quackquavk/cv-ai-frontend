@@ -7,15 +7,14 @@ import {
   useEffect,
 } from "react";
 import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-// import { ApiDataContext } from "../context/ApiDataContext";
-import { SpinnerContext } from "../context/SpinnerContext";
+import { SpinnerContext, type UploadFile } from "../context/SpinnerContext";
 import { IoIosCloudUpload } from "react-icons/io";
 import FolderCreation from "./FolderCreation";
 import FolderList from "./FolderList";
 import Link from "next/link";
 import type { IFolderData } from "@/interfaces/FolderData";
-// import { fetchUpdatedApiData } from "../utils/updatedInitialData";
 import {
   ChevronLeft,
   ChevronRight,
@@ -25,6 +24,10 @@ import {
   FolderOpen,
   FolderLock,
   Plus,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,7 +44,6 @@ import {
   SidebarHeader,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import DialogueComponent from "./DialogueComponent";
 import { MdFolderZip } from "react-icons/md";
@@ -50,12 +52,12 @@ import {
   publicFolderStore,
   privateFolderStore,
 } from "../store";
-// import { useTheme } from "next-themes";
-// import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserContext } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
+
+const MAX_CONCURRENT_UPLOADS = 3; // Maximum number of concurrent uploads
 
 const SideNavBar = ({
   isCollapsed,
@@ -63,13 +65,20 @@ const SideNavBar = ({
   isMobile = false,
   onMobileClose = () => {},
 }) => {
-  // const context = useContext(ApiDataContext);
   const spinnerContext = useContext(SpinnerContext);
   const userContext = useContext(UserContext);
   const { user, loading, isAuthenticated, setIsAuthenticated } = userContext;
-  // const setApiData = context?.setApiData;
+
   const setUploading = spinnerContext?.setUploading;
   const uploading = spinnerContext?.uploading;
+  const uploadFiles = spinnerContext?.uploadFiles || [];
+  const addUploadFile = spinnerContext?.addUploadFile;
+  const updateUploadFile = spinnerContext?.updateUploadFile;
+  const removeUploadFile = spinnerContext?.removeUploadFile;
+  const clearCompletedFiles = spinnerContext?.clearCompletedFiles;
+  const retryUpload = spinnerContext?.retryUpload;
+  const cancelUpload = spinnerContext?.cancelUpload;
+
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [updateFolderList, setUpdateFolderList] = useState(false);
   const [folderListData, setFolderListData] = useState<IFolderData[]>([]);
@@ -78,34 +87,31 @@ const SideNavBar = ({
   const [dialogOpen, setDialogeOpen] = useState(false);
   const { selectFolderId } = folderSelectStore();
   const { isFolderListOpen } = publicFolderStore();
-  const { hasPrivateFolder, setHasPrivateFolder, privateSubfolders } = privateFolderStore();
+  const { hasPrivateFolder, setHasPrivateFolder, privateSubfolders } =
+    privateFolderStore();
   const [localFolderId, setLocalFolderId] = useState<string | null>(
     selectFolderId
   );
   const [isPageLoading, setIsPageLoading] = useState<boolean>(false);
-
   const queryClient = useQueryClient();
   const router = useRouter();
-
-  // For Theme Change
-  // const { theme, setTheme, systemTheme } = useTheme();
 
   const handleFolderCreated = () => {
     setUpdateFolderList((prev) => !prev);
   };
+
   const handleDialogue = (state) => {
     setDialogeOpen(state);
   };
 
   useEffect(() => {
-    // Sync local state with external `selectFolderId` when it changes
     setLocalFolderId(selectFolderId);
     setSelectedFolderId(selectFolderId);
   }, [selectFolderId]);
 
   const handleValueChange = (value: string) => {
     setLocalFolderId(value);
-    setSelectedFolderId(value); // Update the local state to reflect manual selection
+    setSelectedFolderId(value);
   };
 
   useEffect(() => {
@@ -114,9 +120,13 @@ const SideNavBar = ({
 
   const displayedFolderName = () => {
     if (!localFolderId) return "Uploading to....";
-    const publicName = folderListData.find((item: any) => item.folder_id === localFolderId)?.folder_name;
+    const publicName = folderListData.find(
+      (item: any) => item.folder_id === localFolderId
+    )?.folder_name;
     if (publicName) return publicName;
-    const privateName = privateSubfolders.find((pf) => pf.folder_id === localFolderId)?.name;
+    const privateName = privateSubfolders.find(
+      (pf) => pf.folder_id === localFolderId
+    )?.name;
     return privateName || "Unknown Folder";
   };
 
@@ -135,7 +145,6 @@ const SideNavBar = ({
     folderList();
   }, [updateFolderList]);
 
-  // Check if user has private folder on component mount
   useEffect(() => {
     const checkPrivateFolder = async () => {
       if (!isAuthenticated) return;
@@ -150,61 +159,225 @@ const SideNavBar = ({
     checkPrivateFolder();
   }, [isAuthenticated, setHasPrivateFolder]);
 
+  // Helper function to format file size
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return "0 Bytes";
+
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
+
   const handleFileUpload = async (files: FileList) => {
     if (!files || files.length === 0) return;
     if (!isAuthenticated) {
       router.push("../../auth/login");
       return;
     }
-    const formData = new FormData();
-    Array.from(files).forEach((file) => {
-      formData.append("files", file);
-    });
-    try {
-      if (!selectedFolderId) {
-        toast("No Folder selected", {
-          description: "Please select a Folder first and then upload files",
-        });
-        return;
-      }
-
-      setUploading(true);
-      const response = await axiosInstance.post(
-        `/document/document?folder_id=${selectedFolderId}`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
-      if (response.status === 200) {
-        toast("Uploaded successfully", {
-          description: "The file has been uploaded successfully",
-        });
-
-        // Invalidate and refetch ListView data
-        queryClient.invalidateQueries({
-          queryKey: ["documents", selectedFolderId],
-        });
-        queryClient.invalidateQueries({
-          queryKey: ["folderFiles", selectedFolderId],
-        });
-
-        // update lists after upload
-        setUpdateFolderList((prev) => !prev);
-      } else {
-        toast("Upload failed", {
-          description: "Failed to upload files ",
-        });
-      }
-    } catch (error) {
-      console.error("Error uploading files:", error);
-      toast("Upload failed", {
-        description: error.response.data.detail,
+    if (!selectedFolderId) {
+      toast("No Folder selected", {
+        description: "Please select a Folder first and then upload files",
       });
-    } finally {
-      setUploading(false);
+      return;
+    }
+
+    setUploading?.(true);
+
+    // Process each file individually
+    const fileArray = Array.from(files);
+    let completedCount = 0; // Track completed uploads
+    let errorCount = 0; // Track failed uploads
+
+    const uploadQueue = fileArray.map((file) => {
+      const fileId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+      // Add file to upload queue
+      addUploadFile?.({
+        id: fileId,
+        name: file.name,
+        progress: 0,
+        status: "queued",
+        size: file.size,
+        type: file.type,
+      });
+
+      return { file, fileId };
+    });
+
+    let activeUploads = 0;
+
+    // Function to check if all uploads are complete
+    const checkAllComplete = () => {
+      const totalProcessed = completedCount + errorCount;
+      if (totalProcessed === fileArray.length) {
+        setUploading?.(false); // ✅ Reset uploading state when all done
+
+        // Show summary toast for multiple files
+        if (fileArray.length > 1) {
+          if (errorCount === 0) {
+            toast("All files uploaded successfully", {
+              description: `${fileArray.length} files have been uploaded and processed`,
+            });
+          } else {
+            toast("Upload completed with errors", {
+              description: `${completedCount} files uploaded, ${errorCount} failed`,
+            });
+          }
+        }
+
+        // Auto-clear completed files after 5 seconds
+        setTimeout(() => {
+          clearCompletedFiles?.();
+        }, 5000);
+      }
+    };
+
+    // Function to process the upload queue
+    const processQueue = async () => {
+      if (uploadQueue.length === 0 || activeUploads >= MAX_CONCURRENT_UPLOADS)
+        return;
+
+      const { file, fileId } = uploadQueue.shift()!;
+      activeUploads++;
+
+      // Update status to uploading
+      updateUploadFile?.(fileId, { status: "uploading" });
+
+      try {
+        const formData = new FormData();
+        formData.append("files", file);
+
+        // Start upload progress simulation
+        const startTime = Date.now();
+        const progressInterval = setInterval(() => {
+          // Simulate progress during upload
+          const elapsed = Date.now() - startTime;
+          const simulatedProgress = Math.min(90, Math.floor(elapsed / 300)); // Reach 90% in about 30 seconds
+
+          updateUploadFile?.(fileId, {
+            progress: simulatedProgress,
+            estimatedTimeRemaining: Math.max(
+              1,
+              Math.floor((100 - simulatedProgress) * 0.3)
+            ),
+          });
+        }, 1000);
+
+        const response = await axiosInstance.post(
+          `/document/document?folder_id=${selectedFolderId}`,
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+            onUploadProgress: (progressEvent) => {
+              if (progressEvent.total) {
+                const progress = Math.round(
+                  (progressEvent.loaded * 100) / progressEvent.total
+                );
+                updateUploadFile?.(fileId, {
+                  progress: Math.min(progress, 90), // Keep at 90% until API response
+                  status: progress >= 90 ? "processing" : "uploading",
+                  processingStage:
+                    progress >= 90 ? "AI Processing" : "Uploading",
+                });
+              }
+            },
+          }
+        );
+
+        // Clear progress simulation
+        clearInterval(progressInterval);
+
+        if (response.status === 200) {
+          // File successfully uploaded and processed
+          updateUploadFile?.(fileId, {
+            progress: 100,
+            status: "completed",
+            processingStage: "Completed",
+          });
+
+          completedCount++; // ✅ Increment completed count
+
+          // Show success toast only for single file
+          if (fileArray.length === 1) {
+            toast("Uploaded successfully", {
+              description: `${file.name} has been uploaded and processed`,
+            });
+          }
+
+          // Optimistically update cache for instant UI updates
+          queryClient.setQueryData(
+            ["folderFiles", selectedFolderId],
+            (oldData: any) => {
+              if (!oldData) return oldData;
+              const newFile = {
+                doc_id: response.data.doc_id || `temp-${fileId}`,
+                doc_name: file.name,
+                created_at: new Date().toISOString(),
+                // Add other properties as needed
+              };
+              return [...oldData, newFile];
+            }
+          );
+
+          // Also update the documents cache for ListView/GridView
+          queryClient.invalidateQueries({
+            queryKey: ["documents", selectedFolderId],
+          });
+        } else {
+          updateUploadFile?.(fileId, {
+            status: "error",
+            error: "Upload failed",
+            processingStage: undefined,
+          });
+          errorCount++; // ✅ Increment error count
+        }
+      } catch (error) {
+        console.error(`Error uploading ${file.name}:`, error);
+        updateUploadFile?.(fileId, {
+          status: "error",
+          error: error.response?.data?.detail || "Upload failed",
+          processingStage: undefined,
+        });
+        errorCount++; // ✅ Increment error count
+      } finally {
+        activeUploads--;
+
+        // ✅ Check if all uploads are complete after each file
+        checkAllComplete();
+
+        // Process next file in queue
+        processQueue();
+      }
+    };
+
+    // Start initial uploads
+    for (
+      let i = 0;
+      i < Math.min(MAX_CONCURRENT_UPLOADS, uploadQueue.length);
+      i++
+    ) {
+      processQueue();
     }
   };
+
+
+  // Hook to check if all uploads are complete
+  // useEffect(() => {
+  //   console.log("uploadFiles", uploadFiles);
+  //   console.log("uploading", uploading);
+  //   const activeFiles = uploadFiles.filter(
+  //     (f) =>
+  //       f.status === "uploading" ||
+  //       f.status === "processing" ||
+  //       f.status === "queued"
+  //   );
+
+  //   if (uploading && activeFiles.length === 0 && uploadFiles.length > 0) {
+  //     setUploading?.(false);
+  //   }
+  // }, [uploadFiles, uploading]);
 
   const handleFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) handleFileUpload(event.target.files);
@@ -236,40 +409,6 @@ const SideNavBar = ({
       handleFileUpload(event.dataTransfer.files);
     }
   };
-
-  // console.log("ImageURL", user.picture);
-
-  // // Private folder functions
-  // const handleCreatePrivateFolder = async () => {
-  //   if (!isAuthenticated) {
-  //     toast("Authentication required", {
-  //       description: "Please log in to create a private folder",
-  //     });
-  //     return;
-  //   }
-
-  //   setIsCreatingPrivateFolder(true);
-  //   try {
-  //     const response = await axiosInstance.post("/private_folder/createPrivateFolder");
-  //     if (response.status === 200) {
-  //       setHasPrivateFolder(true);
-  //       setUpdateFolderList((prev) => !prev); // Refresh folder list to show private folder
-  //       toast("Private folder created", {
-  //         description: "Your private folder has been created successfully",
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.error("Error creating private folder:", error);
-  //     toast("Failed to create private folder", {
-  //       description: error.response?.data?.detail || "An error occurred",
-  //     });
-  //   } finally {
-  //     setIsCreatingPrivateFolder(false);
-  //   }
-  // };
-
-  // const isDarkMode =
-  //   theme === "dark" || (theme === "system" && systemTheme === "dark");
 
   return (
     <div className={`h-full w-full ${isMobile ? "block" : ""}`}>
@@ -307,9 +446,9 @@ const SideNavBar = ({
         )}
 
         {/* Fixed Header */}
-        <SidebarHeader className="sticky top-0 z-10  pt-2">
+        <SidebarHeader className="sticky top-0 z-10 pt-2">
           {!isCollapsed ? (
-            <div className="flex items-center px-4  justify-center w-full gap-3">
+            <div className="flex items-center px-4 justify-center w-full gap-3">
               <div className="w-14 rounded-full overflow-hidden">
                 <Image
                   src="/assets/logo.png"
@@ -346,7 +485,6 @@ const SideNavBar = ({
           } flex flex-col flex-1 overflow-hidden`}
         >
           {/* Fixed Drop Files Section - Only show when expanded */}
-
           <div
             className={`${
               isCollapsed && "hidden"
@@ -358,13 +496,12 @@ const SideNavBar = ({
               onDragLeave={handleDragLeave}
               onDragOver={handleDragOver}
               onClick={() => document.getElementById("file-input")?.click()}
-              className={`relative flex flex-col cursor-pointer items-center justify-center h-22 border-2 border-dashed border-gray-800 dark:border-white p-4 rounded-md  transition-all duration-300 ease-in-out ${
+              className={`relative flex flex-col cursor-pointer items-center justify-center h-22 border-2 border-dashed border-gray-800 dark:border-white p-4 rounded-md transition-all duration-300 ease-in-out ${
                 isDragging ? "opacity-50 backdrop-blur-sm" : "opacity-100"
               }`}
             >
               <div className="flex flex-col items-center h-full w-full justify-center">
                 <IoIosCloudUpload
-                  // color="black"
                   size={40}
                   className="text-black dark:text-white"
                 />
@@ -382,11 +519,263 @@ const SideNavBar = ({
             />
           </div>
 
-          {/* Fixed Folder Selection - Only show when expanded */}
+          {/* Upload Progress Queue */}
+          {uploadFiles.length > 0 && (
+            <div className="w-full px-4 pb-2">
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm max-h-64 overflow-y-auto">
+                {/* Header */}
+                <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Upload Queue ({uploadFiles.length})
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {uploadFiles.some((f) => f.status === "completed") && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearCompletedFiles}
+                        className="text-xs h-6 px-2"
+                      >
+                        Clear completed
+                      </Button>
+                    )}
+                    {uploadFiles.some((f) => f.status === "error") && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() =>
+                          uploadFiles
+                            .filter((f) => f.status === "error")
+                            .forEach((f) => retryUpload?.(f.id))
+                        }
+                        className="text-xs h-6 px-2"
+                      >
+                        Retry all
+                      </Button>
+                    )}
+                  </div>
+                </div>
 
+                {/* File List */}
+                <div className="p-2 space-y-2">
+                  {uploadFiles.map((file) => (
+                    <div
+                      key={file.id}
+                      className="flex flex-col p-2 rounded-md bg-gray-50 dark:bg-gray-700/50"
+                    >
+                      <div className="flex items-center space-x-3">
+                        {/* Status Icon */}
+                        <div className="flex-shrink-0">
+                          {file.status === "queued" && (
+                            <div className="w-4 h-4 rounded-full border-2 border-gray-400"></div>
+                          )}
+                          {file.status === "uploading" && (
+                            <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
+                          )}
+                          {file.status === "processing" && (
+                            <div className="relative">
+                              <Loader2 className="w-4 h-4 text-yellow-500 animate-spin" />
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full"></div>
+                              </div>
+                            </div>
+                          )}
+                          {file.status === "completed" && (
+                            <CheckCircle className="w-4 h-4 text-green-500" />
+                          )}
+                          {file.status === "error" && (
+                            <AlertCircle className="w-4 h-4 text-red-500" />
+                          )}
+                        </div>
+
+                        {/* File Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <p className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">
+                              {file.name}
+                            </p>
+                            <div className="flex items-center space-x-2">
+                              {file.estimatedTimeRemaining !== undefined &&
+                                file.status !== "completed" && (
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    ~{file.estimatedTimeRemaining}s
+                                  </span>
+                                )}
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {file.status === "error"
+                                  ? "Failed"
+                                  : `${file.progress}%`}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Progress Bar */}
+                          {file.status !== "error" && (
+                            <div className="relative">
+                              <Progress
+                                value={file.progress}
+                                className="h-1.5"
+                              />
+                              {file.status === "processing" && (
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-400/30 to-transparent animate-[shimmer_2s_infinite]"></div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Status Text */}
+                          <div className="flex items-center justify-between mt-1">
+                            {file.status === "queued" && (
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                Waiting to upload...
+                              </p>
+                            )}
+                            {file.status === "uploading" && (
+                              <p className="text-xs text-blue-600 dark:text-blue-400">
+                                Uploading...
+                              </p>
+                            )}
+                            {file.status === "processing" && (
+                              <p className="text-xs text-yellow-600 dark:text-yellow-400">
+                                {file.processingStage ||
+                                  "Processing with AI..."}
+                              </p>
+                            )}
+                            {file.status === "completed" && (
+                              <p className="text-xs text-green-600 dark:text-green-400">
+                                Completed
+                              </p>
+                            )}
+                            {file.status === "error" && file.error && (
+                              <p className="text-xs text-red-500 dark:text-red-400 truncate max-w-[70%]">
+                                {file.error}
+                              </p>
+                            )}
+
+                            {/* Action Buttons */}
+                            <div className="flex space-x-1">
+                              {file.status === "error" && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => retryUpload?.(file.id)}
+                                  className="h-5 w-5 p-0"
+                                  title="Retry upload"
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="12"
+                                    height="12"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <path d="M1 4v6h6M23 20v-6h-6" />
+                                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15" />
+                                  </svg>
+                                </Button>
+                              )}
+                              {(file.status === "uploading" ||
+                                file.status === "processing") && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => cancelUpload?.(file.id)}
+                                  className="h-5 w-5 p-0"
+                                  title="Cancel upload"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              )}
+                              {(file.status === "completed" ||
+                                file.status === "error") && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeUploadFile?.(file.id)}
+                                  className="h-5 w-5 p-0"
+                                  title="Remove from list"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* File Size */}
+                      {file.size && (
+                        <div className="flex justify-end mt-1">
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            {formatFileSize(file.size)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Overall Progress */}
+                {uploadFiles.length > 1 && (
+                  <div className="p-3 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                        Overall Progress
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {Math.round(
+                          uploadFiles.reduce(
+                            (sum, file) => sum + file.progress,
+                            0
+                          ) / uploadFiles.length
+                        )}
+                        %
+                      </span>
+                    </div>
+                    <Progress
+                      value={
+                        uploadFiles.reduce(
+                          (sum, file) => sum + file.progress,
+                          0
+                        ) / uploadFiles.length
+                      }
+                      className="h-1.5"
+                    />
+                    <div className="flex justify-between mt-1">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {
+                          uploadFiles.filter((f) => f.status === "completed")
+                            .length
+                        }{" "}
+                        of {uploadFiles.length} completed
+                      </span>
+                      {uploadFiles.some((f) => f.status === "error") && (
+                        <span className="text-xs text-red-500 dark:text-red-400">
+                          {
+                            uploadFiles.filter((f) => f.status === "error")
+                              .length
+                          }{" "}
+                          failed
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Fixed Folder Selection - Only show when expanded */}
           <div
-            className={` ${isCollapsed && "hidden"}
-        w-full px-4 py-4 sticky top-[120px] z-10`}
+            className={` ${
+              isCollapsed && "hidden"
+            } w-full px-4 py-4 sticky top-[120px] z-10`}
           >
             <Select
               value={localFolderId || ""}
@@ -397,40 +786,41 @@ const SideNavBar = ({
                   {displayedFolderName()}
                 </SelectValue>
               </SelectTrigger>
-               <SelectContent>
-                 <SelectGroup>
-                   {/* Public Folders */}
-                   {folderListData.map((item, index) => (
-                     <div key={`pub-${index}`} className="">
-                       <SelectItem value={item.folder_id}>
-                         <div className="flex items-center space-x-2">
-                           <FolderOpen className="h-4 w-4 text-gray-600" />
-                           <span>{item.folder_name}</span>
-                         </div>
-                       </SelectItem>
-                     </div>
-                   ))}
-                   {/* Private Subfolders */}
-                   {hasPrivateFolder && privateSubfolders.map((pf, index) => (
-                     <div key={`pri-${index}`} className="">
-                       <SelectItem value={pf.folder_id}>
-                         <div className="flex items-center space-x-2">
-                           <FolderLock className="h-4 w-4 text-gray-600" />
-                           <span>{pf.name}</span>
-                         </div>
-                       </SelectItem>
-                     </div>
-                   ))}
-                 </SelectGroup>
-               </SelectContent>
+              <SelectContent>
+                <SelectGroup>
+                  {/* Public Folders */}
+                  {folderListData.map((item, index) => (
+                    <div key={`pub-${index}`} className="">
+                      <SelectItem value={item.folder_id}>
+                        <div className="flex items-center space-x-2">
+                          <FolderOpen className="h-4 w-4 text-gray-600" />
+                          <span>{item.folder_name}</span>
+                        </div>
+                      </SelectItem>
+                    </div>
+                  ))}
+                  {/* Private Subfolders */}
+                  {hasPrivateFolder &&
+                    privateSubfolders.map((pf, index) => (
+                      <div key={`pri-${index}`} className="">
+                        <SelectItem value={pf.folder_id}>
+                          <div className="flex items-center space-x-2">
+                            <FolderLock className="h-4 w-4 text-gray-600" />
+                            <span>{pf.name}</span>
+                          </div>
+                        </SelectItem>
+                      </div>
+                    ))}
+                </SelectGroup>
+              </SelectContent>
             </Select>
           </div>
 
           {/* Fixed Folder Creation - Only show when expanded */}
-
           <div
-            className={`${isCollapsed && "hidden"}
-         w-full px-4 sticky top-[180px] z-10`}
+            className={`${
+              isCollapsed && "hidden"
+            } w-full px-4 sticky top-[180px] z-10`}
           >
             <FolderCreation
               onFolderCreated={handleFolderCreated}
@@ -439,7 +829,6 @@ const SideNavBar = ({
           </div>
 
           {/* Scrollable Folder List - Only show when expanded */}
-
           <div
             className={`${
               isCollapsed && "hidden"
@@ -451,7 +840,6 @@ const SideNavBar = ({
                   updateFolderList={updateFolderList}
                   setUpdateFolderList={setUpdateFolderList}
                 />
-
                 <button
                   className="bg-inherit px-0 items-center py-1 flex justify-start hover:opacity-60 w-full"
                   onClick={() => {
@@ -479,9 +867,7 @@ const SideNavBar = ({
         )}
 
         {/* Fixed Profile and Settings Section */}
-        <SidebarFooter
-          className={`sticky bottom-0 z-10 pb-6 pt-2 px-4 p-3 w-full`}
-        >
+        <SidebarFooter className="sticky bottom-0 z-10 pb-6 pt-2 px-4 p-3 w-full">
           <Card
             className={`w-[100%] flex items-center px-2 justify-between ${
               isCollapsed && " border-none"
@@ -503,7 +889,6 @@ const SideNavBar = ({
                     <AvatarImage src={user?.picture} alt="User" />
                   )}
                 </Avatar>
-
                 {loading ? (
                   <div className="flex flex-col gap-1">
                     <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mb-1" />
@@ -540,7 +925,6 @@ const SideNavBar = ({
                 </Link>
               </div>
             )}
-
             {!isCollapsed && (
               <div className="cursor-pointer group p-2 rounded-md transition-colors duration-500 hover:bg-gray-200 dark:hover:bg-gray-700">
                 <Link
