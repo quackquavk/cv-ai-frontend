@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /user/setting/
+Disallow: /_next/
+Disallow: /private/
+
+Sitemap: https://app.cvai.dev/sitemap.xml
