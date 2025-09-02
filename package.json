@@ -5,9 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run sitemap:generate && next build",
+    "build:prod": "NODE_ENV=production npm run sitemap:generate && next build",
+    "build:local": "npm run sitemap:generate:local && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "sitemap:generate": "node scripts/generate-sitemap.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

@@ -35,7 +35,7 @@ const LoginPage = () => {
 
   const handleLogin = async () => {
     setLoader(true);
-    const googleLogin = process.env.NEXT_PUBLIC_GOOGLE_LOGIN;
+    const googleLogin = process.env.NEXT_PUBLIC_API_BASE_URL + "/user/google/login";
     window.location.href = googleLogin;
   };
 
