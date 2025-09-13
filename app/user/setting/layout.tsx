@@ -13,6 +13,7 @@ import {
   CreditCard,
   Palette,
   Receipt,
+  MessageCircle,
 } from "lucide-react";
 import axiosInstance from "@/utils/axiosConfig";
 import { UserContext } from "@/context/UserContext";
@@ -54,6 +55,16 @@ const navigationItems = [
         name: "Theme",
         href: "/user/setting/appearance",
         icon: Palette,
+      },
+    ],
+  },
+  {
+    category: "Support",
+    items: [
+      {
+        name: "Contact",
+        href: "/user/setting/contact",
+        icon: MessageCircle,
       },
     ],
   },

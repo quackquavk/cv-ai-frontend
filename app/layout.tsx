@@ -22,7 +22,7 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: "RESUME AI",
-  description: "This is the project for cv detailing",
+  description: "Resume AI is a platform that helps recruiters find the best candidates and organize their hiring process.",
 };
 
 export default function RootLayout({
