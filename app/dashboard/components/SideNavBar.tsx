@@ -828,6 +828,7 @@ const SideNavBar = ({
             />
           </div>
 
+
           {/* Scrollable Folder List - Only show when expanded */}
           <div
             className={`${

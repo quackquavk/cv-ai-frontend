@@ -166,9 +166,22 @@ export async function generateMetadata({
       },
     };
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error generating metadata for CV detail page:', error);
     
+    // For 401 errors (unauthorized), still allow indexing but use default metadata
+    if (error?.response?.status === 401) {
+      return {
+        title: defaultTitle,
+        description: defaultDescription,
+        robots: {
+          index: true,
+          follow: true,
+        },
+      };
+    }
+    
+    // For other errors, don't index the page
     return {
       title: defaultTitle,
       description: defaultDescription,

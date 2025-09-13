@@ -10,7 +10,7 @@ import axiosInstance from "@/utils/axiosConfig";
 import Link from "next/link";
 import { IFormInputData } from "@/interfaces/FormInputData";
 import ListViewSkeletion from "./ui/Skeleton/ListViewSkeleton";
-import { folderSelectStore } from "@/app/dashboard/store";
+import { folderSelectStore, multiFolderSelectStore } from "@/app/dashboard/store";
 import { useSearchContext } from "@/app/dashboard/context/SearchContext";
 import EmblaCarousel from "../app/dashboard/components/EmblaCarousel";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
@@ -37,6 +37,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
   const { ref, inView } = useInView();
   const { resetSearch } = useSearchContext();
   const { selectFolderId } = folderSelectStore();
+  const { selectedFolderIds } = multiFolderSelectStore();
   const { isFolderListOpen } = publicFolderStore();
   const queryClient = useQueryClient();
   const [folders, setFolders] = useState<any[]>([]);

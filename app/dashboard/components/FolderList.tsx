@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import DialogueComponent from "./DialogueComponent";
 import { BsThreeDots } from "react-icons/bs";
 import { BsThreeDotsVertical } from "react-icons/bs";
-import { folderSelectStore } from "../store";
+import { folderSelectStore, multiFolderSelectStore } from "../store";
 import { FaRegFolder, FaRegFolderOpen } from "react-icons/fa";
 import { publicFolderStore } from "../store";
 import { Input } from "@/components/ui/input";
@@ -38,6 +38,12 @@ import { privateFolderStore } from "../store";
 import { CirclePlus, FolderLock, FolderOpen, Plus } from "lucide-react";
 import { useQueryClient, useQuery, useQueries } from "@tanstack/react-query";
 import Link from "next/link";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Skeleton loader component for private files
 const PrivateFilesSkeleton = () => {
@@ -78,6 +84,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
   const [dialogAlertFile, setDialogueAlertFile] = useState(false);
   const [folderId, setFolderId] = useState("");
   const { selectFolderId, setSelectFolderId } = folderSelectStore();
+  const { selectedFolderIds, toggleFolderSelection } = multiFolderSelectStore();
   const { isFolderListOpen, isPrivateSectionOpen, togglePrivateSection, isPublicSectionOpen, togglePublicSection } = publicFolderStore();
   const {
     hasPrivateFolder,
@@ -678,6 +685,13 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
     setFolderDragOver(null);
   };
 
+  // Handle checkbox click separately from folder click
+  const handleCheckboxClick = (e, folderId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleFolderSelection(folderId);
+  };
+
   const fetchDocumentsByIds = async (docIds: string[]) => {
     const promises = docIds.map((docId) =>
       axiosInstance.get(`/document/cv/${docId}`).then((res) => res.data)
@@ -927,20 +941,46 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                     <button type="submit" className="hidden"></button>
                   </form>
                 ) : (
-                  <div
-                    className="flex items-center w-full gap-2 cursor-pointer hover:opacity-50"
-                    onClick={() => toggleDropDown(pf.folder_id)}
-                  >
-                    <span>
-                      {selectFolderId === pf.folder_id ? (
-                        <FaRegFolderOpen />
-                      ) : (
-                        <FaRegFolder />
-                      )}
-                    </span>
-                    <span className="ml-5 flex items-center gap-2">
-                      {pf.name}
-                    </span>
+                  <div className="flex items-center w-full gap-2">
+                    {/* Checkbox for multi-folder selection */}
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div
+                            className="w-4 h-4 border border-gray-300 dark:border-gray-600 rounded flex items-center justify-center bg-white dark:bg-gray-800 cursor-pointer hover:border-blue-500"
+                            onClick={(e) => handleCheckboxClick(e, pf.folder_id)}
+                          >
+                            {selectedFolderIds.includes(pf.folder_id) && (
+                              <Check className="h-3 w-3 text-blue-600" />
+                            )}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="right" sideOffset={5}>
+                          <p className="text-xs">
+                            {selectedFolderIds.includes(pf.folder_id) 
+                              ? "Remove from search selection" 
+                              : "Include in search across multiple folders"}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    
+                    {/* Folder name and icon - clickable to expand/collapse */}
+                    <div
+                      className="flex items-center flex-1 gap-2 cursor-pointer hover:opacity-50"
+                      onClick={() => toggleDropDown(pf.folder_id)}
+                    >
+                      <span>
+                        {selectFolderId === pf.folder_id ? (
+                          <FaRegFolderOpen />
+                        ) : (
+                          <FaRegFolder />
+                        )}
+                      </span>
+                      <span className="ml-3 flex items-center gap-2">
+                        {pf.name}
+                      </span>
+                    </div>
                   </div>
                 )}
                 <div className="flex  items-center gap-4 ">
@@ -1117,18 +1157,44 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                   <button type="submit" className="hidden"></button>
                 </form>
               ) : (
-                <div
-                  className="flex items-center w-full gap-2 cursor-pointer hover:opacity-50"
-                  onClick={() => toggleDropDown(folder.folder_id)}
-                >
-                  <span>
-                    {selectFolderId === folder.folder_id ? (
-                      <FaRegFolderOpen />
-                    ) : (
-                      <FaRegFolder />
-                    )}
-                  </span>
-                  <span className="ml-5">{folder.folder_name}</span>
+                <div className="flex items-center w-full gap-2">
+                  {/* Checkbox for multi-folder selection */}
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div
+                          className="w-4 h-4 border border-gray-300 dark:border-gray-600 rounded flex items-center justify-center bg-white dark:bg-gray-800 cursor-pointer hover:border-blue-500"
+                          onClick={(e) => handleCheckboxClick(e, folder.folder_id)}
+                        >
+                          {selectedFolderIds.includes(folder.folder_id) && (
+                            <Check className="h-3 w-3 text-blue-600" />
+                          )}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" sideOffset={5}>
+                        <p className="text-xs">
+                          {selectedFolderIds.includes(folder.folder_id) 
+                            ? "Remove from search selection" 
+                            : "Include in search across multiple folders"}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  
+                  {/* Folder name and icon - clickable to expand/collapse */}
+                  <div
+                    className="flex items-center flex-1 gap-2 cursor-pointer hover:opacity-50"
+                    onClick={() => toggleDropDown(folder.folder_id)}
+                  >
+                    <span>
+                      {selectFolderId === folder.folder_id ? (
+                        <FaRegFolderOpen />
+                      ) : (
+                        <FaRegFolder />
+                      )}
+                    </span>
+                    <span className="ml-3">{folder.folder_name}</span>
+                  </div>
                 </div>
               )}
               <div className="flex  items-center gap-4 ">

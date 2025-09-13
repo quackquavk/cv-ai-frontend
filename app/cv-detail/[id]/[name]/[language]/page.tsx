@@ -54,9 +54,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
   const [loader, setLoader] = useState<boolean>(false);
   const [closeParsedData, setCloseParsedData] = useState<boolean>(false);
   const [hoveredRating, setHoveredRating] = useState(0);
-  const [isAuthenticatedState, setIsAuthenticatedState] = useState(() =>
-    localStorage.getItem("isAuthenticated")
-  );
+  const [isAuthenticatedState, setIsAuthenticatedState] = useState<string | null>(null);
 
   // State for API data and user input
   const [inputData, setInputData] = useState<IAvailability>({
@@ -81,6 +79,9 @@ const CVDetailPage = ({ params }: { params: any }) => {
   const [isSubmitting, setIsSubmitting] = useState(false); // Use state for reactivity
 
   useEffect(() => {
+    // Initialize authentication state on client side only
+    setIsAuthenticatedState(localStorage.getItem("isAuthenticated"));
+    
     const handleStorageChange = () => {
       setIsAuthenticatedState(localStorage.getItem("isAuthenticated"));
     };

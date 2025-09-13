@@ -1,10 +1,20 @@
 import { create } from "zustand";
 import { IFormInputData } from "@/interfaces/FormInputData";
 
-//Folder Select
+//Folder Select (for uploads)
 interface FolderSelectStore {
   selectFolderId: string | null;
   setSelectFolderId: (id: string | null) => void;
+}
+
+// Multi-folder selection (for search)
+interface MultiFolderSelectStore {
+  selectedFolderIds: string[];
+  setSelectedFolderIds: (ids: string[]) => void;
+  toggleFolderSelection: (id: string) => void;
+  clearFolderSelection: () => void;
+  selectAllPublicFolders: (folderIds: string[]) => void;
+  selectAllPrivateFolders: (folderIds: string[]) => void;
 }
 
 // DropDown of Public Folder
@@ -92,6 +102,26 @@ export const useSearchStore = create<SearchState>((set) => ({
     set((state) => ({
       formData: { ...state.formData, ...newData },
     })),
+}));
+
+// Multi-folder selection store
+export const multiFolderSelectStore = create<MultiFolderSelectStore>((set, get) => ({
+  selectedFolderIds: [],
+  setSelectedFolderIds: (ids) => set({ selectedFolderIds: ids }),
+  toggleFolderSelection: (id) => set((state) => ({
+    selectedFolderIds: state.selectedFolderIds.includes(id)
+      ? state.selectedFolderIds.filter(folderId => folderId !== id)
+      : [...state.selectedFolderIds, id]
+  })),
+  clearFolderSelection: () => set({ selectedFolderIds: [] }),
+  selectAllPublicFolders: (folderIds) => set((state) => {
+    const newSelection = [...new Set([...state.selectedFolderIds, ...folderIds])];
+    return { selectedFolderIds: newSelection };
+  }),
+  selectAllPrivateFolders: (folderIds) => set((state) => {
+    const newSelection = [...new Set([...state.selectedFolderIds, ...folderIds])];
+    return { selectedFolderIds: newSelection };
+  }),
 }));
 
 // Export the state to track the changes (archieve files)

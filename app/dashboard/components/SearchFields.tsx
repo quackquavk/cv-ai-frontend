@@ -7,7 +7,7 @@ import { ViewContext } from "../context/ViewContext";
 import LinearTagsInput from "./SearchInput/LinearTagsInput";
 import { Search, SearchX, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { folderSelectStore, publicFolderStore, privateFolderStore } from "../store";
+import { folderSelectStore, publicFolderStore, privateFolderStore, multiFolderSelectStore } from "../store";
 import ToogleView from "./ToogleView";
 import { IoMdHelpCircleOutline } from "react-icons/io";
 import {
@@ -55,6 +55,7 @@ const SearchFields = () => {
   const { selectFolderId } = folderSelectStore();
   const { isPublicSectionOpen, isPrivateSectionOpen, isFolderListOpen } = publicFolderStore();
   const { privateSubfolders } = privateFolderStore();
+  const { selectedFolderIds } = multiFolderSelectStore();
   if (!searchContext) {
     throw new Error(
       "SearchContext must be used within a SearchContext.Provider"
@@ -78,9 +79,28 @@ const SearchFields = () => {
       ...prevData,
       foldersToSearch: selectFolderId ? [selectFolderId] : [""],
     }));
-    // Reset other search fields when switching folders
-    handleClear();
+    // Reset other search fields when switching folders (but not when multi-selecting)
+    if (selectFolderId) {
+      handleClear();
+    }
   }, [selectFolderId]);
+
+  // Automatically re-run search when folder selection changes (only if there's active search data)
+  useEffect(() => {
+    // Only trigger new search if there's already search data (user has performed a search)
+    const hasActiveSearch = formData.prompt || 
+                           formData.attribute?.some(attr => attr && attr !== "") || 
+                           formData.address ||
+                           formData.availability ||
+                           formData.time_of_day ||
+                           formData.star_rating > 0 ||
+                           formData.current_salary?.length > 0 ||
+                           formData.estimated_salary?.length > 0;
+                           
+    if (hasActiveSearch && selectedFolderIds.length > 0) {
+      performSearch();
+    }
+  }, [selectedFolderIds]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleClear = () => {
     setFormData({
@@ -174,17 +194,22 @@ const SearchFields = () => {
 
   // Compute which folders to search based on selection and section visibility
   const computeFoldersScope = async (): Promise<string[]> => {
-    // 1) If a specific folder is selected, search only that folder
+    // 1) Priority: If specific folders are selected for search, use those
+    if (selectedFolderIds.length > 0) {
+      return selectedFolderIds;
+    }
+
+    // 2) Fallback: If a specific folder is selected (for upload context), search only that folder
     if (selectFolderId) {
       return [selectFolderId];
     }
 
-    // 2) If both public and private sections are active/open, search all (no restriction)
+    // 3) If both public and private sections are active/open, search all (no restriction)
     if (isPublicSectionOpen && isPrivateSectionOpen) {
       return [];
     }
 
-    // 3) Public-only (either explicitly only public is active OR
+    // 4) Public-only (either explicitly only public is active OR
     // the folder list is collapsed and private is not active)
     if ((isPublicSectionOpen && !isPrivateSectionOpen) || (!isFolderListOpen && !isPrivateSectionOpen)) {
       try {
@@ -199,13 +224,13 @@ const SearchFields = () => {
       }
     }
 
-    // 4) Private-only
+    // 5) Private-only
     if (!isPublicSectionOpen && isPrivateSectionOpen) {
       const privateIds = (privateSubfolders || []).map((pf) => pf.folder_id);
       return privateIds;
     }
 
-    // 5) Default: no restriction
+    // 6) Default: no restriction
     return [];
   };
 
@@ -225,6 +250,28 @@ const SearchFields = () => {
 
   return (
     <div className="w-full mt-3 flex flex-col gap-4 justify-center">
+      {/* Selected folders indicator - subtle version */}
+      {selectedFolderIds.length > 0 && (
+        <div className="bg-gray-50 dark:bg-gray-800/30 border border-gray-200 dark:border-gray-700 rounded-md p-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                Searching in {selectedFolderIds.length} folder{selectedFolderIds.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => multiFolderSelectStore.getState().clearFolderSelection()}
+              className="h-5 px-2 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+            >
+              Clear selection
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Top search fields */}
       <form onSubmit={handleSubmit}>
         <div className="flex flex-col w-full">
