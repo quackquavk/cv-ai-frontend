@@ -12,6 +12,7 @@ import { Card } from "./ui/card";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useDocumentStore } from "@/app/dashboard/store";
 import PrivateFolderActions from "@/app/dashboard/components/PrivateFolderActions";
+import Breadcrumb from "./ui/breadcrumb";
 
 interface GridViewProps {
   data: IDocumentData[];
@@ -164,6 +165,19 @@ function GridView({ data, searchData }: GridViewProps) {
                 loading="lazy"
                 layout="responsive"
               />
+              
+              {/* Breadcrumb overlay */}
+              {item?.folder_name && (
+                <div className="absolute top-2 left-2 z-10">
+                  <div className="bg-white/95 dark:bg-black/95 backdrop-blur-sm rounded-md px-2 py-1 shadow-lg">
+                    <Breadcrumb 
+                      folderName={item.folder_name} 
+                      className="mb-0 text-xs"
+                      showHome={false}
+                    />
+                  </div>
+                </div>
+              )}
               
               {/* Private Folder Actions - Show on hover */}
               {/* <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
