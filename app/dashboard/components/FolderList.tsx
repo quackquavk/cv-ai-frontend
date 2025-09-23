@@ -799,8 +799,8 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                   <CirclePlus className="h-3 w-3 mr-1" /> 
                 </Button>
               )}
-              <span className={`transform transition-transform duration-300 ${isPrivateSectionOpen ? "rotate-180" : "rotate-0"}`}>
-                <FaChevronDown />
+              <span className={`transform transition-transform duration-300 hover:cursor-pointer ${isPrivateSectionOpen ? "rotate-180" : "rotate-0"}`}>
+                <FaChevronDown className="hover:cursor-pointer" />
               </span>
             </div>
           </div>
@@ -967,17 +967,17 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                     
                     {/* Folder name and icon - clickable to expand/collapse */}
                     <div
-                      className="flex items-center flex-1 gap-2 cursor-pointer hover:opacity-50"
+                      className="flex items-center flex-1 gap-2 hover:cursor-move hover:opacity-50"
                       onClick={() => toggleDropDown(pf.folder_id)}
                     >
-                      <span>
+                      <span className="hover:cursor-move">
                         {selectFolderId === pf.folder_id ? (
-                          <FaRegFolderOpen />
+                          <FaRegFolderOpen className="hover:cursor-move" />
                         ) : (
-                          <FaRegFolder />
+                          <FaRegFolder className="hover:cursor-move" />
                         )}
                       </span>
-                      <span className="ml-3 flex items-center gap-2">
+                      <span className="ml-3 flex items-center gap-2 hover:cursor-move">
                         {pf.name}
                       </span>
                     </div>
@@ -989,13 +989,13 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                     onClick={() => toggleDropDown(pf.folder_id)}
                   >
                     <span
-                      className={`ml-auto hover:opacity-50 items-center justify-center  flex transform transition-transform duration-300 ${
+                      className={`ml-auto hover:opacity-50 hover:cursor-pointer items-center justify-center  flex transform transition-transform duration-300 ${
                         selectFolderId === pf.folder_id
                           ? "rotate-180"
                           : "rotate-0"
                       }`}
                     >
-                      <FaChevronDown />
+                      <FaChevronDown className="hover:cursor-pointer" />
                     </span>
                   </div>
                   <div>
@@ -1107,8 +1107,8 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
               </h3>
             </div>
             <div className="flex items-center gap-2">
-              <span className={`transform transition-transform duration-300 ${isPublicSectionOpen ? "rotate-180" : "rotate-0"}`}>
-                <FaChevronDown />
+              <span className={`transform transition-transform duration-300 hover:cursor-pointer ${isPublicSectionOpen ? "rotate-180" : "rotate-0"}`}>
+                <FaChevronDown className="hover:cursor-pointer" />
               </span>
             </div>
           </div>
@@ -1183,17 +1183,17 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                   
                   {/* Folder name and icon - clickable to expand/collapse */}
                   <div
-                    className="flex items-center flex-1 gap-2 cursor-pointer hover:opacity-50"
+                    className="flex items-center flex-1 gap-2 hover:cursor-move hover:opacity-50"
                     onClick={() => toggleDropDown(folder.folder_id)}
                   >
-                    <span>
+                    <span className="hover:cursor-move">
                       {selectFolderId === folder.folder_id ? (
-                        <FaRegFolderOpen />
+                        <FaRegFolderOpen className="hover:cursor-move" />
                       ) : (
-                        <FaRegFolder />
+                        <FaRegFolder className="hover:cursor-move" />
                       )}
                     </span>
-                    <span className="ml-3">{folder.folder_name}</span>
+                    <span className="ml-3 hover:cursor-move">{folder.folder_name}</span>
                   </div>
                 </div>
               )}
@@ -1203,13 +1203,13 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                   onClick={() => toggleDropDown(folder.folder_id)}
                 >
                   <span
-                    className={`ml-auto hover:opacity-50 items-center justify-center  flex transform transition-transform duration-300 ${
+                    className={`ml-auto hover:opacity-50 hover:cursor-pointer items-center justify-center  flex transform transition-transform duration-300 ${
                       selectFolderId === folder.folder_id
                         ? "rotate-180"
                         : "rotate-0"
                     }`}
                   >
-                    <FaChevronDown />
+                    <FaChevronDown className="hover:cursor-pointer" />
                   </span>
                 </div>
                 <div>

@@ -260,12 +260,12 @@ const ListView = ({ data, searchData }: ListViewProps) => {
               target="_blank"
               className="transform mb-3 sm:hover:scale-x-[1.01] sm:hover:scale-y-[1.02] cursor-pointer transition duration-500 ease-in-out w-full overflow-hidden"
             >
-              <Card className="relative gap-2 max-w-full px-3 py-4 sm:px-5 sm:py-8 pb-16 sm:pb-20 hover:border-black dark:hover:border-white transition duration-500 ease-in-out">
+              <Card className="relative gap-2 max-w-full px-3 py-2 sm:px-5 sm:pt-6 pb-16 sm:pb-20 hover:border-black dark:hover:border-white transition duration-500 ease-in-out">
                 {/* Breadcrumb */}
                 {item?.folder_name && (
                   <Breadcrumb 
                     folderName={item.folder_name} 
-                    className="mb-3"
+                    className="mb-2"
                     showHome={false}
                   />
                 )}
