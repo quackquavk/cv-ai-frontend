@@ -196,8 +196,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
           {isLifetime
             ? "One-time payment. Lifetime access."
             : isSubscription
-            ? "Recurring payment. Cancel anytime."
-            : "Cancel anytime. 30-day money-back guarantee."}
+            && "Recurring payment. Cancel anytime."}
         </p>
       </div>
     </Card>
