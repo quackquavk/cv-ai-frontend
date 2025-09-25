@@ -4,8 +4,23 @@ import { CreditCard, Smartphone, Wallet } from "lucide-react";
 import { StripePayment } from "../components/StripePayment";
 import { FonePayPayment } from "../components/FonePayPayment";
 import { RazorPayPayment } from "../components/RazorPayPayment";
+import { useSubscription } from "../hooks/useSubscription";
 
 export default function PaymentPage() {
+  const { subscriptionData, loading } = useSubscription();
+
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch {
+      return "Invalid date";
+    }
+  };
+
   return (
     <div className="p-4 md:p-6 pt-4">
       <div className="flex flex-col gap-2 mb-8">
@@ -16,6 +31,19 @@ export default function PaymentPage() {
           Select the perfect plan for your needs. Upgrade or downgrade at any
           time.
         </p>
+        
+        {!loading && subscriptionData?.has_subscription && (
+          <div className="mt-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-blue-800 dark:text-blue-200">
+              {subscriptionData.is_lifetime 
+                ? "You have lifetime access to premium features."
+                : subscriptionData.status === "canceled"
+                ? `Your subscription is canceled and will expire on ${formatDate(subscriptionData.current_period_end)}.`
+                : `Your ${subscriptionData.plan} subscription renews on ${formatDate(subscriptionData.current_period_end)}.`
+              }
+            </p>
+          </div>
+        )}
       </div>
       <Tabs defaultValue="stripe" className="w-full ">
         <TabsList className="grid w-full grid-cols-3 gap-2 mb-8 p-2 rounded-xl bg-transparent">
@@ -66,13 +94,13 @@ export default function PaymentPage() {
         </TabsList>
 
         <TabsContent value="stripe">
-          <StripePayment />
+          <StripePayment subscriptionData={subscriptionData} />
         </TabsContent>
         <TabsContent value="fonepay">
-          <FonePayPayment />
+          <FonePayPayment subscriptionData={subscriptionData} />
         </TabsContent>
         <TabsContent value="razorpay">
-          <RazorPayPayment />
+          <RazorPayPayment subscriptionData={subscriptionData} />
         </TabsContent>
       </Tabs>
     </div>

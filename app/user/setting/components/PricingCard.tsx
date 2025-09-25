@@ -1,7 +1,7 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Star, Crown, RefreshCw, Users, Loader2 } from "lucide-react";
+import { Check, Star, Crown, RefreshCw, Users, Loader2, CheckCircle } from "lucide-react";
 
 interface Feature {
   text: string;
@@ -24,6 +24,8 @@ interface PricingCardProps {
   paymentMethod?: string;
   buttonColor?: "blue" | "red" | "purple" | "amber";
   isSubscription?: boolean;
+  isCurrentPlan?: boolean;
+  subscriptionStatus?: string;
 }
 
 export const PricingCard: React.FC<PricingCardProps> = ({
@@ -42,6 +44,8 @@ export const PricingCard: React.FC<PricingCardProps> = ({
   paymentMethod = "",
   buttonColor = "blue",
   isSubscription = false,
+  isCurrentPlan = false,
+  subscriptionStatus = "",
 }) => {
   // Button color classes based on the prop
   const buttonClasses = {
@@ -161,9 +165,11 @@ export const PricingCard: React.FC<PricingCardProps> = ({
       <div className="mt-auto">
         <Button
           onClick={onButtonClick}
-          disabled={loading}
+          disabled={loading || isCurrentPlan}
           className={`w-full ${
-            isPopular ? buttonClasses.amber : buttonClasses[buttonColor]
+            isCurrentPlan 
+              ? "bg-green-600 hover:bg-green-600" 
+              : isPopular ? buttonClasses.amber : buttonClasses[buttonColor]
           } text-white font-medium py-2.5 transition-all duration-300 ${
             isPopular ? "shadow-md hover:shadow-lg" : ""
           }`}
@@ -172,6 +178,11 @@ export const PricingCard: React.FC<PricingCardProps> = ({
             <>
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
               Processing...
+            </>
+          ) : isCurrentPlan ? (
+            <>
+              <CheckCircle className="h-4 w-4 mr-2" />
+              {subscriptionStatus === "canceled" ? "Current Plan (Expires Soon)" : "Current Plan"}
             </>
           ) : isLifetime ? (
             "Get Lifetime Access"

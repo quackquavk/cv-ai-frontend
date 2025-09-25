@@ -6,8 +6,13 @@ import axiosInstance from "@/utils/axiosConfig";
 import { TrustIndicators } from "./TrustIndicators";
 import { PricingCard } from "./PricingCard";
 import { premiumFeatures, lifetimeFeatures, freeFeatures } from "../constants";
+import { SubscriptionData } from "../hooks/useSubscription";
 
-export const StripePayment = () => {
+interface StripePaymentProps {
+  subscriptionData?: SubscriptionData | null;
+}
+
+export const StripePayment = ({ subscriptionData }: StripePaymentProps) => {
   const [loading, setLoading] = useState(false);
   const [lifetimeLoading, setLifetimeLoading] = useState(false);
 
@@ -101,6 +106,8 @@ export const StripePayment = () => {
           discountBadge="Popular"
           buttonColor="blue"
           isSubscription={true}
+          isCurrentPlan={subscriptionData?.has_subscription && subscriptionData?.plan === "annual" && !subscriptionData?.is_lifetime}
+          subscriptionStatus={subscriptionData?.status}
         />
         {/* Lifetime Plan Card */}
         <PricingCard
@@ -115,6 +122,8 @@ export const StripePayment = () => {
           onButtonClick={handleLifetimeClick}
           limitedOffer={true}
           buttonColor="amber"
+          isCurrentPlan={subscriptionData?.is_lifetime}
+          subscriptionStatus={subscriptionData?.status}
         />
       </div>
 

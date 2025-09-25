@@ -8,6 +8,7 @@ import axiosInstance from "@/utils/axiosConfig";
 import { TrustIndicators } from "./TrustIndicators";
 import { PricingCard } from "./PricingCard";
 import { premiumFeatures, lifetimeFeatures, freeFeatures } from "../constants";
+import { SubscriptionData } from "../hooks/useSubscription";
 import {
   Dialog,
   DialogContent,
@@ -15,7 +16,11 @@ import {
   DialogHeader,
 } from "@/components/ui/dialog";
 
-export const FonePayPayment = () => {
+interface FonePayPaymentProps {
+  subscriptionData?: SubscriptionData | null;
+}
+
+export const FonePayPayment = ({ subscriptionData }: FonePayPaymentProps) => {
   const [loading, setLoading] = useState(false);
   const [lifetimeLoading, setLifetimeLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -178,6 +183,8 @@ export const FonePayPayment = () => {
           discountBadge="Popular"
           buttonColor="red"
           isSubscription={true}
+          isCurrentPlan={subscriptionData?.has_subscription && subscriptionData?.plan === "annual" && !subscriptionData?.is_lifetime}
+          subscriptionStatus={subscriptionData?.status}
         />
         {/* Lifetime Plan Card */}
         <PricingCard
@@ -192,6 +199,8 @@ export const FonePayPayment = () => {
           onButtonClick={handleLifetimeClick}
           limitedOffer={true}
           buttonColor="amber"
+          isCurrentPlan={subscriptionData?.is_lifetime}
+          subscriptionStatus={subscriptionData?.status}
         />
       </div>
 

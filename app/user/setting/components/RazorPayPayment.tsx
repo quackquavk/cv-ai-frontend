@@ -6,8 +6,13 @@ import { TrustIndicators } from "./TrustIndicators";
 import { PricingCard } from "./PricingCard";
 import { premiumFeatures, lifetimeFeatures, freeFeatures } from "../constants";
 import { RazorpayService, PlanType } from "@/utils/razorpay";
+import { SubscriptionData } from "../hooks/useSubscription";
 
-export const RazorPayPayment = () => {
+interface RazorPayPaymentProps {
+  subscriptionData?: SubscriptionData | null;
+}
+
+export const RazorPayPayment = ({ subscriptionData }: RazorPayPaymentProps) => {
   const [loadingPlan, setLoadingPlan] = useState<PlanType | null>(null);
   const razorpayService = new RazorpayService();
 
@@ -79,6 +84,8 @@ export const RazorPayPayment = () => {
           discountBadge="Popular"
           buttonColor="purple"
           isSubscription={true}
+          isCurrentPlan={subscriptionData?.has_subscription && subscriptionData?.plan === "annual" && !subscriptionData?.is_lifetime}
+          subscriptionStatus={subscriptionData?.status}
         />
         <PricingCard
           title="Lifetime Deal"
@@ -92,6 +99,8 @@ export const RazorPayPayment = () => {
           onButtonClick={() => handleSubscribe("lifetime")}
           limitedOffer={true}
           buttonColor="amber"
+          isCurrentPlan={subscriptionData?.is_lifetime}
+          subscriptionStatus={subscriptionData?.status}
         />
       </div>
 
