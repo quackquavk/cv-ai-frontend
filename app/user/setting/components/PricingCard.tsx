@@ -1,7 +1,15 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Star, Crown, RefreshCw, Users, Loader2, CheckCircle } from "lucide-react";
+import {
+  Check,
+  Star,
+  Crown,
+  RefreshCw,
+  Users,
+  Loader2,
+  CheckCircle,
+} from "lucide-react";
 
 interface Feature {
   text: string;
@@ -163,40 +171,45 @@ export const PricingCard: React.FC<PricingCardProps> = ({
       )}
       {/* CTA Button */}
       <div className="mt-auto">
-        <Button
-          onClick={onButtonClick}
-          disabled={loading || isCurrentPlan}
-          className={`w-full ${
-            isCurrentPlan 
-              ? "bg-green-600 hover:bg-green-600" 
-              : isPopular ? buttonClasses.amber : buttonClasses[buttonColor]
-          } text-white font-medium py-2.5 transition-all duration-300 ${
-            isPopular ? "shadow-md hover:shadow-lg" : ""
-          }`}
-        >
-          {loading ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              Processing...
-            </>
-          ) : isCurrentPlan ? (
-            <>
-              <CheckCircle className="h-4 w-4 mr-2" />
-              {subscriptionStatus === "canceled" ? "Current Plan (Expires Soon)" : "Current Plan"}
-            </>
-          ) : isLifetime ? (
-            "Get Lifetime Access"
-          ) : isSubscription ? (
-            `Subscribe to ${title}`
-          ) : (
-            `Choose ${title}`
-          )}
-        </Button>
+        {title !== "Free Plan" && (
+          <Button
+            onClick={onButtonClick}
+            disabled={loading || isCurrentPlan}
+            className={`w-full ${
+              isCurrentPlan
+                ? "bg-green-600 hover:bg-green-600"
+                : isPopular
+                ? buttonClasses.amber
+                : buttonClasses[buttonColor]
+            } text-white font-medium py-2.5 transition-all duration-300 ${
+              isPopular ? "shadow-md hover:shadow-lg" : ""
+            }`}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Processing...
+              </>
+            ) : isCurrentPlan ? (
+              <>
+                <CheckCircle className="h-4 w-4 mr-2" />
+                {subscriptionStatus === "canceled"
+                  ? "Current Plan (Expires Soon)"
+                  : "Current Plan"}
+              </>
+            ) : isLifetime ? (
+              "Get Lifetime Access"
+            ) : isSubscription ? (
+              `Subscribe to ${title}`
+            ) : (
+              `Choose ${title}`
+            )}
+          </Button>
+        )}
         <p className="text-xs text-center text-gray-500 dark:text-gray-500 mt-2">
           {isLifetime
             ? "One-time payment. Lifetime access."
-            : isSubscription
-            && "Recurring payment. Cancel anytime."}
+            : isSubscription && "Recurring payment. Cancel anytime."}
         </p>
       </div>
     </Card>
