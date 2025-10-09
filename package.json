@@ -39,6 +39,7 @@
     "@tanstack/react-table": "^8.20.5",
     "@types/typescript": "^2.0.0",
     "axios": "^1.7.7",
+    "canvas-confetti": "^1.9.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
