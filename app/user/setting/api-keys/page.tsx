@@ -44,6 +44,7 @@ import {
   Shield,
   Zap,
   Globe,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -412,11 +413,20 @@ export default function ApiKeysPage() {
         <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
           <div className="flex items-start gap-2">
             <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
-            <p className="text-sm text-blue-800 dark:text-blue-300">
-              Only one API key can be activated at a time. When you activate a
-              new key, any previously active key will be automatically
-              deactivated.
-            </p>
+            <div className="flex-1">
+              <p className="text-sm text-blue-800 dark:text-blue-300">
+                Only one API key can be activated at a time. When you activate a
+                new key, any previously active key will be automatically
+                deactivated.
+              </p>
+              <a
+                href="/user/setting/docs"
+                className="text-sm underline text-blue-700 dark:text-blue-400 hover:underline font-medium mt-2 inline-flex items-center gap-1"
+              >
+                Need help? Learn how to get a free Google AI API key
+                <ChevronRight className="h-3 w-3" />
+              </a>
+            </div>
           </div>
         </div>
       </div>
