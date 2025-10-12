@@ -52,7 +52,7 @@ export async function generateMetadata({
   const defaultDescription = 'AI-powered CV parsing and analysis platform for recruiters and professionals.';
   
   try {
-    const response = await axiosInstance.get(`/document/cv/${resolvedParams.id}`);
+    const response = await axiosInstance.get(`/document/seo/${resolvedParams.id}`);
     const cvData: CVData = response.data.parsed_cv;
     
     if (!cvData) {
@@ -167,7 +167,7 @@ export async function generateMetadata({
     };
     
   } catch (error: any) {
-    console.error('Error generating metadata for CV detail page:', error);
+    console.error('Error generating metadata for CV detail page:', error.response.data);
     
     // For 401 errors (unauthorized), still allow indexing but use default metadata
     if (error?.response?.status === 401) {
