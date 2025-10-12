@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,13 +50,16 @@ import Image from "next/image";
 import axiosInstance from "@/utils/axiosConfig";
 import { TrustIndicators } from "../components/TrustIndicators";
 import { PROVIDER_CONFIGS, STATUS_CONFIGS } from "../constants";
-import { ApiKey, UserSubscription, SupportedModels } from "../types";
+import { ApiKey, SupportedModels } from "../types";
+import { UserContext } from "@/context/UserContext";
 
 export default function ApiKeysPage() {
+  const userContext = useContext(UserContext);
+  const user = userContext?.user;
+  const userLoading = userContext?.loading;
+
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userSubscription, setUserSubscription] =
-    useState<UserSubscription | null>(null);
   const [supportedModels, setSupportedModels] =
     useState<SupportedModels | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -75,35 +78,22 @@ export default function ApiKeysPage() {
   );
   const [showApiKey, setShowApiKey] = useState<Record<string, boolean>>({});
 
-  // Check if user has lifetime access
-  const hasLifetimeAccess =
-    userSubscription?.subscription_plan === "lifetime" &&
-    (userSubscription?.subscription_status === "lifetime" ||
-      userSubscription?.subscription_status === "active");
+  // Check if user has premium access
+  const hasPremiumAccess = user?.premium === true;
 
   useEffect(() => {
-    fetchUserSubscription();
     fetchSupportedModels();
   }, []);
 
   useEffect(() => {
-    if (userSubscription && hasLifetimeAccess) {
-      fetchApiKeys();
-    } else if (userSubscription && !hasLifetimeAccess) {
-      setLoading(false);
+    if (!userLoading && user) {
+      if (hasPremiumAccess) {
+        fetchApiKeys();
+      } else {
+        setLoading(false);
+      }
     }
-  }, [userSubscription, hasLifetimeAccess]);
-
-  const fetchUserSubscription = async () => {
-    try {
-      const response = await axiosInstance.get("/user/subscription_status");
-      setUserSubscription(response.data);
-    } catch (error) {
-      console.error("Error fetching subscription status:", error);
-      toast.error("Failed to check subscription status");
-      setLoading(false);
-    }
-  };
+  }, [user, userLoading, hasPremiumAccess]);
 
   const fetchSupportedModels = async () => {
     try {
@@ -122,7 +112,7 @@ export default function ApiKeysPage() {
     } catch (error: any) {
       console.error("Error fetching API keys:", error);
       if (error.response?.status === 403) {
-        toast.error("You need a lifetime plan to manage API keys");
+        toast.error("You need a premium plan to manage API keys");
       } else {
         toast.error("Failed to fetch API keys");
       }
@@ -357,7 +347,7 @@ export default function ApiKeysPage() {
     return new Date(dateString).toLocaleDateString();
   };
 
-  if (loading) {
+  if (loading || userLoading) {
     return (
       <div className="p-4 md:p-6">
         <div className="flex items-center justify-center py-12">
@@ -367,16 +357,16 @@ export default function ApiKeysPage() {
     );
   }
 
-  if (!hasLifetimeAccess) {
+  if (!hasPremiumAccess) {
     return (
       <div className="p-4 md:p-6">
         <div className="text-center py-12">
           <Key className="h-16 w-16 mx-auto text-gray-400 mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            Lifetime Plan Required
+            Premium Plan Required
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-            API key management is available exclusively for lifetime plan users.
+            API key management is available exclusively for premium users.
             Upgrade to manage your own OpenAI, Gemini, and Claude API keys.
           </p>
           <Button
@@ -384,7 +374,7 @@ export default function ApiKeysPage() {
             className="bg-amber-600 hover:bg-amber-700 text-white"
           >
             <Crown className="h-4 w-4 mr-2" />
-            Upgrade to Lifetime
+            Upgrade to Premium
           </Button>
         </div>
       </div>

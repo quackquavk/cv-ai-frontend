@@ -501,6 +501,10 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
       setShouldRefetchDocuments(true);
       toast.success("File moved successfully!");
     } catch (error) {
+      if (error.response.status === 403) {
+        toast.error(error.response.data.detail);
+        return;
+      }
       console.error("Error moving file:", error);
       toast.error("Failed to move the file. Please try again.");
       
