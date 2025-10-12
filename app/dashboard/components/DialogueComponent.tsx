@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { fetchUpdatedApiData } from "../utils/updatedInitialData";
 import { ApiDataContext } from "../context/ApiDataContext";
 import {
@@ -227,7 +227,7 @@ function DialogueComponent({
       //   console.warn("API Data context is not available.");
       // }
     } catch (error) {
-      console.error("Error Archieving", error);
+
       toast.error(error);
     }
   };
@@ -265,7 +265,6 @@ function DialogueComponent({
     }
 
     try {
-      // Flags created to track whether both API calls were successful
       let isFolderUnarchiveSuccess = false;
       let isDocumentUnarchiveSuccess = false;
       if (selectedFiles.length > 0) {
@@ -316,8 +315,9 @@ function DialogueComponent({
       //     color: "white",
       //   },
       // });
-      toast.error(error);
-      console.error("Error occured", error);
+      console.log(error);
+      toast.error(error.response.data.detail);
+
     }
   };
 
@@ -345,7 +345,7 @@ function DialogueComponent({
       }
     } catch (error) {
       toast.error("Error Archiving Folder");
-      console.error("Error Archiving Folder", error);
+
     }
   };
   // Move multiple files to another folder
@@ -390,7 +390,7 @@ function DialogueComponent({
           handleDialogue(false);
         } catch (error) {
           toast("Failed to move files");
-          console.error(error);
+
         }
       } else {
         toast("Select a folder first", {
@@ -439,7 +439,6 @@ function DialogueComponent({
 
       toast.success("File Archieve Successfully");
     } catch (error) {
-      console.error("Error Archieving File", error);
       toast.error("Error Archiving File  !!!");
     }
   };
@@ -467,8 +466,8 @@ function DialogueComponent({
       >
         <DialogContent className="py-4 max-h-[90%] overflow-y-scroll scrollbar-thin">
           <DialogHeader>
+            <DialogTitle className="text-xl">{name}</DialogTitle>
             <div className=" flex flex-col w-full space-y-6  mb-8 mt-4">
-              <h1 className="text-xl">{name}</h1>
               <section className="flex  items-center justify-between ">
                 <Input
                   type="text"
@@ -638,10 +637,9 @@ function DialogueComponent({
       >
         <DialogContent className=" py-4 max-h-[90%] overflow-y-scroll scrollbar-thin ">
           <DialogHeader>
+            <DialogTitle className="text-lg">Select Folders</DialogTitle>
             <div className=" flex w-full justify-between items-center mb-8 mt-4">
               <section className="flex-col space-y-6">
-                <h1 className="text-lg">Select Folders</h1>
-
                 <section className="flex  items-center space-x-2">
                   <Input
                     type="text"
@@ -677,7 +675,15 @@ function DialogueComponent({
                         .includes(searchTerm.toLowerCase())
                     )
                     .map((file) => (
-                      <div key={file.folder_id} className="flex items-center">
+                      <div key={file.folder_id} className="flex items-start">
+                        <Checkbox
+                          checked={selectedFiles.includes(file.folder_id)}
+                          onCheckedChange={() =>
+                            handleFileSelect(file.folder_id)
+                          }
+                          id={`file-${file.folder_id}`}
+                          className="cursor-pointer mr-4 mt-4"
+                        />
                         <Accordion
                           type="single"
                           collapsible
@@ -691,20 +697,7 @@ function DialogueComponent({
                         >
                           <AccordionItem value={`item-${file.folder_id}`}>
                             <AccordionTrigger>
-                              <div className="flex gap-2 items-center">
-                                <Checkbox
-                                  checked={selectedFiles.includes(
-                                    file.folder_id
-                                  )}
-                                  onCheckedChange={() =>
-                                    handleFileSelect(file.folder_id)
-                                  }
-                                  id={`file-${file.folder_id}`}
-                                  className="cursor-pointer mr-4"
-                                  onClick={(e) => e.stopPropagation()}
-                                />
-                                <h1 className="text-md">{file.folder_name}</h1>
-                              </div>
+                              <h1 className="text-md">{file.folder_name}</h1>
                             </AccordionTrigger>
                             <AccordionContent>
                               {folderFiles &&
@@ -774,8 +767,10 @@ function DialogueComponent({
         }}
       >
         <DialogContent className=" py-4 max-h-[90%] overflow-y-scroll scrollbar-thin">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">Archive</DialogTitle>
+          </DialogHeader>
           <div className=" flex flex-col w-full space-y-6 mb-5 mt-4">
-            <h1 className="text-xl font-semibold">Archive</h1>
             <section className="flex  items-center space-x-2">
               <Input
                 type="text"
@@ -833,7 +828,15 @@ function DialogueComponent({
                     .includes(searchTerm.toLowerCase())
                 )
                 .map((file) => (
-                  <div key={file.folder_id} className="flex items-center">
+                  <div key={file.folder_id} className="flex items-start">
+                    <Checkbox
+                      checked={selectedFiles.includes(file.folder_id)}
+                      onCheckedChange={() =>
+                        handleFileSelect(file.folder_id)
+                      }
+                      id={`file-${file.folder_id}`}
+                      className="cursor-pointer mr-4 mt-4"
+                    />
                     <Accordion
                       type="single"
                       collapsible
@@ -847,18 +850,7 @@ function DialogueComponent({
                     >
                       <AccordionItem value={`item-${file.folder_id}`}>
                         <AccordionTrigger>
-                          <div className="flex gap-2 items-center">
-                            <Checkbox
-                              checked={selectedFiles.includes(file.folder_id)}
-                              onCheckedChange={() =>
-                                handleFileSelect(file.folder_id)
-                              }
-                              id={`file-${file.folder_id}`}
-                              className="cursor-pointer mr-4"
-                              onClick={(e) => e.stopPropagation()}
-                            />
-                            <h1 className="text-md">{file.folder_name}</h1>
-                          </div>
+                          <h1 className="text-md">{file.folder_name}</h1>
                         </AccordionTrigger>
                         <AccordionContent>
                           {folderFiles &&
@@ -899,10 +891,12 @@ function DialogueComponent({
         }}
       >
         <DialogContent>
-          <div className="px-4 py-5 space-y-5 ">
-            <h1 className="text-2xl font-semibold  ">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-semibold">
               Are you sure you want to archive?
-            </h1>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="px-4 py-5 space-y-5 ">
             <p className="text-gray-600 dark:text-gray-400">
               The folder you selected will not be visible.
             </p>
@@ -941,10 +935,12 @@ function DialogueComponent({
         }}
       >
         <DialogContent>
-          <div className="px-4 py-5 space-y-5 ">
-            <h1 className="text-2xl font-semibold  ">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-semibold">
               Are you sure you want to archive?
-            </h1>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="px-4 py-5 space-y-5 ">
             <p className="text-gray-600 dark:text-gray-400 ">
               The file you selected will not be visible.
             </p>
