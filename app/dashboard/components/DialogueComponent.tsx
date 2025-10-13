@@ -183,8 +183,7 @@ function DialogueComponent({
         }
       }
     } catch (error) {
-      toast.error(error);
-      console.error("Error archieving folder", error);
+      toast.error(error.response.data.detail);
     }
   };
 

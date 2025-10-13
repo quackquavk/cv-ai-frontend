@@ -1291,7 +1291,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                         onDragEnd={handleDragEnd}
                       >
                         <span>
-                          <RxHamburgerMenu />
+                          {/* <RxHamburgerMenu /> */}
                         </span>
                         <span className="px-2  py-1 text-sm truncate">
                           {file.doc_name.replace(".pdf", "")}
