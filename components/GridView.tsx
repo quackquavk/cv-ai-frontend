@@ -11,8 +11,8 @@ import { useSearchContext } from "@/app/dashboard/context/SearchContext";
 import { Card } from "./ui/card";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useDocumentStore } from "@/app/dashboard/store";
-import PrivateFolderActions from "@/app/dashboard/components/PrivateFolderActions";
 import Breadcrumb from "./ui/breadcrumb";
+import { toast } from "sonner";
 
 interface GridViewProps {
   data: IDocumentData[];
@@ -65,6 +65,18 @@ function GridView({ data, searchData }: GridViewProps) {
     onSuccess: (data) => {
       setSearchResultsGridView(data || []);
     },
+    onError: (error: any) => {
+      // Handle 429 Too Many Requests error for free tier search limit
+      if (error.response?.status === 429) {
+        toast.error("Search limit reached! Free users can perform 5 searches per day. Please upgrade to premium for unlimited searches.", {
+          duration: 5000,
+        });
+      } else if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Failed to perform search. Please try again.");
+      }
+    },
     onSettled: () => {
       setIsSearching(false);
     },
@@ -81,7 +93,6 @@ function GridView({ data, searchData }: GridViewProps) {
     resetSearch();
   }, [selectFolderId]);
 
-  console.log("shouldRefetchDocuments", shouldRefetchDocuments);
 
   useEffect(() => {
     if (shouldRefetchDocuments) {

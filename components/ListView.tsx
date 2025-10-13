@@ -26,6 +26,7 @@ import {
 import { useDocumentStore } from "@/app/dashboard/store";
 import MoveCV from "@/app/dashboard/components/MoveCV";
 import Breadcrumb from "./ui/breadcrumb";
+import { toast } from "sonner";
 
 interface ListViewProps {
   data: IDocumentData[] | any;
@@ -114,8 +115,19 @@ const ListView = ({ data, searchData }: ListViewProps) => {
           nextPage: end < documentsToFetch.length ? pageParam + 1 : undefined,
           totalDocs: documentsToFetch.length,
         };
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching documents:", error);
+        
+        if (error.response?.status === 429) {
+          toast.error("Search limit reached! Free users can perform 5 searches per day. Please upgrade to premium for unlimited searches.", {
+            duration: 5000,
+          });
+        } else if (error.response?.data?.message) {
+          toast.error(error.response.data.message);
+        } else {
+          toast.error("Failed to fetch documents. Please try again.");
+        }
+        
         return {
           documents: [],
           nextPage: undefined,

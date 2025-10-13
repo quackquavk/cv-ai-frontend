@@ -329,13 +329,27 @@ const SideNavBar = ({
           });
           errorCount++; // ✅ Increment error count
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error(`Error uploading ${file.name}:`, error);
-        updateUploadFile?.(fileId, {
-          status: "error",
-          error: error.response?.data?.detail || "Upload failed",
-          processingStage: undefined,
-        });
+        
+        if (error.response?.status === 429) {
+          const errorMessage = "Upload limit reached! Free users can only upload 1 CV total. Please upgrade to premium for unlimited uploads.";
+          toast.error(errorMessage, {
+            duration: 5000,
+          });
+          updateUploadFile?.(fileId, {
+            status: "error",
+            error: "Upload limit reached",
+            processingStage: undefined,
+          });
+        } else {
+          updateUploadFile?.(fileId, {
+            status: "error",
+            error: error.response?.data?.detail || "Upload failed",
+            processingStage: undefined,
+          });
+        }
+        
         errorCount++; // ✅ Increment error count
       } finally {
         activeUploads--;
