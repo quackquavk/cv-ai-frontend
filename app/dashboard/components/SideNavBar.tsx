@@ -52,6 +52,9 @@ import Image from "next/image";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserContext } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
+import {
+  Checkbox,
+} from "@/components/ui/checkbox";
 
 const MAX_CONCURRENT_UPLOADS = 3; // Maximum number of concurrent uploads
 
@@ -89,6 +92,8 @@ const SideNavBar = ({
     selectFolderId
   );
   const [isPageLoading, setIsPageLoading] = useState<boolean>(false);
+  const [shouldClaimCV, setShouldClaimCV] = useState<boolean>(false);
+  const [hasClaimedAnyCV, setHasClaimedAnyCV] = useState<boolean>(false);
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -154,6 +159,28 @@ const SideNavBar = ({
     };
     checkPrivateFolder();
   }, [isAuthenticated, setHasPrivateFolder]);
+
+  useEffect(() => {
+    const checkHasClaimedCV = async () => {
+      if (!isAuthenticated) return;
+      try {
+        const response = await axiosInstance.get("/cv-claim/has_claimed_cv", {
+          withCredentials: true,
+        });
+
+        if (response.data) {
+          setHasClaimedAnyCV(response.data);
+        }
+      } catch (error: any) {
+        console.error("Error checking claimed CV status:", error);
+        if (error.response?.status === 401) {
+          // User not logged in, just leave as false
+        }
+        setHasClaimedAnyCV(false);
+      }
+    };
+    checkHasClaimedCV();
+  }, [isAuthenticated]);
 
   // Helper function to format file size
   const formatFileSize = (bytes: number): string => {
@@ -244,6 +271,7 @@ const SideNavBar = ({
       try {
         const formData = new FormData();
         formData.append("files", file);
+        formData.append("is_claiming", shouldClaimCV.toString());
 
         // Start upload progress simulation
         const startTime = Date.now();
@@ -321,6 +349,11 @@ const SideNavBar = ({
           queryClient.invalidateQueries({
             queryKey: ["documents", selectedFolderId],
           });
+
+          // Update hasClaimedAnyCV state if user claimed this CV
+          if (shouldClaimCV) {
+            setHasClaimedAnyCV(true);
+          }
         } else {
           updateUploadFile?.(fileId, {
             status: "error",
@@ -494,29 +527,52 @@ const SideNavBar = ({
             isCollapsed && "hidden"
           } flex flex-col flex-1 overflow-hidden`}
         >
-          {/* Fixed Drop Files Section - Only show when expanded */}
+            {/* Fixed Drop Files Section - Only show when expanded */}
           <div
             className={`${
               isCollapsed && "hidden"
-            } w-full px-4 pt-2 sticky top-0 z-10`}
+            } w-full px-4 pt-0 sticky top-0 z-10`}
           >
             <div
               onDrop={handleDrop}
               onDragEnter={handleDragEnter}
               onDragLeave={handleDragLeave}
               onDragOver={handleDragOver}
-              onClick={() => document.getElementById("file-input")?.click()}
-              className={`relative flex flex-col cursor-pointer items-center justify-center h-22 border-2 border-dashed border-gray-800 dark:border-white p-4 rounded-md transition-all duration-300 ease-in-out ${
+              className={`relative flex flex-col items-center justify-center border-2 border-dashed border-gray-800 dark:border-white p-4 pb-6 rounded-md transition-all duration-300 ease-in-out ${
                 isDragging ? "opacity-50 backdrop-blur-sm" : "opacity-100"
               }`}
             >
-              <div className="flex flex-col items-center h-full w-full justify-center">
+              <div
+                onClick={() => document.getElementById("file-input")?.click()}
+                className="flex flex-col items-center w-full justify-center cursor-pointer"
+              >
                 <IoIosCloudUpload
                   size={40}
                   className="text-black dark:text-white"
                 />
                 <p className="text-center">Drop your files here (PDF only)</p>
               </div>
+
+              {/* Claim CV Checkbox - Only show if user hasn't claimed any CV */}
+              {!hasClaimedAnyCV && (
+                <div
+                  className="absolute bottom-1 right-auto flex items-center gap-1.5"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Checkbox
+                    id="claim-cv"
+                    checked={shouldClaimCV}
+                    onCheckedChange={(checked) => setShouldClaimCV(checked === 'indeterminate' ? false : checked as boolean)}
+                    className="scale-75"
+                  />
+                  <label
+                    htmlFor="claim-cv"
+                    className="text-xs text-gray-500 dark:text-gray-400 cursor-pointer select-none"
+                  >
+                    Claim as my CV
+                  </label>
+                </div>
+              )}
             </div>
             <input
               id="file-input"
