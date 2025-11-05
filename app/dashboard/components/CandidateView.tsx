@@ -64,7 +64,6 @@ const CandidateView = () => {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [loader, setLoader] = useState<boolean>(false);
-  const [hoveredRating, setHoveredRating] = useState(0);
   const [hasClaimed, setHasClaimed] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadLoader, setUploadLoader] = useState<boolean>(false);
@@ -307,7 +306,7 @@ const CandidateView = () => {
     const value = event.target.value;
     const sanitizedValue = value.replace(/[^\d.]/g, "");
     const decimalCount = (sanitizedValue.match(/\./g) || []).length;
-    
+
     if (decimalCount > 1) return;
 
     let finalValue = sanitizedValue;
@@ -322,18 +321,6 @@ const CandidateView = () => {
       }));
     }
   }
-
-  const handleMouseEnter = (index: number) => {
-    setHoveredRating(index);
-  };
-
-  const handleMouseLeave = () => {
-    setHoveredRating(0);
-  };
-
-  const handleClick = (index: number) => {
-    setInputData({ ...inputData, star_rating: index });
-  };
 
   const handleKeyDown = (e: any) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -352,7 +339,6 @@ const CandidateView = () => {
       document_id: inputData.document_id,
       availability: inputData.availability || "",
       time_of_day: inputData.time_of_day || "",
-      star_rating: inputData.star_rating,
       current_salary: inputData.current_salary,
       estimated_salary: inputData.estimated_salary,
       paid_by: inputData.paid_by || "",
@@ -951,31 +937,24 @@ const CandidateView = () => {
                 <span className="font-bold text-gray-700 dark:text-gray-300 text-sm">{inputData.rating_info.average}</span>
                 <div className="flex">
                   {[1, 2, 3, 4, 5].map((index) => (
-                    <button
-                      key={index}
-                      className="p-0.5 hover:scale-110 transition-all duration-200"
-                      onMouseEnter={() => handleMouseEnter(index)}
-                      onMouseLeave={handleMouseLeave}
-                      onClick={() => handleClick(index)}
-                    >
+                    <div key={index} className="p-0.5">
                       <Star
                         size={14}
                         fill={
-                          index <= (hoveredRating || inputData.star_rating)
+                          index <= inputData.rating_info.average
                             ? "#f59e0b"
                             : "none"
                         }
                         stroke={
-                          index <= (hoveredRating || inputData.star_rating)
+                          index <= inputData.rating_info.average
                             ? "#f59e0b"
                             : "#9ca3af"
                         }
-                        className="transition-colors duration-200"
                       />
-                    </button>
+                    </div>
                   ))}
                 </div>
-                <span className="text-xs text-gray-500">({inputData.rating_info.count})</span>
+                <span className="text-xs text-gray-500">({inputData.rating_info.count} {inputData.rating_info.count === 1 ? 'rating' : 'ratings'})</span>
               </div>
             </div>
 
