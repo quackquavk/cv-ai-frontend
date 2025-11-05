@@ -55,6 +55,9 @@ import { useRouter } from "next/navigation";
 import {
   Checkbox,
 } from "@/components/ui/checkbox";
+import { TabContext } from "../context/TabContext";
+import { Upload, RefreshCw } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 
 const MAX_CONCURRENT_UPLOADS = 3; // Maximum number of concurrent uploads
 
@@ -66,7 +69,14 @@ const SideNavBar = ({
 }) => {
   const spinnerContext = useContext(SpinnerContext);
   const userContext = useContext(UserContext);
+  const tabContext = useContext(TabContext);
   const { user, loading, isAuthenticated, setIsAuthenticated } = userContext;
+
+  if (!tabContext) {
+    throw new Error("SideNavBar must be used within TabProvider");
+  }
+
+  const { activeTab } = tabContext;
 
   const setUploading = spinnerContext?.setUploading;
   const uploading = spinnerContext?.uploading;
@@ -94,6 +104,7 @@ const SideNavBar = ({
   const [isPageLoading, setIsPageLoading] = useState<boolean>(false);
   const [shouldClaimCV, setShouldClaimCV] = useState<boolean>(false);
   const [hasClaimedAnyCV, setHasClaimedAnyCV] = useState<boolean>(false);
+  const [cvUploadLoader, setCvUploadLoader] = useState<boolean>(false);
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -449,7 +460,84 @@ const SideNavBar = ({
     event.stopPropagation();
     setIsDragging(false);
     if (event.dataTransfer.files) {
-      handleFileUpload(event.dataTransfer.files);
+      if (activeTab === "candidate") {
+        handleCandidateCVUpload(event.dataTransfer.files);
+      } else {
+        handleFileUpload(event.dataTransfer.files);
+      }
+    }
+  };
+
+  const handleCandidateCVUpload = async (files: FileList) => {
+    if (!files || files.length === 0) return;
+    if (!isAuthenticated) {
+      router.push("../../auth/login");
+      return;
+    }
+
+    const file = files[0];
+    if (file.type !== "application/pdf") {
+      toast.error("Please upload a PDF file only");
+      return;
+    }
+
+    // Check if folder is selected for initial upload
+    if (!hasClaimedAnyCV && !localFolderId) {
+      toast.error("Please select a folder to upload your CV");
+      return;
+    }
+
+    try {
+      setCvUploadLoader(true);
+
+      if (hasClaimedAnyCV) {
+        // Replace existing CV (doesn't need folder)
+        const formData = new FormData();
+        formData.append("new_cv_file", file);
+
+        const response = await axiosInstance.post(
+          "/cv-claim/replace_cv",
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+            withCredentials: true,
+          }
+        );
+
+        toast.success("CV replaced successfully!");
+      } else {
+        // Upload new CV as claim with folder
+        const formData = new FormData();
+        formData.append("files", file);
+        formData.append("is_claiming", "true");
+
+        const response = await axiosInstance.post(
+          `/document/document?folder_id=${localFolderId}`,
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+            withCredentials: true,
+          }
+        );
+
+        toast.success("CV uploaded and claimed successfully!");
+        setHasClaimedAnyCV(true);
+      }
+    } catch (error: any) {
+      console.error("Error uploading CV:", error);
+      if (error.response?.status === 429) {
+        toast.error("Upload limit reached! Please upgrade to premium for unlimited uploads.");
+      } else {
+        toast.error(error.response?.data?.detail || "Failed to upload CV");
+      }
+    } finally {
+      setCvUploadLoader(false);
+    }
+  };
+
+  const handleCandidateFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      handleCandidateCVUpload(event.target.files);
     }
   };
 
@@ -533,150 +621,250 @@ const SideNavBar = ({
               isCollapsed && "hidden"
             } w-full px-4 pt-0 sticky top-0 z-10`}
           >
-            <div
-              onDrop={handleDrop}
-              onDragEnter={handleDragEnter}
-              onDragLeave={handleDragLeave}
-              onDragOver={handleDragOver}
-              className={`relative flex flex-col items-center justify-center border-2 border-dashed border-gray-800 dark:border-white p-4 pb-6 rounded-md transition-all duration-300 ease-in-out ${
-                isDragging ? "opacity-50 backdrop-blur-sm" : "opacity-100"
-              }`}
-            >
+            {activeTab === "candidate" ? (
+              // Candidate Section - CV Upload/Replace
               <div
-                onClick={() => document.getElementById("file-input")?.click()}
-                className="flex flex-col items-center w-full justify-center cursor-pointer"
+                onDrop={handleDrop}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDragOver={handleDragOver}
+                className={`relative flex flex-col items-center justify-center border-2 border-dashed border-gray-800 dark:border-white p-4 pb-6 rounded-md transition-all duration-300 ease-in-out ${
+                  isDragging ? "opacity-50 backdrop-blur-sm" : "opacity-100"
+                }`}
               >
-                <IoIosCloudUpload
-                  size={40}
-                  className="text-black dark:text-white"
-                />
-                <p className="text-center">Drop your files here (PDF only)</p>
-              </div>
-
-              {/* Claim CV Checkbox - Only show if user hasn't claimed any CV */}
-              {!hasClaimedAnyCV && (
                 <div
-                  className="absolute bottom-1 right-auto flex items-center gap-1.5"
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={() => document.getElementById("candidate-cv-input")?.click()}
+                  className="flex flex-col items-center w-full justify-center cursor-pointer"
                 >
-                  <Checkbox
-                    id="claim-cv"
-                    checked={shouldClaimCV}
-                    onCheckedChange={(checked) => setShouldClaimCV(checked === 'indeterminate' ? false : checked as boolean)}
-                    className="scale-75"
-                  />
-                  <label
-                    htmlFor="claim-cv"
-                    className="text-xs text-gray-500 dark:text-gray-400 cursor-pointer select-none"
-                  >
-                    Claim as my CV
-                  </label>
+                  {hasClaimedAnyCV ? (
+                    <RefreshCw
+                      size={40}
+                      className="text-black dark:text-white"
+                    />
+                  ) : (
+                    <Upload
+                      size={40}
+                      className="text-black dark:text-white"
+                    />
+                  )}
+                  <p className="text-center mt-2">
+                    {hasClaimedAnyCV
+                      ? "Drop your new CV here to replace (PDF only)"
+                      : "Drop your resume here (PDF only)"
+                    }
+                  </p>
                 </div>
-              )}
-            </div>
-            <input
-              id="file-input"
-              className="hidden"
-              type="file"
-              accept="application/pdf"
-              onChange={handleFileSelect}
-              multiple
-              disabled={uploading}
-            />
-          </div>
 
-          {/* Upload Progress Queue */}
-          <UploadQueue
-            uploadFiles={uploadFiles}
-            clearCompletedFiles={clearCompletedFiles}
-            retryUpload={retryUpload}
-            cancelUpload={cancelUpload}
-            removeUploadFile={removeUploadFile}
-            formatFileSize={formatFileSize}
-          />
-
-          {/* Fixed Folder Selection - Only show when expanded */}
-          <div
-            className={` ${
-              isCollapsed && "hidden"
-            } w-full px-4 py-4 sticky top-[120px] z-10`}
-          >
-            <Select
-              value={localFolderId || ""}
-              onValueChange={handleValueChange}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Uploading to ....">
-                  {displayedFolderName()}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {/* Public Folders */}
-                  {folderListData.map((item, index) => (
-                    <div key={`pub-${index}`} className="">
-                      <SelectItem value={item.folder_id}>
-                        <div className="flex items-center space-x-2">
-                          <FolderOpen className="h-4 w-4 text-gray-600" />
-                          <span>{item.folder_name}</span>
-                        </div>
-                      </SelectItem>
+                {cvUploadLoader && (
+                  <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 flex items-center justify-center rounded-md">
+                    <div className="flex flex-col items-center">
+                      <LoaderCircle className="h-6 w-6 animate-spin" />
+                      <p className="text-sm mt-2">
+                        {hasClaimedAnyCV ? "Replacing CV..." : "Uploading CV..."}
+                      </p>
                     </div>
-                  ))}
-                  {/* Private Subfolders */}
-                  {hasPrivateFolder &&
-                    privateSubfolders.map((pf, index) => (
-                      <div key={`pri-${index}`} className="">
-                        <SelectItem value={pf.folder_id}>
-                          <div className="flex items-center space-x-2">
-                            <FolderLock className="h-4 w-4 text-gray-600" />
-                            <span>{pf.name}</span>
-                          </div>
-                        </SelectItem>
-                      </div>
-                    ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Fixed Folder Creation - Only show when expanded */}
-          <div
-            className={`${
-              isCollapsed && "hidden"
-            } w-full px-4 sticky top-[180px] z-10`}
-          >
-            <FolderCreation
-              onFolderCreated={handleFolderCreated}
-              setUpdateFolderList={setUpdateFolderList}
-            />
-          </div>
-
-
-          {/* Scrollable Folder List - Only show when expanded */}
-          <div
-            className={`${
-              isCollapsed && "hidden"
-            } w-full px-4 flex-1 overflow-y-auto mt-4 scrollbar-thin`}
-          >
-            {isFolderListOpen && displayFolder && (
-              <div className="flex flex-col">
-                <FolderList
-                  updateFolderList={updateFolderList}
-                  setUpdateFolderList={setUpdateFolderList}
-                />
-                <button
-                  className="bg-inherit px-0 items-center py-1 flex justify-start hover:opacity-60 w-full"
-                  onClick={() => {
-                    handleDialogue(true);
-                  }}
+                  </div>
+                )}
+              </div>
+            ) : (
+              // Recruiter Section - Regular File Upload
+              <div
+                onDrop={handleDrop}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDragOver={handleDragOver}
+                className={`relative flex flex-col items-center justify-center border-2 border-dashed border-gray-800 dark:border-white p-4 pb-6 rounded-md transition-all duration-300 ease-in-out ${
+                  isDragging ? "opacity-50 backdrop-blur-sm" : "opacity-100"
+                }`}
+              >
+                <div
+                  onClick={() => document.getElementById("file-input")?.click()}
+                  className="flex flex-col items-center w-full justify-center cursor-pointer"
                 >
-                  <MdFolderZip className="opacity-70" />
-                  <h1 className="ml-6">Archive</h1>
-                </button>
+                  <IoIosCloudUpload
+                    size={40}
+                    className="text-black dark:text-white"
+                  />
+                  <p className="text-center">Drop your files here (PDF only)</p>
+                </div>
+
               </div>
             )}
+
+            {activeTab === "candidate" ? (
+              <input
+                id="candidate-cv-input"
+                className="hidden"
+                type="file"
+                accept="application/pdf"
+                onChange={handleCandidateFileSelect}
+                disabled={cvUploadLoader}
+              />
+            ) : (
+              <input
+                id="file-input"
+                className="hidden"
+                type="file"
+                accept="application/pdf"
+                onChange={handleFileSelect}
+                multiple
+                disabled={uploading}
+              />
+            )}
           </div>
+
+          {activeTab === "recruiter" && (
+            <>
+              <UploadQueue
+                uploadFiles={uploadFiles}
+                clearCompletedFiles={clearCompletedFiles}
+                retryUpload={retryUpload}
+                cancelUpload={cancelUpload}
+                removeUploadFile={removeUploadFile}
+                formatFileSize={formatFileSize}
+              />
+
+              <div
+                className={` ${
+                  isCollapsed && "hidden"
+                } w-full px-4 py-4 sticky top-[120px] z-10`}
+              >
+                <Select
+                  value={localFolderId || ""}
+                  onValueChange={handleValueChange}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Uploading to ....">
+                      {displayedFolderName()}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {folderListData.map((item, index) => (
+                        <div key={`pub-${index}`} className="">
+                          <SelectItem value={item.folder_id}>
+                            <div className="flex items-center space-x-2">
+                              <FolderOpen className="h-4 w-4 text-gray-600" />
+                              <span>{item.folder_name}</span>
+                            </div>
+                          </SelectItem>
+                        </div>
+                      ))}
+                      {/* Private Subfolders */}
+                      {hasPrivateFolder &&
+                        privateSubfolders.map((pf, index) => (
+                          <div key={`pri-${index}`} className="">
+                            <SelectItem value={pf.folder_id}>
+                              <div className="flex items-center space-x-2">
+                                <FolderLock className="h-4 w-4 text-gray-600" />
+                                <span>{pf.name}</span>
+                              </div>
+                            </SelectItem>
+                          </div>
+                        ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Fixed Folder Creation - Only show for recruiter when expanded */}
+              <div
+                className={`${
+                  isCollapsed && "hidden"
+                } w-full px-4 sticky top-[180px] z-10`}
+              >
+                <FolderCreation
+                  onFolderCreated={handleFolderCreated}
+                  setUpdateFolderList={setUpdateFolderList}
+                />
+              </div>
+
+              {/* Scrollable Folder List - Only show for recruiter when expanded */}
+              <div
+                className={`${
+                  isCollapsed && "hidden"
+                } w-full px-4 flex-1 overflow-y-auto mt-4 scrollbar-thin`}
+              >
+                {isFolderListOpen && displayFolder && (
+                  <div className="flex flex-col">
+                    <FolderList
+                      updateFolderList={updateFolderList}
+                      setUpdateFolderList={setUpdateFolderList}
+                    />
+                    <button
+                      className="bg-inherit px-0 items-center py-1 flex justify-start hover:opacity-60 w-full"
+                      onClick={() => {
+                        handleDialogue(true);
+                      }}
+                    >
+                      <MdFolderZip className="opacity-70" />
+                      <h1 className="ml-6">Archive</h1>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Candidate section - Empty space as requested */}
+          {activeTab === "candidate" && !isCollapsed && (
+            <>
+              {/* Folder Selection - Only show for initial upload when user hasn't claimed CV yet */}
+              {!hasClaimedAnyCV && (
+                <div className="w-full px-4 py-4 sticky top-[120px] z-10">
+                  <Select
+                    value={localFolderId || ""}
+                    onValueChange={handleValueChange}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select folder for CV...">
+                        {displayedFolderName()}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {/* Public Folders */}
+                        {folderListData.map((item, index) => (
+                          <div key={`pub-${index}`} className="">
+                            <SelectItem value={item.folder_id}>
+                              <div className="flex items-center space-x-2">
+                                <FolderOpen className="h-4 w-4 text-gray-600" />
+                                <span>{item.folder_name}</span>
+                              </div>
+                            </SelectItem>
+                          </div>
+                        ))}
+                        {/* Private Subfolders */}
+                        {hasPrivateFolder &&
+                          privateSubfolders.map((pf, index) => (
+                            <div key={`pri-${index}`} className="">
+                              <SelectItem value={pf.folder_id}>
+                                <div className="flex items-center space-x-2">
+                                  <FolderLock className="h-4 w-4 text-gray-600" />
+                                  <span>{pf.name}</span>
+                                </div>
+                              </SelectItem>
+                            </div>
+                          ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Status message */}
+              <div className="flex-1 px-4 py-4">
+                <div className="text-center text-gray-500 dark:text-gray-400 text-sm">
+                  {hasClaimedAnyCV
+                    ? "Your CV is uploaded and active"
+                    : localFolderId
+                    ? "Ready to upload your CV"
+                    : "Please select a folder to upload your CV"
+                  }
+                </div>
+              </div>
+            </>
+          )}
         </SidebarContent>
 
         {/* Expand button when collapsed - Only show on desktop */}
