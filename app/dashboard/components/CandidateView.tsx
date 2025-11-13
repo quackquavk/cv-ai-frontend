@@ -381,6 +381,7 @@ const CandidateView = () => {
       ?.join(" ");
   }
 
+  
   if (loading) {
     return (
       <div className="w-full h-full">
@@ -418,20 +419,21 @@ const CandidateView = () => {
               </div>
 
               {/* Upload Section */}
-              <div className="flex-1">
+              <div className="mb-6">
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">CV Upload</h4>
                 <div
                   onDrop={handleDrop}
                   onDragEnter={handleDragEnter}
                   onDragLeave={handleDragLeave}
                   onDragOver={handleDragOver}
                   onClick={() => fileInputRef.current?.click()}
-                  className={`relative flex flex-col cursor-pointer items-center justify-center h-40 border-2 border-dashed border-gray-300 dark:border-gray-600 p-4 rounded-md transition-all duration-300 ${
+                  className={`relative flex flex-col cursor-pointer items-center justify-center h-28 border-2 border-dashed border-gray-300 dark:border-gray-600 p-3 rounded-md transition-all duration-300 ${
                     isDragging ? "opacity-50 bg-gray-100 dark:bg-gray-800" : ""
                   }`}
                 >
-                  <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                  <p className="text-sm text-center text-gray-600 dark:text-gray-400">
-                    Drop your CV here or click to upload
+                  <Upload className="h-5 w-5 text-gray-400 mb-1" />
+                  <p className="text-xs text-center text-gray-600 dark:text-gray-400">
+                    Drop CV or click to browse
                   </p>
                   <p className="text-xs text-gray-500 mt-1">PDF only</p>
                 </div>
@@ -442,8 +444,15 @@ const CandidateView = () => {
                   onChange={handleFileSelect}
                   className="hidden"
                 />
+                {uploadLoader && (
+                  <div className="mt-2 text-center">
+                    <LoaderCircle className="h-4 w-4 animate-spin mx-auto" />
+                    <p className="text-xs text-gray-600 mt-1">Uploading...</p>
+                  </div>
+                )}
               </div>
-            </div>
+
+              </div>
           </div>
         )}
 
@@ -598,7 +607,8 @@ const CandidateView = () => {
             </div>
 
             {/* Upload/Replace Section */}
-            <div className="flex-1">
+            <div className="mb-6">
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Replace CV</h4>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                 Replace your current CV with a new one
               </p>
@@ -608,13 +618,13 @@ const CandidateView = () => {
                 onDragLeave={handleDragLeave}
                 onDragOver={handleDragOver}
                 onClick={() => fileInputRef.current?.click()}
-                className={`relative flex flex-col cursor-pointer items-center justify-center h-40 border-2 border-dashed border-gray-300 dark:border-gray-600 p-4 rounded-md transition-all duration-300 ${
+                className={`relative flex flex-col cursor-pointer items-center justify-center h-28 border-2 border-dashed border-gray-300 dark:border-gray-600 p-3 rounded-md transition-all duration-300 ${
                   isDragging ? "opacity-50 bg-gray-100 dark:bg-gray-800" : ""
                 }`}
               >
-                <RefreshCw className="h-8 w-8 text-gray-400 mb-2" />
-                <p className="text-sm text-center text-gray-600 dark:text-gray-400">
-                  Drop new CV here or click to upload
+                <RefreshCw className="h-5 w-5 text-gray-400 mb-1" />
+                <p className="text-xs text-center text-gray-600 dark:text-gray-400">
+                  Drop new CV or click to browse
                 </p>
                 <p className="text-xs text-gray-500 mt-1">PDF only</p>
               </div>
@@ -626,11 +636,17 @@ const CandidateView = () => {
                 className="hidden"
               />
               {uploadLoader && (
-                <div className="mt-3 text-center">
-                  <LoaderCircle className="h-5 w-5 animate-spin mx-auto" />
-                  <p className="text-sm text-gray-600 mt-1">Uploading...</p>
+                <div className="mt-2 text-center">
+                  <LoaderCircle className="h-4 w-4 animate-spin mx-auto" />
+                  <p className="text-xs text-gray-600 mt-1">Uploading...</p>
                 </div>
               )}
+            </div>
+
+            {/* LinkedIn Bot Section */}
+            <div className="border-t pt-4">
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">LinkedIn Automation</h4>
+              <LinkedInBot />
             </div>
           </div>
         </div>
@@ -1147,6 +1163,7 @@ const CandidateView = () => {
           </div>
         </div>
       </Card>
+
     </div>
   );
 };

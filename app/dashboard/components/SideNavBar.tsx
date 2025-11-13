@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import DialogueComponent from "./DialogueComponent";
+import LinkedInBot from "./LinkedInBot";
 import { MdFolderZip } from "react-icons/md";
 import {
   folderSelectStore,
@@ -863,6 +864,13 @@ const SideNavBar = ({
                   }
                 </div>
               </div>
+
+              {/* LinkedIn Bot Section - Only show when user has claimed CV */}
+              {hasClaimedAnyCV && (
+                <div className="px-4 py-4 border-t border-gray-200 dark:border-gray-700">
+                  <LinkedInBot />
+                </div>
+              )}
             </>
           )}
         </SidebarContent>
