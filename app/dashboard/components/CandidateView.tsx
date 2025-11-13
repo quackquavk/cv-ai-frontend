@@ -14,6 +14,7 @@ import { MdEmail } from "react-icons/md";
 import { Button } from "@/components/ui/button";
 import { LoaderCircle, Save } from "lucide-react";
 import { toast } from "sonner";
+import LinkedInBot from "@/app/dashboard/components/LinkedInBot";
 import {
   Select,
   SelectContent,
