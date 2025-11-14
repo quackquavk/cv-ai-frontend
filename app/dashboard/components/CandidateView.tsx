@@ -395,14 +395,14 @@ const CandidateView = () => {
     return (
       <div className="flex items-center justify-center h-full relative">
         {/* Sidebar Toggle Button */}
-        <Button
+        {/* <Button
           variant="outline"
           size="icon"
           className="absolute top-4 right-4 z-10"
           onClick={() => setShowSidebar(!showSidebar)}
         >
           <Upload className="h-4 w-4" />
-        </Button>
+        </Button> */}
 
         {/* Sidebar */}
         {showSidebar && (
@@ -593,7 +593,7 @@ const CandidateView = () => {
       </Button>
 
       {/* Sidebar for claimed users */}
-      {showSidebar && hasClaimed && (
+      {/* {showSidebar && hasClaimed && (
         <div className="absolute top-0 right-0 h-full w-80 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 z-20 shadow-lg">
           <div className="p-4 h-full flex flex-col">
             <div className="flex justify-between items-center mb-4">
@@ -607,7 +607,6 @@ const CandidateView = () => {
               </Button>
             </div>
 
-            {/* Upload/Replace Section */}
             <div className="mb-6">
               <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Replace CV</h4>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
@@ -644,14 +643,13 @@ const CandidateView = () => {
               )}
             </div>
 
-            {/* LinkedIn Bot Section */}
             <div className="border-t pt-4">
               <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">LinkedIn Automation</h4>
               <LinkedInBot />
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       <Card className="h-full w-full rounded-lg flex flex-col">
         {/* Scrollable content */}
