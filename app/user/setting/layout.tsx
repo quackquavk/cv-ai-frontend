@@ -14,6 +14,7 @@ import {
   Palette,
   Receipt,
   MessageCircle,
+  Shield,
 } from "lucide-react";
 import axiosInstance from "@/utils/axiosConfig";
 import { UserContext } from "@/context/UserContext";
@@ -22,60 +23,70 @@ interface SettingsLayoutProps {
   children: React.ReactNode;
 }
 
-const navigationItems = [
-  {
-    category: "Billing Settings",
-    items: [
-      {
-        name: "Payment",
-        href: "/user/setting/payment",
-        icon: CreditCard,
-      },
-      {
-        name: "Billing Overview",
-        href: "/user/setting/billing",
-        icon: Receipt,
-      },
-    ],
-  },
-  {
-    category: "AI Integration",
-    items: [
-      {
-        name: "API Keys",
-        href: "/user/setting/api-keys",
-        icon: Key,
-      },
-    ],
-  },
-  {
-    category: "Appearance",
-    items: [
-      {
-        name: "Theme",
-        href: "/user/setting/appearance",
-        icon: Palette,
-      },
-    ],
-  },
-  {
-    category: "Support",
-    items: [
-      {
-        name: "Contact",
-        href: "/user/setting/contact",
-        icon: MessageCircle,
-      },
-    ],
-  },
-];
-
 export default function SettingsLayout({ children }: SettingsLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const userContext = useContext(UserContext);
-  const { setIsAuthenticated } = userContext;
+  const { user, setIsAuthenticated } = userContext;
+
+  const navigationItems = [
+    {
+      category: "Billing Settings",
+      items: [
+        {
+          name: "Payment",
+          href: "/user/setting/payment",
+          icon: CreditCard,
+        },
+        {
+          name: "Billing Overview",
+          href: "/user/setting/billing",
+          icon: Receipt,
+        },
+      ],
+    },
+    {
+      category: "AI Integration",
+      items: [
+        {
+          name: "API Keys",
+          href: "/user/setting/api-keys",
+          icon: Key,
+        },
+      ],
+    },
+    {
+      category: "Appearance",
+      items: [
+        {
+          name: "Theme",
+          href: "/user/setting/appearance",
+          icon: Palette,
+        },
+      ],
+    },
+    {
+      category: "Support",
+      items: [
+        {
+          name: "Contact",
+          href: "/user/setting/contact",
+          icon: MessageCircle,
+        },
+      ],
+    },
+    ...(user?.is_admin ? [{
+      category: "Administration",
+      items: [
+        {
+          name: "Admin Panel",
+          href: "/user/setting/admin",
+          icon: Shield,
+        },
+      ],
+    }] : []),
+  ];
 
   const handleLogOut = async () => {
     try {

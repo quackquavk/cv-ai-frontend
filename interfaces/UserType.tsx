@@ -4,6 +4,7 @@ export interface IUserType {
   email: string;
   full_name: string;
   premium: boolean;
+  is_admin: boolean;
   google_id: string;
   picture: string;
 }
