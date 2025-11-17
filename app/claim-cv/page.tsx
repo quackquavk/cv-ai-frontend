@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { UserContext } from "@/context/UserContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,7 +51,7 @@ interface TokenInfo {
   error?: string;
 }
 
-export default function ClaimCVPage() {
+function ClaimCVContent() {
   const { user, loading: userLoading } = useContext(UserContext);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -365,5 +365,17 @@ export default function ClaimCVPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function ClaimCVPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-foreground" />
+      </div>
+    }>
+      <ClaimCVContent />
+    </Suspense>
   );
 }
