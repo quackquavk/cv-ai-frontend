@@ -5,7 +5,7 @@ import { IFormInputData } from "@/interfaces/FormInputData";
 import { SearchContext } from "../context/SearchContext";
 import { ViewContext } from "../context/ViewContext";
 import LinearTagsInput from "./SearchInput/LinearTagsInput";
-import { Search, SearchX, Star } from "lucide-react";
+import { Search, SearchX, Star, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { folderSelectStore, publicFolderStore, privateFolderStore, multiFolderSelectStore } from "../store";
 import ToogleView from "./ToogleView";
@@ -23,6 +23,8 @@ import {
   DialogContent,
   DialogClose,
   DialogTrigger,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import axiosInstance from "@/utils/axiosConfig";
@@ -36,6 +38,7 @@ const SearchFields = () => {
   const [tags, setTags] = useState<string[]>([]);
   const { user } = useContext(UserContext);
   const router = useRouter();
+  const [isFiltersDialogOpen, setIsFiltersDialogOpen] = useState<boolean>(false);
   // const inputRefs = useRef(null);
   // const addressRef = useRef(null);
   const [formData, setFormData] = useState<IFormInputData>({
@@ -248,6 +251,17 @@ const SearchFields = () => {
     router.push("/user/setting");
   };
 
+  // Count active filters
+  const activeFiltersCount = [
+    formData.availability,
+    formData.time_of_day,
+    formData.paid_by,
+    formData.star_rating > 0,
+    formData.estimated_salary.length > 0,
+    formData.current_salary.length > 0,
+    formData.sort_order,
+  ].filter(Boolean).length;
+
   return (
     <div className="w-full mt-3 flex flex-col gap-4 justify-center">
       {/* Selected folders indicator - subtle version */}
@@ -272,41 +286,40 @@ const SearchFields = () => {
         </div>
       )}
 
-      {/* Top search fields */}
+      {/* Main search fields */}
       <form onSubmit={handleSubmit}>
-        <div className="flex flex-col w-full">
-          <div className="justify-start flex py-2 mb-5">
-            <div className="flex w-full max-w-full justify-start">
-              <LinearTagsInput
-                isPremium={user?.premium}
-                tags={tags}
-                setTags={setTags}
-                onShiftEnter={handleSubmit}
-                onUpgradeToPro={handleUpgradeToPro}
-              />
-            </div>
+        <div className="flex flex-col w-full gap-4">
+          {/* Tags Input */}
+          <div className="w-full">
+            <LinearTagsInput
+              isPremium={user?.premium}
+              tags={tags}
+              setTags={setTags}
+              onShiftEnter={handleSubmit}
+              onUpgradeToPro={handleUpgradeToPro}
+            />
           </div>
-          <div className="flex flex-col md:flex-row w-full justify-between items-start text-center gap-4">
-            <div className="w-full md:w-3/6 flex items-center gap-1">
-              <div className="w-full">
-                <Input
-                  className="placeholder:text-gray-400 w-full py-2 px-2 h-10 rounded-lg items-center gap-2 focus:outline-none focus:ring-black focus:ring-opacity-75"
-                  type="string"
-                  name="prompt"
-                  value={formData.prompt}
-                  onChange={handleChange}
-                  placeholder="Enter Prompt (Job Descriptions...)"
-                  onKeyDown={handleKeyDown}
-                />
-              </div>
-              <div>
-                <IoMdHelpCircleOutline size={22} />
-              </div>
+
+          {/* Prompt, Location, and Action buttons */}
+          <div className="flex flex-col md:flex-row w-full items-start gap-3">
+            {/* Prompt Input with Help Icon */}
+            <div className="w-full md:flex-1 flex items-center gap-2">
+              <Input
+                className="placeholder:text-gray-400 w-full h-10 rounded-lg"
+                type="string"
+                name="prompt"
+                value={formData.prompt}
+                onChange={handleChange}
+                placeholder="Enter Prompt (Job Descriptions...)"
+                onKeyDown={handleKeyDown}
+              />
+              <IoMdHelpCircleOutline size={22} className="flex-shrink-0 text-gray-500" />
             </div>
 
-            <div className="flex items-center border-1 rounded-lg w-full md:w-auto">
+            {/* Location Input */}
+            <div className="w-full md:w-[12rem]">
               <Input
-                className="w-full md:w-[12rem]"
+                className="w-full h-10"
                 type="text"
                 name="address"
                 value={formData.address}
@@ -315,264 +328,278 @@ const SearchFields = () => {
                 onKeyDown={handleKeyDown}
               />
             </div>
-            <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-normal">
-              {/* Search Field */}
-              <div>
-                <Button
-                  type="submit"
-                  className="group bg-[#4caf50] dark:bg-[#4caf50] dark:hover:bg-[#56b85a] hover:bg-[#56b85a] dark:text-white"
-                >
-                  <Search
-                    size={30}
-                    className="text-md transform transition-transform text-white duration-300 ease-in-out group-hover:translate-y-[-3px]"
-                  />
-                  <span className="">Shift + Enter</span>
-                </Button>
-              </div>
 
-              {/* Clear Field */}
-              <div>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button className="group bg-red-600 hover:bg-red-500">
-                      <div className="p-1 duration-300 ease-in-out group-hover:translate-y-[-3px] ">
-                        <SearchX
-                          size={56}
-                          className="text-white transform transition-transform"
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
+              {/* Search Button */}
+              <Button
+                type="submit"
+                className="group bg-[#4caf50] hover:bg-[#56b85a] dark:bg-[#4caf50] dark:hover:bg-[#56b85a]"
+              >
+                <Search
+                  size={20}
+                  className="text-white transform transition-transform duration-300 ease-in-out group-hover:translate-y-[-3px]"
+                />
+                <span className="ml-2 text-white">Search</span>
+              </Button>
+
+              {/* Filters Button */}
+              <Dialog open={isFiltersDialogOpen} onOpenChange={setIsFiltersDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="relative">
+                    <Filter size={20} />
+                    <span className="ml-2">Filters</span>
+                    {activeFiltersCount > 0 && (
+                      <span className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center text-xs font-medium bg-blue-500 text-white rounded-full">
+                        {activeFiltersCount}
+                      </span>
+                    )}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl font-semibold">Advanced Filters</DialogTitle>
+                  </DialogHeader>
+                  <div className="py-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Availability */}
+                      <div className="space-y-2">
+                        <Label htmlFor="availability">Availability</Label>
+                        <Select
+                          value={formData.availability || ""}
+                          onValueChange={(value) => {
+                            const updatedValue = value === "all" ? "" : value;
+                            setFormData({ ...formData, availability: updatedValue });
+                          }}
+                        >
+                          <SelectTrigger id="availability" className="w-full">
+                            <SelectValue placeholder="Select availability" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectItem value="all">All</SelectItem>
+                              <SelectItem value="remote">Remote</SelectItem>
+                              <SelectItem value="onsite">Onsite</SelectItem>
+                              <SelectItem value="hybrid">Hybrid</SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Time of the day */}
+                      <div className="space-y-2">
+                        <Label htmlFor="timeOfDay">Time of Day</Label>
+                        <Select
+                          value={formData.time_of_day || ""}
+                          onValueChange={(value) => {
+                            const updatedValue = value === "all" ? "" : value;
+                            setFormData({ ...formData, time_of_day: updatedValue });
+                          }}
+                        >
+                          <SelectTrigger id="timeOfDay" className="w-full">
+                            <SelectValue placeholder="Select time" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectItem value="all">All</SelectItem>
+                              <SelectItem value="day">Day</SelectItem>
+                              <SelectItem value="night">Night</SelectItem>
+                              <SelectItem value="flexible">Flexible</SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Salary By */}
+                      <div className="space-y-2">
+                        <Label htmlFor="paidBy">Salary Paid By</Label>
+                        <Select
+                          value={formData.paid_by}
+                          onValueChange={(value) => {
+                            const updatedValue = value === "all" ? "" : value;
+                            setFormData({ ...formData, paid_by: updatedValue });
+                          }}
+                        >
+                          <SelectTrigger id="paidBy" className="w-full">
+                            <SelectValue placeholder="Select payment frequency" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectItem value="all">All</SelectItem>
+                              <SelectItem value="hourly">Hourly</SelectItem>
+                              <SelectItem value="monthly">Monthly</SelectItem>
+                              <SelectItem value="annually">Annually</SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Rating */}
+                      <div className="space-y-2">
+                        <Label htmlFor="rating">Minimum Rating</Label>
+                        <Select
+                          value={String(formData.star_rating || "")}
+                          onValueChange={(value) => {
+                            const updatedValue = value === "all" ? 0 : value;
+                            setFormData({ ...formData, star_rating: Number(updatedValue) });
+                          }}
+                        >
+                          <SelectTrigger id="rating" className="w-full">
+                            <SelectValue placeholder="Select rating" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectItem value="all">All</SelectItem>
+                              <SelectItem value="1">
+                                <span className="flex gap-2 items-center">
+                                  <span>1</span>
+                                  <Star size={12} fill="currentColor" />
+                                </span>
+                              </SelectItem>
+                              <SelectItem value="2">
+                                <span className="flex gap-2 items-center">
+                                  <span>2</span>
+                                  <Star size={12} fill="currentColor" />
+                                </span>
+                              </SelectItem>
+                              <SelectItem value="3">
+                                <span className="flex gap-2 items-center">
+                                  <span>3</span>
+                                  <Star size={12} fill="currentColor" />
+                                </span>
+                              </SelectItem>
+                              <SelectItem value="4">
+                                <span className="flex gap-2 items-center">
+                                  <span>4</span>
+                                  <Star size={12} fill="currentColor" />
+                                </span>
+                              </SelectItem>
+                              <SelectItem value="5">
+                                <span className="flex gap-2 items-center">
+                                  <span>5</span>
+                                  <Star size={12} fill="currentColor" />
+                                </span>
+                              </SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Expected Salary */}
+                      <div className="space-y-2">
+                        <Label htmlFor="estimatedSalary">Expected Salary (USD)</Label>
+                        <Input
+                          type="text"
+                          id="estimatedSalary"
+                          className="w-full"
+                          value={formData.estimated_salary.join(" - ")}
+                          onChange={(event) =>
+                            validateInput(event, "estimated_salary", setFormData)
+                          }
+                          placeholder="e.g., 50000 - 80000"
                         />
                       </div>
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="w-[90%] max-w-md mx-auto">
-                    <div className="px-4 py-5 space-y-5">
-                      <h1 className="text-xl md:text-2xl font-semibold">
-                        Are you sure you want to clear all search fields?
-                      </h1>
-                      <p className="text-gray-600 dark:text-gray-400">
-                        The action will clear all the search fields.
-                      </p>
-                      <section className="w-full flex space-x-7 justify-end">
-                        <DialogClose asChild>
-                          <button className="hover:opacity-70">Cancel</button>
-                        </DialogClose>
-                        <DialogClose asChild>
-                          <Button className="" onClick={() => handleClear()}>
-                            Clear
-                          </Button>
-                        </DialogClose>
-                      </section>
+
+                      {/* Current Salary */}
+                      <div className="space-y-2">
+                        <Label htmlFor="currentSalary">Current Salary (USD)</Label>
+                        <Input
+                          type="text"
+                          id="currentSalary"
+                          className="w-full"
+                          value={formData.current_salary.join(" - ")}
+                          onChange={(event) =>
+                            validateInput(event, "current_salary", setFormData)
+                          }
+                          placeholder="e.g., 40000 - 60000"
+                        />
+                      </div>
+
+                      {/* Sorting */}
+                      <div className="space-y-2">
+                        <Label htmlFor="sortOrder">Sort Order</Label>
+                        <Select
+                          value={formData.sort_order || ""}
+                          onValueChange={(value) => {
+                            setFormData({
+                              ...formData,
+                              sort_order: value,
+                            });
+                            performSearch({ sort_order: value });
+                          }}
+                        >
+                          <SelectTrigger id="sortOrder" className="w-full">
+                            <SelectValue placeholder="Select sort order" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectItem value="a">Ascending</SelectItem>
+                              <SelectItem value="d">Descending</SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
+
+                    {/* Dialog Actions */}
+                    <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+                      <DialogClose asChild>
+                        <Button variant="outline">Close</Button>
+                      </DialogClose>
+                      <Button 
+                        onClick={() => {
+                          handleClear();
+                          setIsFiltersDialogOpen(false);
+                        }}
+                        variant="destructive"
+                      >
+                        Clear All Filters
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              {/* Clear Button */}
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="group border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-950">
+                    <SearchX
+                      size={20}
+                      className="transform transition-transform duration-300 ease-in-out group-hover:translate-y-[-3px]"
+                    />
+                    <span className="ml-2">Clear</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="w-[90%] max-w-md mx-auto">
+                  <div className="px-4 py-5 space-y-5">
+                    <h1 className="text-xl md:text-2xl font-semibold">
+                      Clear all search fields?
+                    </h1>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      This action will clear all search fields and filters.
+                    </p>
+                    <section className="w-full flex space-x-7 justify-end">
+                      <DialogClose asChild>
+                        <Button variant="outline">Cancel</Button>
+                      </DialogClose>
+                      <DialogClose asChild>
+                        <Button variant="destructive" onClick={() => handleClear()}>
+                          Clear All
+                        </Button>
+                      </DialogClose>
+                    </section>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </div>
       </form>
-      {/* sorting search */}
-      <div className="flex flex-wrap items-center justify-between gap-3 md:gap-1">
-        {/* Availability */}
-        <div className="w-[calc(50%-0.375rem)] md:w-auto">
-          <Select
-            value={formData.availability || ""}
-            onValueChange={(value) => {
-              const updatedValue = value === "all" ? "" : value;
-              setFormData({ ...formData, availability: updatedValue });
-            }}
-          >
-            <SelectTrigger className="w-full md:w-[120px]">
-              <SelectValue placeholder="Availability" />
-            </SelectTrigger>
 
-            <SelectContent className="md:w-[120px] w-full">
-              <SelectGroup>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="remote">Remote</SelectItem>
-                <SelectItem value="onsite">Onsite</SelectItem>
-                <SelectItem value="hybrid">Hybrid</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Time of the day */}
-        <div className="w-[calc(50%-0.375rem)] md:w-auto">
-          <Select
-            value={formData.time_of_day || ""}
-            onValueChange={(value) => {
-              const updatedValue = value === "all" ? "" : value;
-              setFormData({ ...formData, time_of_day: updatedValue });
-            }}
-          >
-            <SelectTrigger className="w-full md:w-[120px]">
-              <SelectValue placeholder="Time" />
-            </SelectTrigger>
-
-            <SelectContent className="md:w-[120px] w-full">
-              <SelectGroup>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="day">Day</SelectItem>
-                <SelectItem value="night">Night</SelectItem>
-                <SelectItem value="flexible">Flexible</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Salary By */}
-        <div className="w-[calc(50%-0.375rem)] md:w-auto">
-          <Select
-            value={formData.paid_by}
-            onValueChange={(value) => {
-              const updatedValue = value === "all" ? "" : value;
-              setFormData({ ...formData, paid_by: updatedValue });
-            }}
-          >
-            <SelectTrigger className="w-full md:w-[120px]">
-              <SelectValue placeholder="Salary By" />
-            </SelectTrigger>
-
-            <SelectContent className="md:w-[120px] w-full">
-              <SelectGroup>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="hourly">Hourly</SelectItem>
-                <SelectItem value="monthly">Monthly</SelectItem>
-                <SelectItem value="annually">Annually</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Estimated Salary */}
-        <div className="w-[calc(50%-0.375rem)] md:w-[184px] relative">
-          <Label
-            htmlFor="estimatedSalary"
-            className="absolute truncate left-6 px-1 text-center text-xs font-medium text-gray-700 -top-2 bg-white rounded-md dark:bg-black dark:text-white"
-          >
-            Expected Salary(USD)
-          </Label>
-          <Input
-            type="text"
-            id="estimatedSalary"
-            className="peer block h-10 w-full placeholder:text-gray-400 rounded-md border py-2 px-3 text-sm gap-2 focus:outline-none focus:ring-black focus:ring-opacity-75"
-            value={formData.estimated_salary.join(" - ")}
-            onChange={(event) =>
-              validateInput(event, "estimated_salary", setFormData)
-            }
-            placeholder="Example: 10 - 20"
-          />
-        </div>
-
-        {/* Current Salary */}
-        <div className="w-[calc(50%-0.375rem)] md:w-[11rem] relative">
-          <Label
-            htmlFor="currentSalary"
-            className="absolute left-6 px-1 text-xs font-medium text-gray-700 -top-2 bg-white rounded-md dark:bg-black dark:text-white"
-          >
-            Current Salary(USD)
-          </Label>
-          <Input
-            type="text"
-            id="currentSalary"
-            className="peer block w-full h-10 placeholder:text-gray-400 rounded-md  py-2 px-3 text-sm gap-2 focus:outline-none focus:ring-black focus:ring-opacity-75"
-            value={formData.current_salary.join(" - ")}
-            onChange={(event) =>
-              validateInput(event, "current_salary", setFormData)
-            }
-            placeholder="Example: 10 - 20"
-          />
-        </div>
-
-        {/* Rating */}
-        <div className="w-[calc(50%-0.375rem)] md:w-[90px]">
-          <Select
-            value={String(formData.star_rating || "")}
-            onValueChange={(value) => {
-              const updatedValue = value === "all" ? 0 : value;
-              setFormData({ ...formData, star_rating: Number(updatedValue) });
-            }}
-          >
-            <SelectTrigger className="w-full md:w-[90px]">
-              <SelectValue placeholder="Rating" />
-            </SelectTrigger>
-
-            <SelectContent className="md:w-[90px] w-full">
-              <SelectGroup>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="1">
-                  <span className="flex gap-2 items-center">
-                    <span>1</span>
-                    <span>
-                      <Star size={12} />
-                    </span>
-                  </span>
-                </SelectItem>
-                <SelectItem value="2">
-                  <span className="flex gap-2 items-center">
-                    <span>2</span>
-                    <span>
-                      <Star size={12} />
-                    </span>
-                  </span>
-                </SelectItem>
-                <SelectItem value="3">
-                  <span className="flex gap-2 items-center">
-                    <span>3</span>
-                    <span>
-                      <Star size={12} />
-                    </span>
-                  </span>
-                </SelectItem>
-                <SelectItem value="4">
-                  <span className="flex gap-2 items-center">
-                    <span>4</span>
-                    <span>
-                      <Star size={12} />
-                    </span>
-                  </span>
-                </SelectItem>
-                <SelectItem value="5">
-                  <span className="flex gap-2 items-center">
-                    <span>5</span>
-                    <span>
-                      <Star size={12} />
-                    </span>
-                  </span>
-                </SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Sorting */}
-        <div className="w-[calc(50%-0.375rem)] md:w-auto">
-          <Select
-            value={formData.sort_order || ""}
-            onValueChange={(value) => {
-              setFormData({
-                ...formData,
-                sort_order: value,
-              });
-              performSearch({ sort_order: value });
-            }}
-          >
-            <SelectTrigger className="w-full md:w-[120px]">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-
-            <SelectContent className="md:w-[120px] w-full">
-              <SelectGroup>
-                <SelectItem value="a">Ascending</SelectItem>
-                <SelectItem value="d">Descending</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Toogle View */}
-        <div className="w-full md:w-auto flex justify-center md:justify-start">
-          <ToogleView />
-        </div>
+      {/* View Toggle - Always visible */}
+      <div className="flex justify-end">
+        <ToogleView />
       </div>
     </div>
   );
