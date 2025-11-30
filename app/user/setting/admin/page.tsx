@@ -1194,7 +1194,7 @@ export default function AdminPage() {
                 </Button>
                   <Button
                     onClick={handleBulkDeleteAll}
-                    disabled={detectionRunning || bulkDeleteRunning}
+                    disabled={bulkDeleteRunning}
                     variant="destructive"
                   >
                     {bulkDeleteRunning ? (
@@ -1370,8 +1370,8 @@ export default function AdminPage() {
                                           />
                                           <span className="text-sm font-medium">
                                             {(
-                                              group.duplicate_cv_scores[idx] *
-                                              100
+                                              group.duplicate_cv_scores[idx] 
+                                              
                                             ).toFixed(1)}
                                             %
                                           </span>
