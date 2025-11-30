@@ -6,7 +6,13 @@ import { GoDotFill } from "react-icons/go";
 import DetailViewSkeleton from "@/components/ui/Skeleton/DetailViewSkeleton";
 import axiosInstance from "@/utils/axiosConfig";
 import ContactQRCode from "@/app/components/ContactQRCode";
-import { SquareArrowOutUpRight, Star, Upload, RefreshCw } from "lucide-react";
+import {
+  SquareArrowOutUpRight,
+  Star,
+  Upload,
+  RefreshCw,
+  Trash2,
+} from "lucide-react";
 import { FaLinkedin, FaGithub, FaPhoneAlt } from "react-icons/fa";
 import { PiGlobeLight, PiNotePencilBold } from "react-icons/pi";
 import { IoLocation } from "react-icons/io5";
@@ -41,9 +47,18 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import {
-  Switch,
-} from "@/components/ui/switch";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface IAvailability {
   document_id: string;
@@ -73,6 +88,7 @@ const CandidateView = () => {
   const [showSidebar, setShowSidebar] = useState<boolean>(false);
   const [shouldClaimCV, setShouldClaimCV] = useState<boolean>(false);
   const [hasClaimedAnyCV, setHasClaimedAnyCV] = useState<boolean>(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const closeButtonRef = useRef(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -210,7 +226,6 @@ const CandidateView = () => {
         withCredentials: true,
       });
 
-      
       if (response.data && response.data.parsed_cv) {
         console.log("Setting claimable CV data:", response.data);
         setClaimableCV(response.data);
@@ -223,7 +238,9 @@ const CandidateView = () => {
       if (error.response?.status === 404) {
         toast.info("No claimable CV available at the moment");
       } else {
-        toast.error(error.response?.data?.detail || "Failed to get claimable CV");
+        toast.error(
+          error.response?.data?.detail || "Failed to get claimable CV"
+        );
       }
     } finally {
       setLoader(false);
@@ -357,12 +374,15 @@ const CandidateView = () => {
         `/cv_document/updateAvailability`,
         body
       );
-      
-      if (response.data.detail && response.data.detail.includes("Nothing to change in document")) {
+
+      if (
+        response.data.detail &&
+        response.data.detail.includes("Nothing to change in document")
+      ) {
         toast.info("Nothing to change in document", { duration: 1000 });
         return;
       }
-      
+
       setInputData(response.data);
       toast.success("Successfully Updated Data", { duration: 1000 });
       closeButtonRef.current?.click();
@@ -375,6 +395,42 @@ const CandidateView = () => {
     }
   };
 
+  const handleDeleteCV = async () => {
+    try {
+      setLoader(true);
+      await axiosInstance.delete("/cv-claim/", {
+        withCredentials: true,
+      });
+
+      toast.success("CV deleted successfully");
+      setHasClaimed(false);
+      setData(null);
+      setHasClaimedAnyCV(false);
+      setIsDeleteDialogOpen(false);
+      // Reset input data
+      setInputData({
+        document_id: "",
+        availability: null,
+        time_of_day: null,
+        star_rating: null,
+        current_salary: null,
+        estimated_salary: null,
+        paid_by: null,
+        note: "",
+        rating_info: {
+          average: 0,
+          count: 0,
+        },
+        has_rated: false,
+      });
+    } catch (error: any) {
+      console.error("Error deleting CV:", error);
+      toast.error(error.response?.data?.detail || "Failed to delete CV");
+    } finally {
+      setLoader(false);
+    }
+  };
+
   function toTitleCase(str: string): string {
     return str
       ?.split(" ")
@@ -382,7 +438,6 @@ const CandidateView = () => {
       ?.join(" ");
   }
 
-  
   if (loading) {
     return (
       <div className="w-full h-full">
@@ -421,7 +476,9 @@ const CandidateView = () => {
 
               {/* Upload Section */}
               <div className="mb-6">
-                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">CV Upload</h4>
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                  CV Upload
+                </h4>
                 <div
                   onDrop={handleDrop}
                   onDragEnter={handleDragEnter}
@@ -452,8 +509,7 @@ const CandidateView = () => {
                   </div>
                 )}
               </div>
-
-              </div>
+            </div>
           </div>
         )}
 
@@ -461,7 +517,8 @@ const CandidateView = () => {
           <Card className="p-8 max-w-md text-center">
             <h2 className="text-2xl font-bold mb-4">Claim Your CV</h2>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              You haven't claimed a CV yet. Find a claimable CV below or upload one from the sidebar.
+              You haven't claimed a CV yet. Find a claimable CV below or upload
+              one from the sidebar.
             </p>
 
             <div className="flex flex-col gap-3">
@@ -488,7 +545,9 @@ const CandidateView = () => {
           </Card>
         ) : (
           <Card className="p-8 max-w-lg">
-            <h2 className="text-2xl font-bold mb-4 text-center">Claimable CV Found</h2>
+            <h2 className="text-2xl font-bold mb-4 text-center">
+              Claimable CV Found
+            </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-6 text-center">
               Review the CV details below and decide if you want to claim it.
             </p>
@@ -496,29 +555,37 @@ const CandidateView = () => {
             {claimableCV?.parsed_cv && (
               <div className="space-y-4 mb-6">
                 <div className="border-b pb-3">
-                  <p className="text-sm font-medium text-gray-500 uppercase mb-1">Name</p>
+                  <p className="text-sm font-medium text-gray-500 uppercase mb-1">
+                    Name
+                  </p>
                   <p className="text-lg font-semibold capitalize">
-                    {claimableCV.parsed_cv.name || 'N/A'}
+                    {claimableCV.parsed_cv.name || "N/A"}
                   </p>
                 </div>
 
                 <div className="border-b pb-3">
-                  <p className="text-sm font-medium text-gray-500 uppercase mb-1">Position</p>
+                  <p className="text-sm font-medium text-gray-500 uppercase mb-1">
+                    Position
+                  </p>
                   <p className="text-base capitalize">
-                    {claimableCV.parsed_cv.position || 'N/A'}
+                    {claimableCV.parsed_cv.position || "N/A"}
                   </p>
                 </div>
 
                 <div className="border-b pb-3">
-                  <p className="text-sm font-medium text-gray-500 uppercase mb-1">Email</p>
+                  <p className="text-sm font-medium text-gray-500 uppercase mb-1">
+                    Email
+                  </p>
                   <p className="text-base">
-                    {claimableCV.parsed_cv.email || 'N/A'}
+                    {claimableCV.parsed_cv.email || "N/A"}
                   </p>
                 </div>
 
                 {claimableCV.parsed_cv.phone_number && (
                   <div className="border-b pb-3">
-                    <p className="text-sm font-medium text-gray-500 uppercase mb-1">Phone</p>
+                    <p className="text-sm font-medium text-gray-500 uppercase mb-1">
+                      Phone
+                    </p>
                     <p className="text-base">
                       {claimableCV.parsed_cv.phone_number}
                     </p>
@@ -527,30 +594,40 @@ const CandidateView = () => {
 
                 {claimableCV.parsed_cv.address && (
                   <div className="border-b pb-3">
-                    <p className="text-sm font-medium text-gray-500 uppercase mb-1">Location</p>
+                    <p className="text-sm font-medium text-gray-500 uppercase mb-1">
+                      Location
+                    </p>
                     <p className="text-base capitalize">
                       {claimableCV.parsed_cv.address}
                     </p>
                   </div>
                 )}
 
-                {claimableCV.parsed_cv.skills && claimableCV.parsed_cv.skills.length > 0 && (
-                  <div className="border-b pb-3">
-                    <p className="text-sm font-medium text-gray-500 uppercase mb-2">Skills</p>
-                    <div className="flex flex-wrap gap-2">
-                      {claimableCV.parsed_cv.skills.slice(0, 10).map((skill: string, idx: number) => (
-                        <span key={idx} className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-xs rounded capitalize">
-                          {skill}
-                        </span>
-                      ))}
-                      {claimableCV.parsed_cv.skills.length > 10 && (
-                        <span className="px-2 py-1 text-xs text-gray-500">
-                          +{claimableCV.parsed_cv.skills.length - 10} more
-                        </span>
-                      )}
+                {claimableCV.parsed_cv.skills &&
+                  claimableCV.parsed_cv.skills.length > 0 && (
+                    <div className="border-b pb-3">
+                      <p className="text-sm font-medium text-gray-500 uppercase mb-2">
+                        Skills
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {claimableCV.parsed_cv.skills
+                          .slice(0, 10)
+                          .map((skill: string, idx: number) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-xs rounded capitalize"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                        {claimableCV.parsed_cv.skills.length > 10 && (
+                          <span className="px-2 py-1 text-xs text-gray-500">
+                            +{claimableCV.parsed_cv.skills.length - 10} more
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </div>
             )}
 
@@ -589,7 +666,11 @@ const CandidateView = () => {
         className="absolute top-4 right-4 z-10"
         onClick={() => setShowSidebar(!showSidebar)}
       >
-        {hasClaimed ? <RefreshCw className="h-4 w-4" /> : <Upload className="h-4 w-4" />}
+        {hasClaimed ? (
+          <RefreshCw className="h-4 w-4" />
+        ) : (
+          <Upload className="h-4 w-4" />
+        )}
       </Button>
 
       {/* Sidebar for claimed users */}
@@ -658,7 +739,9 @@ const CandidateView = () => {
             {/* Header Section */}
             <div className="flex justify-between items-start">
               <div className="flex flex-col gap-2 flex-1">
-                <h1 className="font-bold text-2xl">{data?.name?.toUpperCase()}</h1>
+                <h1 className="font-bold text-2xl">
+                  {data?.name?.toUpperCase()}
+                </h1>
                 <p className="font-semibold underline underline-offset-2">
                   {data?.position?.toUpperCase()}
                 </p>
@@ -754,7 +837,9 @@ const CandidateView = () => {
                 <ContactQRCode
                   contact={{
                     fullName: data?.name
-                      ? `${toTitleCase(data.name)} (${toTitleCase(data?.position) || ""})`
+                      ? `${toTitleCase(data.name)} (${
+                          toTitleCase(data?.position) || ""
+                        })`
                       : "",
                     phone: data?.phone_number || "",
                     address: data?.address || "",
@@ -776,7 +861,10 @@ const CandidateView = () => {
                 <p className="font-semibold mb-2">Programming Languages</p>
                 <div className="flex flex-wrap gap-3 text-sm">
                   {data.programming_languages.map((item: any, idx: number) => (
-                    <Card key={idx} className="px-3 py-1 font-semibold capitalize">
+                    <Card
+                      key={idx}
+                      className="px-3 py-1 font-semibold capitalize"
+                    >
                       {item}
                     </Card>
                   ))}
@@ -794,7 +882,9 @@ const CandidateView = () => {
                   {data.skills.map((item: any, index: number) => (
                     <div key={index} className="flex gap-1 items-center">
                       <GoDotFill className="text-gray-600" />
-                      <span className="text-sm dark:text-gray-300 capitalize">{item}</span>
+                      <span className="text-sm dark:text-gray-300 capitalize">
+                        {item}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -821,7 +911,9 @@ const CandidateView = () => {
                         {index + 1}. {item?.job_title}
                       </p>
                       <p className="flex items-center gap-3">
-                        <span className="font-semibold capitalize">{item?.company_name}</span>
+                        <span className="font-semibold capitalize">
+                          {item?.company_name}
+                        </span>
                         {item?.start_date && item?.end_date && (
                           <span className="text-sm text-gray-500 capitalize">
                             ({item.start_date} - {item.end_date})
@@ -830,12 +922,16 @@ const CandidateView = () => {
                       </p>
                       {item.responsibilities?.length > 0 && (
                         <div className="flex flex-col text-sm mt-1">
-                          {item.responsibilities.map((resp: string, idx: number) => (
-                            <span key={idx} className="flex gap-1">
-                              <GoDotFill className="mt-[3px]" />
-                              <span className="dark:text-gray-400 capitalize">{resp}</span>
-                            </span>
-                          ))}
+                          {item.responsibilities.map(
+                            (resp: string, idx: number) => (
+                              <span key={idx} className="flex gap-1">
+                                <GoDotFill className="mt-[3px]" />
+                                <span className="dark:text-gray-400 capitalize">
+                                  {resp}
+                                </span>
+                              </span>
+                            )
+                          )}
                         </div>
                       )}
                     </div>
@@ -851,51 +947,58 @@ const CandidateView = () => {
               <div>
                 <p className="font-semibold mb-2">Projects</p>
                 <div className="flex flex-col gap-4">
-                  {data.technical_projects.map((project: any, index: number) => (
-                    <div key={index}>
-                      <div className="flex justify-between items-center">
-                        <p className="font-semibold capitalize">
-                          {index + 1}. {project.project_name}
-                        </p>
-                        {project.project_link && (
-                          <Link
-                            href={
-                              (Array.isArray(project.project_link)
-                                ? project.project_link[0]
-                                : project.project_link
-                              ).startsWith("http")
-                                ? Array.isArray(project.project_link)
+                  {data.technical_projects.map(
+                    (project: any, index: number) => (
+                      <div key={index}>
+                        <div className="flex justify-between items-center">
+                          <p className="font-semibold capitalize">
+                            {index + 1}. {project.project_name}
+                          </p>
+                          {project.project_link && (
+                            <Link
+                              href={
+                                (Array.isArray(project.project_link)
                                   ? project.project_link[0]
                                   : project.project_link
-                                : `https://${
-                                    Array.isArray(project.project_link)
-                                      ? project.project_link[0]
-                                      : project.project_link
-                                  }`
-                            }
-                            target="_blank"
-                            className="hover:opacity-50"
-                          >
-                            <SquareArrowOutUpRight size={16} />
-                          </Link>
+                                ).startsWith("http")
+                                  ? Array.isArray(project.project_link)
+                                    ? project.project_link[0]
+                                    : project.project_link
+                                  : `https://${
+                                      Array.isArray(project.project_link)
+                                        ? project.project_link[0]
+                                        : project.project_link
+                                    }`
+                              }
+                              target="_blank"
+                              className="hover:opacity-50"
+                            >
+                              <SquareArrowOutUpRight size={16} />
+                            </Link>
+                          )}
+                        </div>
+                        {project.programming_language?.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {project.programming_language.map(
+                              (lang: string, idx: number) => (
+                                <Card
+                                  key={idx}
+                                  className="px-2 py-1 text-sm font-semibold capitalize"
+                                >
+                                  {lang}
+                                </Card>
+                              )
+                            )}
+                          </div>
+                        )}
+                        {project.description && (
+                          <p className="text-sm mt-2 dark:text-gray-400 capitalize">
+                            {project.description}
+                          </p>
                         )}
                       </div>
-                      {project.programming_language?.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {project.programming_language.map((lang: string, idx: number) => (
-                            <Card key={idx} className="px-2 py-1 text-sm font-semibold capitalize">
-                              {lang}
-                            </Card>
-                          ))}
-                        </div>
-                      )}
-                      {project.description && (
-                        <p className="text-sm mt-2 dark:text-gray-400 capitalize">
-                          {project.description}
-                        </p>
-                      )}
-                    </div>
-                  ))}
+                    )
+                  )}
                 </div>
               </div>
             )}
@@ -947,9 +1050,13 @@ const CandidateView = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {/* Rating */}
             <div className="flex items-center justify-between sm:justify-start sm:flex-col sm:items-start gap-2">
-              <span className="text-xs text-gray-500 uppercase tracking-wide">Rating</span>
+              <span className="text-xs text-gray-500 uppercase tracking-wide">
+                Rating
+              </span>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-gray-700 dark:text-gray-300 text-sm">{inputData.rating_info.average}</span>
+                <span className="font-bold text-gray-700 dark:text-gray-300 text-sm">
+                  {inputData.rating_info.average}
+                </span>
                 <div className="flex">
                   {[1, 2, 3, 4, 5].map((index) => (
                     <div key={index} className="p-0.5">
@@ -969,13 +1076,18 @@ const CandidateView = () => {
                     </div>
                   ))}
                 </div>
-                <span className="text-xs text-gray-500">({inputData.rating_info.count} {inputData.rating_info.count === 1 ? 'rating' : 'ratings'})</span>
+                <span className="text-xs text-gray-500">
+                  ({inputData.rating_info.count}{" "}
+                  {inputData.rating_info.count === 1 ? "rating" : "ratings"})
+                </span>
               </div>
             </div>
 
             {/* Availability */}
             <div className="flex items-center justify-between sm:justify-start sm:flex-col sm:items-start gap-2">
-              <span className="text-xs text-gray-500 uppercase tracking-wide">Availability</span>
+              <span className="text-xs text-gray-500 uppercase tracking-wide">
+                Availability
+              </span>
               <div className="flex gap-2">
                 <Select
                   value={inputData.availability || ""}
@@ -988,9 +1100,15 @@ const CandidateView = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="remote" className="text-xs">Remote</SelectItem>
-                      <SelectItem value="onsite" className="text-xs">Onsite</SelectItem>
-                      <SelectItem value="hybrid" className="text-xs">Hybrid</SelectItem>
+                      <SelectItem value="remote" className="text-xs">
+                        Remote
+                      </SelectItem>
+                      <SelectItem value="onsite" className="text-xs">
+                        Onsite
+                      </SelectItem>
+                      <SelectItem value="hybrid" className="text-xs">
+                        Hybrid
+                      </SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -1006,9 +1124,15 @@ const CandidateView = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="day" className="text-xs">Day</SelectItem>
-                      <SelectItem value="night" className="text-xs">Night</SelectItem>
-                      <SelectItem value="flexible" className="text-xs">Flexible</SelectItem>
+                      <SelectItem value="day" className="text-xs">
+                        Day
+                      </SelectItem>
+                      <SelectItem value="night" className="text-xs">
+                        Night
+                      </SelectItem>
+                      <SelectItem value="flexible" className="text-xs">
+                        Flexible
+                      </SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -1017,7 +1141,9 @@ const CandidateView = () => {
 
             {/* Salary */}
             <div className="flex items-center justify-between sm:justify-start sm:flex-col sm:items-start gap-2">
-              <span className="text-xs text-gray-500 uppercase tracking-wide">Salary</span>
+              <span className="text-xs text-gray-500 uppercase tracking-wide">
+                Salary
+              </span>
               <div className="flex gap-1.5">
                 <div className="w-20 relative">
                   <Label
@@ -1039,7 +1165,9 @@ const CandidateView = () => {
                         ? inputData.current_salary.toString()
                         : ""
                     }
-                    onChange={(event) => validatePositiveNumber(event, "current_salary")}
+                    onChange={(event) =>
+                      validatePositiveNumber(event, "current_salary")
+                    }
                     placeholder="0"
                   />
                 </div>
@@ -1064,23 +1192,33 @@ const CandidateView = () => {
                         ? inputData.estimated_salary.toString()
                         : ""
                     }
-                    onChange={(event) => validatePositiveNumber(event, "estimated_salary")}
+                    onChange={(event) =>
+                      validatePositiveNumber(event, "estimated_salary")
+                    }
                     placeholder="0"
                   />
                 </div>
 
                 <Select
                   value={inputData.paid_by || ""}
-                  onValueChange={(value) => setInputData({ ...inputData, paid_by: value })}
+                  onValueChange={(value) =>
+                    setInputData({ ...inputData, paid_by: value })
+                  }
                 >
                   <SelectTrigger className="w-[70px] h-[36px] text-xs">
                     <SelectValue placeholder="Period" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="hourly" className="text-xs">Hourly</SelectItem>
-                      <SelectItem value="monthly" className="text-xs">Monthly</SelectItem>
-                      <SelectItem value="annually" className="text-xs">Annually</SelectItem>
+                      <SelectItem value="hourly" className="text-xs">
+                        Hourly
+                      </SelectItem>
+                      <SelectItem value="monthly" className="text-xs">
+                        Monthly
+                      </SelectItem>
+                      <SelectItem value="annually" className="text-xs">
+                        Annually
+                      </SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -1089,7 +1227,9 @@ const CandidateView = () => {
 
             {/* Actions */}
             <div className="flex items-center justify-between sm:justify-start sm:flex-col sm:items-start gap-2">
-              <span className="text-xs text-gray-500 uppercase tracking-wide invisible sm:visible">Actions</span>
+              <span className="text-xs text-gray-500 uppercase tracking-wide invisible sm:visible">
+                Actions
+              </span>
               <div className="flex gap-2">
                 <Sheet>
                   <SheetTrigger>
@@ -1157,16 +1297,51 @@ const CandidateView = () => {
                     </>
                   )}
                 </Button>
+
+                <AlertDialog
+                  open={isDeleteDialogOpen}
+                  onOpenChange={setIsDeleteDialogOpen}
+                >
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="h-[36px] px-3 text-xs"
+                      disabled={loader}
+                    >
+                      <Trash2 size={14} />
+                      <span className="hidden sm:inline ml-1">Delete</span>
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Are you absolutely sure?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently
+                        delete your claimed CV and remove your data from our
+                        servers.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDeleteCV}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </div>
           </div>
         </div>
       </Card>
-
     </div>
   );
 };
 
 export default CandidateView;
-
-
