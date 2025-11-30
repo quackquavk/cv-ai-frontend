@@ -1,15 +1,34 @@
 "use client";
 import { useState, useEffect, useContext } from "react";
 import { UserContext } from "@/context/UserContext";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { toast } from "sonner";
 import axiosInstance from "@/utils/axiosConfig";
 import {
@@ -25,8 +44,21 @@ import {
   Loader2,
   TrendingUp,
   UserCheck,
-  FileCheck
+  FileCheck,
+  Copy,
+  Trash2,
+  AlertCircle,
+  CheckCircle2,
+  XCircle,
+  ChevronRight,
 } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Progress } from "@/components/ui/progress";
 
 interface AdminDashboardSummary {
   total_users: number;
@@ -99,6 +131,15 @@ interface BulkEmailResponse {
   }>;
 }
 
+interface DuplicateGroup {
+  email: string;
+  kept_cv_id: string;
+  kept_cv_score: number;
+  duplicate_cv_ids: string[];
+  duplicate_cv_scores: number[];
+  docs_migrated: number;
+}
+
 export default function AdminPage() {
   const { user } = useContext(UserContext);
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -107,26 +148,40 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [usersLoading, setUsersLoading] = useState(false);
   const [bulkEmailLoading, setBulkEmailLoading] = useState(false);
+  const [detectionRunning, setDetectionRunning] = useState(false);
+  const [bulkDeleteRunning, setBulkDeleteRunning] = useState(false);
 
   // Data
-  const [dashboardSummary, setDashboardSummary] = useState<AdminDashboardSummary | null>(null);
-  const [documentSummary, setDocumentSummary] = useState<AdminDocumentSummary | null>(null);
-  const [subscriptionSummary, setSubscriptionSummary] = useState<AdminSubscriptionSummary | null>(null);
+  const [dashboardSummary, setDashboardSummary] =
+    useState<AdminDashboardSummary | null>(null);
+  const [documentSummary, setDocumentSummary] =
+    useState<AdminDocumentSummary | null>(null);
+  const [subscriptionSummary, setSubscriptionSummary] =
+    useState<AdminSubscriptionSummary | null>(null);
   const [users, setUsers] = useState<AdminUserDetails[]>([]);
+  const [duplicateGroups, setDuplicateGroups] = useState<DuplicateGroup[]>([]);
   const [totalUsers, setTotalUsers] = useState(0);
   const [hasMore, setHasMore] = useState(false);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
-  const [isPremiumFilter, setIsPremiumFilter] = useState<boolean | undefined>(undefined);
-  const [isAdminFilter, setIsAdminFilter] = useState<boolean | undefined>(undefined);
+  const [isPremiumFilter, setIsPremiumFilter] = useState<boolean | undefined>(
+    undefined
+  );
+  const [isAdminFilter, setIsAdminFilter] = useState<boolean | undefined>(
+    undefined
+  );
   const [sortBy, setSortBy] = useState("created_at");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [currentPage, setCurrentPage] = useState(0);
 
   // Editing
   const [editingUser, setEditingUser] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<{ is_admin?: boolean; premium?: boolean; subscription_status?: string }>({});
+  const [editForm, setEditForm] = useState<{
+    is_admin?: boolean;
+    premium?: boolean;
+    subscription_status?: string;
+  }>({});
 
   // CV Claims
   const [bulkEmailLimit, setBulkEmailLimit] = useState("50");
@@ -153,7 +208,14 @@ export default function AdminPage() {
     if (!user?.is_admin || activeTab !== "users") return;
     setCurrentPage(0);
     loadUsers();
-  }, [searchQuery, isPremiumFilter, isAdminFilter, sortBy, sortOrder, activeTab]);
+  }, [
+    searchQuery,
+    isPremiumFilter,
+    isAdminFilter,
+    sortBy,
+    sortOrder,
+    activeTab,
+  ]);
 
   const loadDashboardData = async () => {
     try {
@@ -161,7 +223,7 @@ export default function AdminPage() {
       const [dashboardRes, documentsRes, subscriptionsRes] = await Promise.all([
         axiosInstance.get("/admin/dashboard"),
         axiosInstance.get("/admin/documents/summary"),
-        axiosInstance.get("/admin/subscriptions/summary")
+        axiosInstance.get("/admin/subscriptions/summary"),
       ]);
 
       setDashboardSummary(dashboardRes.data);
@@ -169,7 +231,9 @@ export default function AdminPage() {
       setSubscriptionSummary(subscriptionsRes.data);
     } catch (error: any) {
       console.error("Error loading dashboard data:", error);
-      toast.error(error.response?.data?.detail || "Failed to load dashboard data");
+      toast.error(
+        error.response?.data?.detail || "Failed to load dashboard data"
+      );
     } finally {
       setLoading(false);
     }
@@ -182,12 +246,17 @@ export default function AdminPage() {
 
       const params = new URLSearchParams();
       if (searchQuery) params.append("query", searchQuery);
-      if (isPremiumFilter !== undefined) params.append("is_premium", isPremiumFilter.toString());
-      if (isAdminFilter !== undefined) params.append("is_admin", isAdminFilter.toString());
+      if (isPremiumFilter !== undefined)
+        params.append("is_premium", isPremiumFilter.toString());
+      if (isAdminFilter !== undefined)
+        params.append("is_admin", isAdminFilter.toString());
       params.append("sort_by", sortBy);
       params.append("sort_order", sortOrder);
       params.append("limit", pageSize.toString());
-      params.append("offset", reset ? "0" : (currentPage * pageSize).toString());
+      params.append(
+        "offset",
+        reset ? "0" : (currentPage * pageSize).toString()
+      );
 
       const response = await axiosInstance.get(`/admin/users?${params}`);
       const data = response.data;
@@ -195,7 +264,7 @@ export default function AdminPage() {
       if (reset) {
         setUsers(data.users);
       } else {
-        setUsers(prev => [...prev, ...data.users]);
+        setUsers((prev) => [...prev, ...data.users]);
       }
 
       setTotalUsers(data.total_count);
@@ -213,7 +282,7 @@ export default function AdminPage() {
     setEditForm({
       is_admin: userData.is_admin,
       premium: userData.premium,
-      subscription_status: userData.subscription_status
+      subscription_status: userData.subscription_status,
     });
   };
 
@@ -221,9 +290,11 @@ export default function AdminPage() {
     try {
       await axiosInstance.put(`/admin/users/${userId}`, editForm);
 
-      setUsers(prev => prev.map(user =>
-        user.user_id === userId ? { ...user, ...editForm } : user
-      ));
+      setUsers((prev) =>
+        prev.map((user) =>
+          user.user_id === userId ? { ...user, ...editForm } : user
+        )
+      );
 
       setEditingUser(null);
       setEditForm({});
@@ -241,10 +312,14 @@ export default function AdminPage() {
       if (bulkEmailLimit) params.append("limit", bulkEmailLimit);
       if (forceResend) params.append("force_resend", "true");
 
-      const response = await axiosInstance.post(`/cv-claim/admin/send-bulk-claim-emails?${params}`);
+      const response = await axiosInstance.post(
+        `/cv-claim/admin/send-bulk-claim-emails?${params}`
+      );
       const data: BulkEmailResponse = response.data;
 
-      toast.success(`Bulk email operation completed: ${data.emails_sent} sent, ${data.skipped} skipped, ${data.emails_failed} failed`);
+      toast.success(
+        `Bulk email operation completed: ${data.emails_sent} sent, ${data.skipped} skipped, ${data.emails_failed} failed`
+      );
       await loadDashboardData();
     } catch (error: any) {
       console.error("Error sending bulk emails:", error);
@@ -265,7 +340,9 @@ export default function AdminPage() {
       const params = new URLSearchParams();
       if (uploadedByName) params.append("uploaded_by", uploadedByName);
 
-      const response = await axiosInstance.post(`/cv-claim/admin/send-claim-email/${cvIdForClaim}?${params}`);
+      const response = await axiosInstance.post(
+        `/cv-claim/admin/send-claim-email/${cvIdForClaim}?${params}`
+      );
       const data = response.data;
 
       toast.success(`Claim email sent successfully to ${data.email}`);
@@ -281,11 +358,15 @@ export default function AdminPage() {
 
   const loadTokenStatistics = async () => {
     try {
-      const response = await axiosInstance.get("/cv-claim/admin/token-statistics");
+      const response = await axiosInstance.get(
+        "/cv-claim/admin/token-statistics"
+      );
       setTokenStats(response.data);
     } catch (error: any) {
       console.error("Error loading token statistics:", error);
-      toast.error(error.response?.data?.detail || "Failed to load token statistics");
+      toast.error(
+        error.response?.data?.detail || "Failed to load token statistics"
+      );
     }
   };
 
@@ -296,12 +377,101 @@ export default function AdminPage() {
     }
 
     try {
-      const response = await axiosInstance.get(`/cv-claim/admin/token-info/${tokenLookup}`);
+      const response = await axiosInstance.get(
+        `/cv-claim/admin/token-info/${tokenLookup}`
+      );
       setTokenInfo(response.data);
     } catch (error: any) {
       console.error("Error looking up token:", error);
       toast.error(error.response?.data?.detail || "Token not found or invalid");
       setTokenInfo(null);
+    }
+  };
+
+  const handleRunDetection = async () => {
+    try {
+      setDetectionRunning(true);
+      const response = await axiosInstance.post("/admin/duplicates/detect");
+
+      if (response.data.success) {
+        setDuplicateGroups(response.data.results || []);
+        toast.success(
+          `Detection completed. Processed ${response.data.groups_processed} groups.`
+        );
+      } else {
+        toast.error(response.data.message || "Detection failed");
+      }
+    } catch (error: any) {
+      console.error("Error running detection:", error);
+      toast.error(error.response?.data?.detail || "Failed to run detection");
+    } finally {
+      setDetectionRunning(false);
+    }
+  };
+
+  const handleDeleteDuplicates = async (cvIds: string[]) => {
+    if (
+      !confirm(`Are you sure you want to delete ${cvIds.length} duplicate CVs?`)
+    )
+      return;
+
+    try {
+      const response = await axiosInstance.post("/admin/duplicates/delete", {
+        cv_ids: cvIds,
+      });
+
+      if (response.data.success) {
+        // Remove deleted CVs from the local state
+        setDuplicateGroups((prev) =>
+          prev
+            .map((group) => ({
+              ...group,
+              duplicate_cv_ids: group.duplicate_cv_ids.filter(
+                (id) => !cvIds.includes(id)
+              ),
+            }))
+            .filter((group) => group.duplicate_cv_ids.length > 0)
+        );
+
+        toast.success(
+          response.data.message || "Duplicates deleted successfully"
+        );
+      } else {
+        toast.error(response.data.message || "Failed to delete duplicates");
+      }
+    } catch (error: any) {
+      console.error("Error deleting duplicates:", error);
+      toast.error(
+        error.response?.data?.detail || "Failed to delete duplicates"
+      );
+    }
+  };
+
+  const handleBulkDeleteAll = async () => {
+    if (
+      !confirm(
+        "Are you sure you want to delete ALL detected duplicate CVs? This action cannot be undone."
+      )
+    )
+      return;
+
+    try {
+      setBulkDeleteRunning(true);
+      const response = await axiosInstance.post("/admin/duplicates/delete-all");
+
+      // The response contains the results of what was deleted.
+      // We can assume that if successful, all duplicates are gone.
+      setDuplicateGroups([]);
+      toast.success(
+        response.data.summary || "All duplicates deleted successfully"
+      );
+    } catch (error: any) {
+      console.error("Error deleting all duplicates:", error);
+      toast.error(
+        error.response?.data?.detail || "Failed to delete all duplicates"
+      );
+    } finally {
+      setBulkDeleteRunning(false);
     }
   };
 
@@ -312,7 +482,7 @@ export default function AdminPage() {
 
   const loadMoreUsers = () => {
     if (hasMore && !usersLoading) {
-      setCurrentPage(prev => prev + 1);
+      setCurrentPage((prev) => prev + 1);
       loadUsers(false);
     }
   };
@@ -345,22 +515,35 @@ export default function AdminPage() {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Panel</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Admin Panel
+          </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Manage users, documents, and system settings
           </p>
         </div>
-        <Button variant="outline" onClick={loadDashboardData} disabled={loading}>
+        <Button
+          variant="outline"
+          onClick={loadDashboardData}
+          disabled={loading}
+        >
           Refresh
         </Button>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-6"
+      >
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="cv-claims">CV Claims</TabsTrigger>
+          <TabsTrigger value="duplicate-detection">
+            Duplicate Detection
+          </TabsTrigger>
         </TabsList>
 
         {/* Dashboard Tab */}
@@ -368,11 +551,15 @@ export default function AdminPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Total Users
+                </CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{dashboardSummary?.total_users || 0}</div>
+                <div className="text-2xl font-bold">
+                  {dashboardSummary?.total_users || 0}
+                </div>
                 <p className="text-xs text-muted-foreground">
                   +{dashboardSummary?.new_users_today || 0} today
                 </p>
@@ -381,24 +568,37 @@ export default function AdminPage() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Premium Users</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Premium Users
+                </CardTitle>
                 <UserCheck className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{dashboardSummary?.premium_users || 0}</div>
+                <div className="text-2xl font-bold">
+                  {dashboardSummary?.premium_users || 0}
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  {((dashboardSummary?.premium_users || 0) / (dashboardSummary?.total_users || 1) * 100).toFixed(1)}% of total
+                  {(
+                    ((dashboardSummary?.premium_users || 0) /
+                      (dashboardSummary?.total_users || 1)) *
+                    100
+                  ).toFixed(1)}
+                  % of total
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Total Documents
+                </CardTitle>
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{dashboardSummary?.total_documents || 0}</div>
+                <div className="text-2xl font-bold">
+                  {dashboardSummary?.total_documents || 0}
+                </div>
                 <p className="text-xs text-muted-foreground">
                   +{documentSummary?.documents_today || 0} today
                 </p>
@@ -407,11 +607,15 @@ export default function AdminPage() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Subscriptions</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Active Subscriptions
+                </CardTitle>
                 <CreditCard className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{subscriptionSummary?.active_subscriptions || 0}</div>
+                <div className="text-2xl font-bold">
+                  {subscriptionSummary?.active_subscriptions || 0}
+                </div>
                 <p className="text-xs text-muted-foreground">
                   of {subscriptionSummary?.total_subscriptions || 0} total
                 </p>
@@ -430,15 +634,21 @@ export default function AdminPage() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
                   <span>Average Documents per User</span>
-                  <span className="font-semibold">{documentSummary?.average_documents_per_user || 0}</span>
+                  <span className="font-semibold">
+                    {documentSummary?.average_documents_per_user || 0}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Documents Uploaded Today</span>
-                  <span className="font-semibold">{documentSummary?.documents_today || 0}</span>
+                  <span className="font-semibold">
+                    {documentSummary?.documents_today || 0}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Total Documents</span>
-                  <span className="font-semibold">{documentSummary?.total_documents || 0}</span>
+                  <span className="font-semibold">
+                    {documentSummary?.total_documents || 0}
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -451,12 +661,15 @@ export default function AdminPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {subscriptionSummary?.subscriptions_by_plan && Object.entries(subscriptionSummary.subscriptions_by_plan).map(([plan, count]) => (
-                  <div key={plan} className="flex justify-between">
-                    <span className="capitalize">{plan}</span>
-                    <span className="font-semibold">{count}</span>
-                  </div>
-                ))}
+                {subscriptionSummary?.subscriptions_by_plan &&
+                  Object.entries(subscriptionSummary.subscriptions_by_plan).map(
+                    ([plan, count]) => (
+                      <div key={plan} className="flex justify-between">
+                        <span className="capitalize">{plan}</span>
+                        <span className="font-semibold">{count}</span>
+                      </div>
+                    )
+                  )}
               </CardContent>
             </Card>
           </div>
@@ -467,7 +680,9 @@ export default function AdminPage() {
           <Card>
             <CardHeader>
               <CardTitle>User Management</CardTitle>
-              <CardDescription>Search, filter, and manage user accounts</CardDescription>
+              <CardDescription>
+                Search, filter, and manage user accounts
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-wrap gap-4">
@@ -480,7 +695,7 @@ export default function AdminPage() {
                       placeholder="Search users..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                      onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                       className="pl-8"
                     />
                   </div>
@@ -491,7 +706,9 @@ export default function AdminPage() {
                   <Switch
                     id="premium"
                     checked={isPremiumFilter === true}
-                    onCheckedChange={(checked) => setIsPremiumFilter(checked ? true : undefined)}
+                    onCheckedChange={(checked) =>
+                      setIsPremiumFilter(checked ? true : undefined)
+                    }
                   />
                 </div>
 
@@ -500,7 +717,9 @@ export default function AdminPage() {
                   <Switch
                     id="admin"
                     checked={isAdminFilter === true}
-                    onCheckedChange={(checked) => setIsAdminFilter(checked ? true : undefined)}
+                    onCheckedChange={(checked) =>
+                      setIsAdminFilter(checked ? true : undefined)
+                    }
                   />
                 </div>
 
@@ -519,7 +738,11 @@ export default function AdminPage() {
                 </div>
 
                 <Button onClick={handleSearch} disabled={usersLoading}>
-                  {usersLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                  {usersLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Search className="h-4 w-4" />
+                  )}
                   Search
                 </Button>
               </div>
@@ -541,33 +764,53 @@ export default function AdminPage() {
                       <TableRow key={user.user_id}>
                         <TableCell>
                           <div>
-                            <div className="font-medium">{user.full_name || user.username}</div>
-                            <div className="text-sm text-muted-foreground">{user.email}</div>
+                            <div className="font-medium">
+                              {user.full_name || user.username}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {user.email}
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">
-                            {user.is_admin && <Badge variant="destructive">Admin</Badge>}
-                            {user.premium && <Badge variant="default">Premium</Badge>}
+                            {user.is_admin && (
+                              <Badge variant="destructive">Admin</Badge>
+                            )}
+                            {user.premium && (
+                              <Badge variant="default">Premium</Badge>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>{user.document_count}</TableCell>
                         <TableCell>{user.total_searches}</TableCell>
-                        <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          {new Date(user.created_at).toLocaleDateString()}
+                        </TableCell>
                         <TableCell>
                           {editingUser === user.user_id ? (
                             <div className="space-y-2">
                               <div className="flex items-center gap-2">
                                 <Switch
                                   checked={editForm.is_admin || false}
-                                  onCheckedChange={(checked) => setEditForm(prev => ({ ...prev, is_admin: checked }))}
+                                  onCheckedChange={(checked) =>
+                                    setEditForm((prev) => ({
+                                      ...prev,
+                                      is_admin: checked,
+                                    }))
+                                  }
                                 />
                                 <Label className="text-sm">Admin</Label>
                               </div>
                               <div className="flex items-center gap-2">
                                 <Switch
                                   checked={editForm.premium || false}
-                                  onCheckedChange={(checked) => setEditForm(prev => ({ ...prev, premium: checked }))}
+                                  onCheckedChange={(checked) =>
+                                    setEditForm((prev) => ({
+                                      ...prev,
+                                      premium: checked,
+                                    }))
+                                  }
                                 />
                                 <Label className="text-sm">Premium</Label>
                               </div>
@@ -611,7 +854,9 @@ export default function AdminPage() {
                     onClick={loadMoreUsers}
                     disabled={usersLoading}
                   >
-                    {usersLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                    {usersLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : null}
                     Load More
                   </Button>
                 </div>
@@ -628,21 +873,35 @@ export default function AdminPage() {
                 <FileCheck className="h-5 w-5" />
                 Document Management
               </CardTitle>
-              <CardDescription>Overview of document statistics and usage</CardDescription>
+              <CardDescription>
+                Overview of document statistics and usage
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">{documentSummary?.total_documents || 0}</div>
-                  <div className="text-sm text-muted-foreground">Total Documents</div>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {documentSummary?.total_documents || 0}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Total Documents
+                  </div>
                 </div>
                 <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">{documentSummary?.documents_today || 0}</div>
-                  <div className="text-sm text-muted-foreground">Uploaded Today</div>
+                  <div className="text-2xl font-bold text-green-600">
+                    {documentSummary?.documents_today || 0}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Uploaded Today
+                  </div>
                 </div>
                 <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">{documentSummary?.average_documents_per_user || 0}</div>
-                  <div className="text-sm text-muted-foreground">Avg per User</div>
+                  <div className="text-2xl font-bold text-purple-600">
+                    {documentSummary?.average_documents_per_user || 0}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Avg per User
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -658,33 +917,59 @@ export default function AdminPage() {
                 <FileCheck className="h-5 w-5" />
                 Token Statistics
               </CardTitle>
-              <CardDescription>Overview of CV claim token system</CardDescription>
+              <CardDescription>
+                Overview of CV claim token system
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
                 <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">{tokenStats?.total_tokens || 0}</div>
-                  <div className="text-sm text-muted-foreground">Total Tokens</div>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {tokenStats?.total_tokens || 0}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Total Tokens
+                  </div>
                 </div>
                 <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">{tokenStats?.used_tokens || 0}</div>
-                  <div className="text-sm text-muted-foreground">Used Tokens</div>
+                  <div className="text-2xl font-bold text-green-600">
+                    {tokenStats?.used_tokens || 0}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Used Tokens
+                  </div>
                 </div>
                 <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-orange-600">{tokenStats?.unused_tokens || 0}</div>
-                  <div className="text-sm text-muted-foreground">Unused Tokens</div>
+                  <div className="text-2xl font-bold text-orange-600">
+                    {tokenStats?.unused_tokens || 0}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Unused Tokens
+                  </div>
                 </div>
                 <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">{tokenStats?.valid_tokens || 0}</div>
-                  <div className="text-sm text-muted-foreground">Valid Tokens</div>
+                  <div className="text-2xl font-bold text-purple-600">
+                    {tokenStats?.valid_tokens || 0}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Valid Tokens
+                  </div>
                 </div>
                 <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-red-600">{tokenStats?.expired_unused_tokens || 0}</div>
-                  <div className="text-sm text-muted-foreground">Expired Unused</div>
+                  <div className="text-2xl font-bold text-red-600">
+                    {tokenStats?.expired_unused_tokens || 0}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Expired Unused
+                  </div>
                 </div>
               </div>
               <div className="mt-4">
-                <Button onClick={loadTokenStatistics} variant="outline" size="sm">
+                <Button
+                  onClick={loadTokenStatistics}
+                  variant="outline"
+                  size="sm"
+                >
                   Refresh Statistics
                 </Button>
               </div>
@@ -698,7 +983,9 @@ export default function AdminPage() {
                 <Mail className="h-5 w-5" />
                 Send Individual Claim Email
               </CardTitle>
-              <CardDescription>Send a claim email for a specific CV</CardDescription>
+              <CardDescription>
+                Send a claim email for a specific CV
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
@@ -743,7 +1030,9 @@ export default function AdminPage() {
                 <Mail className="h-5 w-5" />
                 Send Bulk Claim Emails
               </CardTitle>
-              <CardDescription>Send claim emails to multiple CV owners</CardDescription>
+              <CardDescription>
+                Send claim emails to multiple CV owners
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
@@ -779,8 +1068,9 @@ export default function AdminPage() {
                 Send Bulk Claim Emails
               </Button>
               <div className="text-sm text-muted-foreground">
-                This will send CV claim emails to eligible CVs that haven't received them yet.
-                Enable "Force Resend" to send emails to all CV owners regardless of previous sends.
+                This will send CV claim emails to eligible CVs that haven't
+                received them yet. Enable "Force Resend" to send emails to all
+                CV owners regardless of previous sends.
               </div>
             </CardContent>
           </Card>
@@ -792,7 +1082,9 @@ export default function AdminPage() {
                 <Search className="h-5 w-5" />
                 Token Lookup
               </CardTitle>
-              <CardDescription>Look up detailed information about a claim token</CardDescription>
+              <CardDescription>
+                Look up detailed information about a claim token
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-2">
@@ -812,24 +1104,294 @@ export default function AdminPage() {
                 <div className="border rounded-lg p-4 space-y-3 bg-muted/50">
                   <h4 className="font-semibold">Token Information</h4>
                   <div className="grid gap-2 md:grid-cols-2 text-sm">
-                    <div><span className="font-medium">Token:</span> <code className="text-xs">{tokenInfo.token}</code></div>
-                    <div><span className="font-medium">CV ID:</span> <code className="text-xs">{tokenInfo.cv_id}</code></div>
-                    <div><span className="font-medium">Email:</span> {tokenInfo.email}</div>
-                    <div><span className="font-medium">Uploaded By:</span> {tokenInfo.uploaded_by}</div>
-                    <div><span className="font-medium">Created:</span> {new Date(tokenInfo.created_at).toLocaleString()}</div>
-                    <div><span className="font-medium">Expires:</span> {new Date(tokenInfo.expires_at).toLocaleString()}</div>
-                    <div><span className="font-medium">Status:</span>
-                      <Badge variant={tokenInfo.used ? "destructive" : tokenInfo.is_expired ? "secondary" : "default"}>
-                        {tokenInfo.used ? "Used" : tokenInfo.is_expired ? "Expired" : tokenInfo.is_valid ? "Valid" : "Invalid"}
+                    <div>
+                      <span className="font-medium">Token:</span>{" "}
+                      <code className="text-xs">{tokenInfo.token}</code>
+                    </div>
+                    <div>
+                      <span className="font-medium">CV ID:</span>{" "}
+                      <code className="text-xs">{tokenInfo.cv_id}</code>
+                    </div>
+                    <div>
+                      <span className="font-medium">Email:</span>{" "}
+                      {tokenInfo.email}
+                    </div>
+                    <div>
+                      <span className="font-medium">Uploaded By:</span>{" "}
+                      {tokenInfo.uploaded_by}
+                    </div>
+                    <div>
+                      <span className="font-medium">Created:</span>{" "}
+                      {new Date(tokenInfo.created_at).toLocaleString()}
+                    </div>
+                    <div>
+                      <span className="font-medium">Expires:</span>{" "}
+                      {new Date(tokenInfo.expires_at).toLocaleString()}
+                    </div>
+                    <div>
+                      <span className="font-medium">Status:</span>
+                      <Badge
+                        variant={
+                          tokenInfo.used
+                            ? "destructive"
+                            : tokenInfo.is_expired
+                            ? "secondary"
+                            : "default"
+                        }
+                      >
+                        {tokenInfo.used
+                          ? "Used"
+                          : tokenInfo.is_expired
+                          ? "Expired"
+                          : tokenInfo.is_valid
+                          ? "Valid"
+                          : "Invalid"}
                       </Badge>
                     </div>
                     {tokenInfo.used_at && (
-                      <div><span className="font-medium">Used At:</span> {new Date(tokenInfo.used_at).toLocaleString()}</div>
+                      <div>
+                        <span className="font-medium">Used At:</span>{" "}
+                        {new Date(tokenInfo.used_at).toLocaleString()}
+                      </div>
                     )}
                     {tokenInfo.used_by && (
-                      <div><span className="font-medium">Used By:</span> {tokenInfo.used_by}</div>
+                      <div>
+                        <span className="font-medium">Used By:</span>{" "}
+                        {tokenInfo.used_by}
+                      </div>
                     )}
                   </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Duplicate Detection Tab */}
+        <TabsContent value="duplicate-detection" className="space-y-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Copy className="h-5 w-5" />
+                  Duplicate CV Detection
+                </CardTitle>
+                <CardDescription>
+                  Detect and manage duplicate CVs. Detection runs synchronously.
+                </CardDescription>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleRunDetection}
+                  disabled={detectionRunning || bulkDeleteRunning}
+                >
+                  {detectionRunning ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Search className="h-4 w-4 mr-2" />
+                  )}
+                  Run Detection
+                </Button>
+                  <Button
+                    onClick={handleBulkDeleteAll}
+                    disabled={detectionRunning || bulkDeleteRunning}
+                    variant="destructive"
+                  >
+                    {bulkDeleteRunning ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <Trash2 className="h-4 w-4 mr-2" />
+                    )}
+                    Delete All Duplicates
+                  </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {detectionRunning ? (
+                <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                  <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                  <div className="text-center space-y-1">
+                    <h3 className="font-semibold text-lg">Running Detection</h3>
+                    <p className="text-muted-foreground">
+                      Analyzing CVs for duplicates. This may take a moment...
+                    </p>
+                  </div>
+                </div>
+              ) : duplicateGroups.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 space-y-4 text-center border-2 border-dashed rounded-lg">
+                  <div className="bg-muted p-4 rounded-full">
+                    <Copy className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="font-semibold text-lg">
+                      No Duplicates Detected
+                    </h3>
+                    <p className="text-muted-foreground max-w-sm mx-auto">
+                      Run the detection process to identify potential duplicate
+                      CVs across the system.
+                    </p>
+                  </div>
+                  <Button onClick={handleRunDetection} variant="outline">
+                    Run Detection Now
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between pb-2">
+                    <div className="text-sm text-muted-foreground">
+                      Found {duplicateGroups.length} groups of duplicates
+                    </div>
+                  </div>
+
+                  <Accordion
+                    type="single"
+                    collapsible
+                    className="w-full space-y-4"
+                  >
+                    {duplicateGroups.map((group, index) => (
+                      <AccordionItem
+                        key={index}
+                        value={`item-${index}`}
+                        className="border rounded-lg px-4"
+                      >
+                        <AccordionTrigger className="hover:no-underline py-4">
+                          <div className="flex items-center justify-between w-full pr-4">
+                            <div className="flex items-center gap-4">
+                              <div className="bg-orange-100 dark:bg-orange-900/20 p-2 rounded-full">
+                                <AlertCircle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                              </div>
+                              <div className="text-left">
+                                <div className="font-semibold">
+                                  {group.email}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  {group.duplicate_cv_ids.length} potential
+                                  duplicates found
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <div className="text-right hidden sm:block">
+                                <div className="text-xs text-muted-foreground">
+                                  Highest Similarity
+                                </div>
+                                <div className="font-medium text-orange-600">
+                                  {Math.max(
+                                    ...group.duplicate_cv_scores
+                                  ).toFixed(1)}
+                                  %
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="pt-2 pb-4 space-y-6">
+                          {/* Kept CV Section */}
+                          <div className="bg-green-50 dark:bg-green-900/10 p-4 rounded-lg border border-green-100 dark:border-green-900/20">
+                            <div className="flex items-center gap-2 mb-3">
+                              <CheckCircle2 className="h-4 w-4 text-green-600" />
+                              <h4 className="font-medium text-green-900 dark:text-green-100">
+                                Original / Kept CV
+                              </h4>
+                            </div>
+                            <div className="grid gap-4 md:grid-cols-2">
+                              <div>
+                                <div className="text-xs text-muted-foreground mb-1">
+                                  CV ID
+                                </div>
+                                <code className="bg-white dark:bg-black/20 px-2 py-1 rounded text-sm border">
+                                  {group.kept_cv_id}
+                                </code>
+                              </div>
+                              <div>
+                                <div className="text-xs text-muted-foreground mb-1">
+                                  Quality Score
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Progress
+                                    value={group.kept_cv_score}
+                                    className="h-2 w-24"
+                                  />
+                                  <span className="text-sm font-medium">
+                                    {group.kept_cv_score.toFixed(1)}%
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Duplicates Section */}
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <XCircle className="h-4 w-4 text-red-600" />
+                                <h4 className="font-medium text-red-900 dark:text-red-100">
+                                  Duplicates to Delete
+                                </h4>
+                              </div>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() =>
+                                  handleDeleteDuplicates(group.duplicate_cv_ids)
+                                }
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete All {group.duplicate_cv_ids.length}{" "}
+                                Duplicates
+                              </Button>
+                            </div>
+
+                            <div className="border rounded-lg overflow-hidden">
+                              <Table>
+                                <TableHeader>
+                                  <TableRow className="bg-muted/50">
+                                    <TableHead>Duplicate CV ID</TableHead>
+                                    <TableHead>Similarity Score</TableHead>
+                                    <TableHead>Docs to Migrate</TableHead>
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {group.duplicate_cv_ids.map((id, idx) => (
+                                    <TableRow key={id}>
+                                      <TableCell>
+                                        <code className="text-xs bg-muted px-1 py-0.5 rounded">
+                                          {id}
+                                        </code>
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex items-center gap-2">
+                                          <Progress
+                                            value={
+                                              group.duplicate_cv_scores[idx] 
+                                            }
+                                            className="h-2 w-20"
+                                            // indicatorClassName={group.duplicate_cv_scores[idx] > 0.9 ? "bg-red-600" : "bg-orange-500"}
+                                          />
+                                          <span className="text-sm font-medium">
+                                            {(
+                                              group.duplicate_cv_scores[idx] *
+                                              100
+                                            ).toFixed(1)}
+                                            %
+                                          </span>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell>
+                                        <Badge variant="outline">
+                                          {group.docs_migrated} documents
+                                        </Badge>
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </div>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
                 </div>
               )}
             </CardContent>
