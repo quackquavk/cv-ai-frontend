@@ -122,8 +122,8 @@ const ListView = ({ data, searchData }: ListViewProps) => {
           toast.error("Search limit reached! Free users can perform 5 searches per day. Please upgrade to premium for unlimited searches.", {
             duration: 5000,
           });
-        } else if (error.response?.data?.message) {
-          toast.error(error.response.data.message);
+        } else if (error.response?.data?.detail || error.response?.data?.message) {
+          toast.error(error.response.data.detail || error.response.data.message);
         } else {
           toast.error("Failed to fetch documents. Please try again.");
         }
