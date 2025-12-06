@@ -68,9 +68,12 @@ function GridView({ data, searchData }: GridViewProps) {
     onError: (error: any) => {
       // Handle 429 Too Many Requests error for free tier search limit
       if (error.response?.status === 429) {
-        toast.error("Search limit reached! Free users can perform 5 searches per day. Please upgrade to premium for unlimited searches.", {
-          duration: 5000,
-        });
+        toast.error(
+          "Search limit reached! Free users can perform 5 searches per day. Please upgrade to premium for unlimited searches.",
+          {
+            duration: 5000,
+          }
+        );
       } else if (error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else {
@@ -92,7 +95,6 @@ function GridView({ data, searchData }: GridViewProps) {
   useEffect(() => {
     resetSearch();
   }, [selectFolderId]);
-
 
   useEffect(() => {
     if (shouldRefetchDocuments) {
@@ -176,20 +178,20 @@ function GridView({ data, searchData }: GridViewProps) {
                 loading="lazy"
                 layout="responsive"
               />
-              
+
               {/* Breadcrumb overlay */}
               {item?.folder_name && (
                 <div className="absolute top-2 left-2 z-10">
                   <div className="bg-white/95 dark:bg-black/95 backdrop-blur-sm rounded-md px-2 py-1 shadow-lg">
-                    <Breadcrumb 
-                      folderName={item.folder_name} 
+                    <Breadcrumb
+                      folderName={item.folder_name}
                       className="mb-0 text-xs"
                       showHome={false}
                     />
                   </div>
                 </div>
               )}
-              
+
               {/* Private Folder Actions - Show on hover */}
               {/* <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
                 <PrivateFolderActions

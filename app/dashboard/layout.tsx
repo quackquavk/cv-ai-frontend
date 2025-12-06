@@ -13,8 +13,11 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
+import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const tabContext = useContext(TabContext);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -25,6 +28,11 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
   const { activeTab, setActiveTab } = tabContext;
 
+  // Check if we're in the resume editor (editing a specific resume)
+  const isResumeEditor = pathname.match(
+    /^\/dashboard\/resumes(?:\/[^\/]+)?\/?$/
+  );
+
   const handleCollapsedChange = (collapsed: boolean) => {
     setIsCollapsed(collapsed);
   };
@@ -32,6 +40,11 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const toggleMobileSidebar = () => {
     setIsMobileOpen(!isMobileOpen);
   };
+
+  // Full-screen mode for resume editor - no sidebar, tabs, or padding
+  if (isResumeEditor) {
+    return <div className="h-screen w-full overflow-hidden">{children}</div>;
+  }
 
   return (
     <div className="h-screen flex w-full overflow-hidden relative">
@@ -90,7 +103,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             <NavigationTabs />
 
             {/* Search Fields - Only show for Recruiter tab */}
-            {activeTab === "recruiter" && (
+            {activeTab === "recruiter" && pathname !== "/dashboard/resumes" && (
               <div className="pb-4">
                 <SearchFields />
               </div>

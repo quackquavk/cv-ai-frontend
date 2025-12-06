@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import axiosInstance from "../../../utils/axiosConfig";
 import { UserContext } from "@/context/UserContext";
 import { privateFolderStore } from "../store";
@@ -27,17 +33,21 @@ interface PrivateFolderContextType {
   deleteMultipleFilesFromPrivate: (documentIds: string[]) => Promise<boolean>;
 }
 
-const PrivateFolderContext = createContext<PrivateFolderContextType | undefined>(undefined);
+const PrivateFolderContext = createContext<
+  PrivateFolderContextType | undefined
+>(undefined);
 
 interface PrivateFolderProviderProps {
   children: ReactNode;
 }
 
-export const PrivateFolderProvider: React.FC<PrivateFolderProviderProps> = ({ children }) => {
+export const PrivateFolderProvider: React.FC<PrivateFolderProviderProps> = ({
+  children,
+}) => {
   const userContext = useContext(UserContext);
   const { isAuthenticated } = userContext;
   const { hasPrivateFolder, setHasPrivateFolder } = privateFolderStore();
-  
+
   const [privateFiles, setPrivateFiles] = useState<PrivateFile[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -115,7 +125,9 @@ export const PrivateFolderProvider: React.FC<PrivateFolderProviderProps> = ({ ch
   };
 
   // Delete file from private folder
-  const deleteFileFromPrivate = async (documentId: string): Promise<boolean> => {
+  const deleteFileFromPrivate = async (
+    documentId: string
+  ): Promise<boolean> => {
     if (!isAuthenticated) return false;
 
     try {
@@ -127,7 +139,9 @@ export const PrivateFolderProvider: React.FC<PrivateFolderProviderProps> = ({ ch
   };
 
   // Delete multiple files from private folder
-  const deleteMultipleFilesFromPrivate = async (documentIds: string[]): Promise<boolean> => {
+  const deleteMultipleFilesFromPrivate = async (
+    documentIds: string[]
+  ): Promise<boolean> => {
     if (!isAuthenticated || documentIds.length === 0) return false;
 
     try {
@@ -176,7 +190,9 @@ export const PrivateFolderProvider: React.FC<PrivateFolderProviderProps> = ({ ch
 export const usePrivateFolder = (): PrivateFolderContextType => {
   const context = useContext(PrivateFolderContext);
   if (context === undefined) {
-    throw new Error("usePrivateFolder must be used within a PrivateFolderProvider");
+    throw new Error(
+      "usePrivateFolder must be used within a PrivateFolderProvider"
+    );
   }
   return context;
 };

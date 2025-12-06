@@ -29,7 +29,8 @@ const UploadQueue: React.FC<UploadQueueProps> = ({
   removeUploadFile,
   formatFileSize,
 }) => {
-  const [isUploadQueueCollapsed, setIsUploadQueueCollapsed] = useState<boolean>(false);
+  const [isUploadQueueCollapsed, setIsUploadQueueCollapsed] =
+    useState<boolean>(false);
 
   if (uploadFiles.length === 0) return null;
 
@@ -37,7 +38,7 @@ const UploadQueue: React.FC<UploadQueueProps> = ({
     <div className="w-full px-4 pb-2">
       <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
         {/* Collapsible Header */}
-        <div 
+        <div
           className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
           onClick={() => setIsUploadQueueCollapsed(!isUploadQueueCollapsed)}
         >
@@ -80,11 +81,7 @@ const UploadQueue: React.FC<UploadQueueProps> = ({
                 )}
               </>
             )}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0"
-            >
+            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
               {isUploadQueueCollapsed ? (
                 <ChevronDown className="h-4 w-4" />
               ) : (
@@ -95,9 +92,9 @@ const UploadQueue: React.FC<UploadQueueProps> = ({
         </div>
 
         {/* Collapsible Content */}
-        <div 
+        <div
           className={`transition-all duration-300 ease-in-out overflow-hidden ${
-            isUploadQueueCollapsed ? 'max-h-0' : 'max-h-64'
+            isUploadQueueCollapsed ? "max-h-0" : "max-h-64"
           }`}
         >
           {/* File List */}
@@ -156,10 +153,7 @@ const UploadQueue: React.FC<UploadQueueProps> = ({
                     {/* Progress Bar */}
                     {file.status !== "error" && (
                       <div className="relative">
-                        <Progress
-                          value={file.progress}
-                          className="h-1.5"
-                        />
+                        <Progress value={file.progress} className="h-1.5" />
                         {file.status === "processing" && (
                           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-400/30 to-transparent animate-[shimmer_2s_infinite]"></div>
                         )}
@@ -180,8 +174,7 @@ const UploadQueue: React.FC<UploadQueueProps> = ({
                       )}
                       {file.status === "processing" && (
                         <p className="text-xs text-yellow-600 dark:text-yellow-400">
-                          {file.processingStage ||
-                            "Processing with AI..."}
+                          {file.processingStage || "Processing with AI..."}
                         </p>
                       )}
                       {file.status === "completed" && (
@@ -271,37 +264,27 @@ const UploadQueue: React.FC<UploadQueueProps> = ({
                 </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">
                   {Math.round(
-                    uploadFiles.reduce(
-                      (sum, file) => sum + file.progress,
-                      0
-                    ) / uploadFiles.length
+                    uploadFiles.reduce((sum, file) => sum + file.progress, 0) /
+                      uploadFiles.length
                   )}
                   %
                 </span>
               </div>
               <Progress
                 value={
-                  uploadFiles.reduce(
-                    (sum, file) => sum + file.progress,
-                    0
-                  ) / uploadFiles.length
+                  uploadFiles.reduce((sum, file) => sum + file.progress, 0) /
+                  uploadFiles.length
                 }
                 className="h-1.5"
               />
               <div className="flex justify-between mt-1">
                 <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {
-                    uploadFiles.filter((f) => f.status === "completed")
-                      .length
-                  }{" "}
+                  {uploadFiles.filter((f) => f.status === "completed").length}{" "}
                   of {uploadFiles.length} completed
                 </span>
                 {uploadFiles.some((f) => f.status === "error") && (
                   <span className="text-xs text-red-500 dark:text-red-400">
-                    {
-                      uploadFiles.filter((f) => f.status === "error")
-                        .length
-                    }{" "}
+                    {uploadFiles.filter((f) => f.status === "error").length}{" "}
                     failed
                   </span>
                 )}

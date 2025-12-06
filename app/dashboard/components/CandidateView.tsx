@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import { GoDotFill } from "react-icons/go";
@@ -12,6 +13,7 @@ import {
   Upload,
   RefreshCw,
   Trash2,
+  FileText,
 } from "lucide-react";
 import { FaLinkedin, FaGithub, FaPhoneAlt } from "react-icons/fa";
 import { PiGlobeLight, PiNotePencilBold } from "react-icons/pi";
@@ -77,6 +79,7 @@ interface IAvailability {
 }
 
 const CandidateView = () => {
+  const router = useRouter();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [loader, setLoader] = useState<boolean>(false);
@@ -659,19 +662,29 @@ const CandidateView = () => {
 
   return (
     <div className="h-full w-full relative">
-      {/* Sidebar Toggle Button */}
-      <Button
-        variant="outline"
-        size="icon"
-        className="absolute top-4 right-4 z-10"
-        onClick={() => setShowSidebar(!showSidebar)}
-      >
-        {hasClaimed ? (
-          <RefreshCw className="h-4 w-4" />
-        ) : (
-          <Upload className="h-4 w-4" />
-        )}
-      </Button>
+      {/* Action Buttons */}
+      <div className="absolute top-4 right-4 z-10 flex gap-2">
+        <Button
+          variant="default"
+          size="sm"
+          onClick={() => router.push("/dashboard/resumes")}
+          className="flex items-center gap-1"
+        >
+          <FileText className="h-4 w-4" />
+          Build Resume
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setShowSidebar(!showSidebar)}
+        >
+          {hasClaimed ? (
+            <RefreshCw className="h-4 w-4" />
+          ) : (
+            <Upload className="h-4 w-4" />
+          )}
+        </Button>
+      </div>
 
       {/* Sidebar for claimed users */}
       {/* {showSidebar && hasClaimed && (

@@ -7,7 +7,12 @@ import { ViewContext } from "../context/ViewContext";
 import LinearTagsInput from "./SearchInput/LinearTagsInput";
 import { Search, SearchX, Star, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { folderSelectStore, publicFolderStore, privateFolderStore, multiFolderSelectStore } from "../store";
+import {
+  folderSelectStore,
+  publicFolderStore,
+  privateFolderStore,
+  multiFolderSelectStore,
+} from "../store";
 import ToogleView from "./ToogleView";
 import { IoMdHelpCircleOutline } from "react-icons/io";
 import {
@@ -38,7 +43,8 @@ const SearchFields = () => {
   const [tags, setTags] = useState<string[]>([]);
   const { user } = useContext(UserContext);
   const router = useRouter();
-  const [isFiltersDialogOpen, setIsFiltersDialogOpen] = useState<boolean>(false);
+  const [isFiltersDialogOpen, setIsFiltersDialogOpen] =
+    useState<boolean>(false);
   // const inputRefs = useRef(null);
   // const addressRef = useRef(null);
   const [formData, setFormData] = useState<IFormInputData>({
@@ -56,7 +62,8 @@ const SearchFields = () => {
   });
 
   const { selectFolderId } = folderSelectStore();
-  const { isPublicSectionOpen, isPrivateSectionOpen, isFolderListOpen } = publicFolderStore();
+  const { isPublicSectionOpen, isPrivateSectionOpen, isFolderListOpen } =
+    publicFolderStore();
   const { privateSubfolders } = privateFolderStore();
   const { selectedFolderIds } = multiFolderSelectStore();
   if (!searchContext) {
@@ -91,15 +98,16 @@ const SearchFields = () => {
   // Automatically re-run search when folder selection changes (only if there's active search data)
   useEffect(() => {
     // Only trigger new search if there's already search data (user has performed a search)
-    const hasActiveSearch = formData.prompt || 
-                           formData.attribute?.some(attr => attr && attr !== "") || 
-                           formData.address ||
-                           formData.availability ||
-                           formData.time_of_day ||
-                           formData.star_rating > 0 ||
-                           formData.current_salary?.length > 0 ||
-                           formData.estimated_salary?.length > 0;
-                           
+    const hasActiveSearch =
+      formData.prompt ||
+      formData.attribute?.some((attr) => attr && attr !== "") ||
+      formData.address ||
+      formData.availability ||
+      formData.time_of_day ||
+      formData.star_rating > 0 ||
+      formData.current_salary?.length > 0 ||
+      formData.estimated_salary?.length > 0;
+
     if (hasActiveSearch && selectedFolderIds.length > 0) {
       performSearch();
     }
@@ -214,7 +222,10 @@ const SearchFields = () => {
 
     // 4) Public-only (either explicitly only public is active OR
     // the folder list is collapsed and private is not active)
-    if ((isPublicSectionOpen && !isPrivateSectionOpen) || (!isFolderListOpen && !isPrivateSectionOpen)) {
+    if (
+      (isPublicSectionOpen && !isPrivateSectionOpen) ||
+      (!isFolderListOpen && !isPrivateSectionOpen)
+    ) {
       try {
         const res = await axiosInstance.get("/folder/getAllFolders");
         const publicFolderIds: string[] = (res.data || []).map(
@@ -271,13 +282,16 @@ const SearchFields = () => {
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
               <span className="text-sm text-gray-600 dark:text-gray-400">
-                Searching in {selectedFolderIds.length} folder{selectedFolderIds.length !== 1 ? 's' : ''}
+                Searching in {selectedFolderIds.length} folder
+                {selectedFolderIds.length !== 1 ? "s" : ""}
               </span>
             </div>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => multiFolderSelectStore.getState().clearFolderSelection()}
+              onClick={() =>
+                multiFolderSelectStore.getState().clearFolderSelection()
+              }
               className="h-5 px-2 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             >
               Clear selection
@@ -313,7 +327,10 @@ const SearchFields = () => {
                 placeholder="Enter Prompt (Job Descriptions...)"
                 onKeyDown={handleKeyDown}
               />
-              <IoMdHelpCircleOutline size={22} className="flex-shrink-0 text-gray-500" />
+              <IoMdHelpCircleOutline
+                size={22}
+                className="flex-shrink-0 text-gray-500"
+              />
             </div>
 
             {/* Location Input */}
@@ -344,7 +361,10 @@ const SearchFields = () => {
               </Button>
 
               {/* Filters Button */}
-              <Dialog open={isFiltersDialogOpen} onOpenChange={setIsFiltersDialogOpen}>
+              <Dialog
+                open={isFiltersDialogOpen}
+                onOpenChange={setIsFiltersDialogOpen}
+              >
                 <DialogTrigger asChild>
                   <Button variant="outline" className="relative">
                     <Filter size={20} />
@@ -358,7 +378,9 @@ const SearchFields = () => {
                 </DialogTrigger>
                 <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle className="text-xl font-semibold">Advanced Filters</DialogTitle>
+                    <DialogTitle className="text-xl font-semibold">
+                      Advanced Filters
+                    </DialogTitle>
                   </DialogHeader>
                   <div className="py-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -369,7 +391,10 @@ const SearchFields = () => {
                           value={formData.availability || ""}
                           onValueChange={(value) => {
                             const updatedValue = value === "all" ? "" : value;
-                            setFormData({ ...formData, availability: updatedValue });
+                            setFormData({
+                              ...formData,
+                              availability: updatedValue,
+                            });
                           }}
                         >
                           <SelectTrigger id="availability" className="w-full">
@@ -393,7 +418,10 @@ const SearchFields = () => {
                           value={formData.time_of_day || ""}
                           onValueChange={(value) => {
                             const updatedValue = value === "all" ? "" : value;
-                            setFormData({ ...formData, time_of_day: updatedValue });
+                            setFormData({
+                              ...formData,
+                              time_of_day: updatedValue,
+                            });
                           }}
                         >
                           <SelectTrigger id="timeOfDay" className="w-full">
@@ -441,7 +469,10 @@ const SearchFields = () => {
                           value={String(formData.star_rating || "")}
                           onValueChange={(value) => {
                             const updatedValue = value === "all" ? 0 : value;
-                            setFormData({ ...formData, star_rating: Number(updatedValue) });
+                            setFormData({
+                              ...formData,
+                              star_rating: Number(updatedValue),
+                            });
                           }}
                         >
                           <SelectTrigger id="rating" className="w-full">
@@ -487,14 +518,20 @@ const SearchFields = () => {
 
                       {/* Expected Salary */}
                       <div className="space-y-2">
-                        <Label htmlFor="estimatedSalary">Expected Salary (USD)</Label>
+                        <Label htmlFor="estimatedSalary">
+                          Expected Salary (USD)
+                        </Label>
                         <Input
                           type="text"
                           id="estimatedSalary"
                           className="w-full"
                           value={formData.estimated_salary.join(" - ")}
                           onChange={(event) =>
-                            validateInput(event, "estimated_salary", setFormData)
+                            validateInput(
+                              event,
+                              "estimated_salary",
+                              setFormData
+                            )
                           }
                           placeholder="e.g., 50000 - 80000"
                         />
@@ -502,7 +539,9 @@ const SearchFields = () => {
 
                       {/* Current Salary */}
                       <div className="space-y-2">
-                        <Label htmlFor="currentSalary">Current Salary (USD)</Label>
+                        <Label htmlFor="currentSalary">
+                          Current Salary (USD)
+                        </Label>
                         <Input
                           type="text"
                           id="currentSalary"
@@ -546,7 +585,7 @@ const SearchFields = () => {
                       <DialogClose asChild>
                         <Button variant="outline">Close</Button>
                       </DialogClose>
-                      <Button 
+                      <Button
                         onClick={() => {
                           handleClear();
                           setIsFiltersDialogOpen(false);
@@ -563,7 +602,10 @@ const SearchFields = () => {
               {/* Clear Button */}
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="outline" className="group border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-950">
+                  <Button
+                    variant="outline"
+                    className="group border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
+                  >
                     <SearchX
                       size={20}
                       className="transform transition-transform duration-300 ease-in-out group-hover:translate-y-[-3px]"
@@ -584,7 +626,10 @@ const SearchFields = () => {
                         <Button variant="outline">Cancel</Button>
                       </DialogClose>
                       <DialogClose asChild>
-                        <Button variant="destructive" onClick={() => handleClear()}>
+                        <Button
+                          variant="destructive"
+                          onClick={() => handleClear()}
+                        >
                           Clear All
                         </Button>
                       </DialogClose>

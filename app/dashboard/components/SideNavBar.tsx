@@ -53,9 +53,7 @@ import Image from "next/image";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserContext } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
-import {
-  Checkbox,
-} from "@/components/ui/checkbox";
+import { Checkbox } from "@/components/ui/checkbox";
 import { TabContext } from "../context/TabContext";
 import { Upload, RefreshCw } from "lucide-react";
 import { LoaderCircle } from "lucide-react";
@@ -376,9 +374,10 @@ const SideNavBar = ({
         }
       } catch (error: any) {
         console.error(`Error uploading ${file.name}:`, error);
-        
+
         if (error.response?.status === 429) {
-          const errorMessage = "Upload limit reached! Free users can only upload 1 CV total. Please upgrade to premium for unlimited uploads.";
+          const errorMessage =
+            "Upload limit reached! Free users can only upload 1 CV total. Please upgrade to premium for unlimited uploads.";
           toast.error(errorMessage, {
             duration: 5000,
           });
@@ -394,7 +393,7 @@ const SideNavBar = ({
             processingStage: undefined,
           });
         }
-        
+
         errorCount++; // ✅ Increment error count
       } finally {
         activeUploads--;
@@ -416,7 +415,6 @@ const SideNavBar = ({
       processQueue();
     }
   };
-
 
   // Hook to check if all uploads are complete
   // useEffect(() => {
@@ -527,7 +525,9 @@ const SideNavBar = ({
     } catch (error: any) {
       console.error("Error uploading CV:", error);
       if (error.response?.status === 429) {
-        toast.error("Upload limit reached! Please upgrade to premium for unlimited uploads.");
+        toast.error(
+          "Upload limit reached! Please upgrade to premium for unlimited uploads."
+        );
       } else {
         toast.error(error.response?.data?.detail || "Failed to upload CV");
       }
@@ -616,7 +616,7 @@ const SideNavBar = ({
             isCollapsed && "hidden"
           } flex flex-col flex-1 overflow-hidden`}
         >
-            {/* Fixed Drop Files Section - Only show when expanded */}
+          {/* Fixed Drop Files Section - Only show when expanded */}
           <div
             className={`${
               isCollapsed && "hidden"
@@ -634,7 +634,9 @@ const SideNavBar = ({
                 }`}
               >
                 <div
-                  onClick={() => document.getElementById("candidate-cv-input")?.click()}
+                  onClick={() =>
+                    document.getElementById("candidate-cv-input")?.click()
+                  }
                   className="flex flex-col items-center w-full justify-center cursor-pointer"
                 >
                   {hasClaimedAnyCV ? (
@@ -643,16 +645,12 @@ const SideNavBar = ({
                       className="text-black dark:text-white"
                     />
                   ) : (
-                    <Upload
-                      size={40}
-                      className="text-black dark:text-white"
-                    />
+                    <Upload size={40} className="text-black dark:text-white" />
                   )}
                   <p className="text-center mt-2">
                     {hasClaimedAnyCV
                       ? "Drop your new CV here to replace (PDF only)"
-                      : "Drop your resume here (PDF only)"
-                    }
+                      : "Drop your resume here (PDF only)"}
                   </p>
                 </div>
 
@@ -661,7 +659,9 @@ const SideNavBar = ({
                     <div className="flex flex-col items-center">
                       <LoaderCircle className="h-6 w-6 animate-spin" />
                       <p className="text-sm mt-2">
-                        {hasClaimedAnyCV ? "Replacing CV..." : "Uploading CV..."}
+                        {hasClaimedAnyCV
+                          ? "Replacing CV..."
+                          : "Uploading CV..."}
                       </p>
                     </div>
                   </div>
@@ -688,7 +688,6 @@ const SideNavBar = ({
                   />
                   <p className="text-center">Drop your files here (PDF only)</p>
                 </div>
-
               </div>
             )}
 
@@ -860,8 +859,7 @@ const SideNavBar = ({
                     ? "Your CV is uploaded and active"
                     : localFolderId
                     ? "Ready to upload your CV"
-                    : "Please select a folder to upload your CV"
-                  }
+                    : "Please select a folder to upload your CV"}
                 </div>
               </div>
 

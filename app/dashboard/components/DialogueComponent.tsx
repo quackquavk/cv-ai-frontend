@@ -1,5 +1,10 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { fetchUpdatedApiData } from "../utils/updatedInitialData";
 import { ApiDataContext } from "../context/ApiDataContext";
 import {
@@ -226,7 +231,6 @@ function DialogueComponent({
       //   console.warn("API Data context is not available.");
       // }
     } catch (error) {
-
       toast.error(error);
     }
   };
@@ -316,7 +320,6 @@ function DialogueComponent({
       // });
       console.log(error);
       toast.error(error.response.data.detail);
-
     }
   };
 
@@ -344,7 +347,6 @@ function DialogueComponent({
       }
     } catch (error) {
       toast.error("Error Archiving Folder");
-
     }
   };
   // Move multiple files to another folder
@@ -352,12 +354,9 @@ function DialogueComponent({
     if (selectedFiles.length > 0) {
       if (folderId !== null) {
         try {
-          await axiosInstance.post(
-            `/document/move?to_folder_id=${folderId}`,
-            {
-              document_ids: selectedFiles,
-            }
-          );
+          await axiosInstance.post(`/document/move?to_folder_id=${folderId}`, {
+            document_ids: selectedFiles,
+          });
 
           setArchieveFiles((prevFolderContents) => {
             const updatedFromFolder = prevFolderContents[id].filter(
@@ -388,8 +387,11 @@ function DialogueComponent({
           });
           handleDialogue(false);
         } catch (error) {
-          toast("Failed to move files");
-
+          if (error.response.status === 403) {
+            toast.error("You are not authorized to move files to this folder");
+          } else {
+            toast.error("Failed to move files");
+          }
         }
       } else {
         toast("Select a folder first", {
@@ -531,7 +533,7 @@ function DialogueComponent({
                         />
                         <CommandList className="max-h-[200px]">
                           <CommandEmpty>No folders found.</CommandEmpty>
-                       
+
                           <CommandGroup>
                             {folders?.map((folder) => (
                               <CommandItem
@@ -830,9 +832,7 @@ function DialogueComponent({
                   <div key={file.folder_id} className="flex items-start">
                     <Checkbox
                       checked={selectedFiles.includes(file.folder_id)}
-                      onCheckedChange={() =>
-                        handleFileSelect(file.folder_id)
-                      }
+                      onCheckedChange={() => handleFileSelect(file.folder_id)}
                       id={`file-${file.folder_id}`}
                       className="cursor-pointer mr-4 mt-4"
                     />

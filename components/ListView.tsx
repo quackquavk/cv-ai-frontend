@@ -10,7 +10,10 @@ import axiosInstance from "@/utils/axiosConfig";
 import Link from "next/link";
 import { IFormInputData } from "@/interfaces/FormInputData";
 import ListViewSkeletion from "./ui/Skeleton/ListViewSkeleton";
-import { folderSelectStore, multiFolderSelectStore } from "@/app/dashboard/store";
+import {
+  folderSelectStore,
+  multiFolderSelectStore,
+} from "@/app/dashboard/store";
 import { useSearchContext } from "@/app/dashboard/context/SearchContext";
 import EmblaCarousel from "../app/dashboard/components/EmblaCarousel";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
@@ -77,7 +80,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
     isFetchingNextPage,
   } = useInfiniteQuery({
     queryKey: ["documents", selectFolderId, searchData],
- 
+
     queryFn: async ({ pageParam = 0 }: { pageParam: any }) => {
       try {
         let documentsToFetch: string[] = [];
@@ -117,17 +120,25 @@ const ListView = ({ data, searchData }: ListViewProps) => {
         };
       } catch (error: any) {
         console.error("Error fetching documents:", error);
-        
+
         if (error.response?.status === 429) {
-          toast.error("Search limit reached! Free users can perform 5 searches per day. Please upgrade to premium for unlimited searches.", {
-            duration: 5000,
-          });
-        } else if (error.response?.data?.detail || error.response?.data?.message) {
-          toast.error(error.response.data.detail || error.response.data.message);
+          toast.error(
+            "Search limit reached! Free users can perform 5 searches per day. Please upgrade to premium for unlimited searches.",
+            {
+              duration: 5000,
+            }
+          );
+        } else if (
+          error.response?.data?.detail ||
+          error.response?.data?.message
+        ) {
+          toast.error(
+            error.response.data.detail || error.response.data.message
+          );
         } else {
           toast.error("Failed to fetch documents. Please try again.");
         }
-        
+
         return {
           documents: [],
           nextPage: undefined,
@@ -162,7 +173,6 @@ const ListView = ({ data, searchData }: ListViewProps) => {
       }
     }
   }, [selectFolderId, searchData, shouldRefetchDocuments]);
-
 
   useEffect(() => {
     const prefetchInitialData = async () => {
@@ -229,13 +239,14 @@ const ListView = ({ data, searchData }: ListViewProps) => {
     );
   }
 
-  const allDocuments = infiniteData?.pages.flatMap((page: any) => page.documents) ?? [];
-  
+  const allDocuments =
+    infiniteData?.pages.flatMap((page: any) => page.documents) ?? [];
+
   // Only sort when a folder is selected, otherwise keep original order
-  const sortedDocuments = selectFolderId 
+  const sortedDocuments = selectFolderId
     ? allDocuments.sort((a: any, b: any) => {
-        const nameA = (a?.doc_name || a?.parsed_cv?.name || '').toLowerCase();
-        const nameB = (b?.doc_name || b?.parsed_cv?.name || '').toLowerCase();
+        const nameA = (a?.doc_name || a?.parsed_cv?.name || "").toLowerCase();
+        const nameB = (b?.doc_name || b?.parsed_cv?.name || "").toLowerCase();
         return nameA.localeCompare(nameB);
       })
     : allDocuments;
@@ -275,13 +286,13 @@ const ListView = ({ data, searchData }: ListViewProps) => {
               <Card className="relative gap-2 max-w-full px-3 py-2 sm:px-5 sm:pt-6 pb-16 sm:pb-20 hover:border-black dark:hover:border-white transition duration-500 ease-in-out">
                 {/* Breadcrumb */}
                 {item?.folder_name && (
-                  <Breadcrumb 
-                    folderName={item.folder_name} 
+                  <Breadcrumb
+                    folderName={item.folder_name}
                     className="mb-2"
                     showHome={false}
                   />
                 )}
-                
+
                 <div className="relative flex justify-between">
                   <div className="flex flex-col lg:flex-row z-0 lg:justify-between w-full gap-4">
                     {/* Basic Information */}
@@ -482,7 +493,6 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                     />
 
                     {/* Mobile Menu - Similar to Desktop */}
-  
                   </div>
                   {/* Edited status check */}
                   {!item?.parsed_cv?.edited && (
