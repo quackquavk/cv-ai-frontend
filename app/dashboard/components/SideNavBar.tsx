@@ -24,6 +24,7 @@ import {
   FolderOpen,
   FolderLock,
   Plus,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -860,6 +861,18 @@ const SideNavBar = ({
                     : localFolderId
                     ? "Ready to upload your CV"
                     : "Please select a folder to upload your CV"}
+                </div>
+
+                {/* Resume Builder Button */}
+                <div className="mt-4">
+                  <Button
+                    variant="default"
+                    onClick={() => router.push("/dashboard/resumes")}
+                    className="w-full flex items-center justify-center gap-2"
+                  >
+                    <FileText className="h-4 w-4" />
+                    {hasClaimedAnyCV ? "Build Resume" : "Create Resume"}
+                  </Button>
                 </div>
               </div>
 

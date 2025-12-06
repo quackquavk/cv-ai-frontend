@@ -20,8 +20,10 @@ export const StripePayment = ({ subscriptionData }: StripePaymentProps) => {
     const body = {
       plan_id: `${selectedPlan}`,
       tier: `${selectedTier}`,
-      success_url: process.env.NEXT_PUBLIC_BASE_URL + "/user/setting",
-      cancel_url: process.env.NEXT_PUBLIC_BASE_URL + "/user/setting",
+      success_url:
+        process.env.NEXT_PUBLIC_BASE_URL +
+        "/user/setting/payment?session_id={CHECKOUT_SESSION_ID}",
+      cancel_url: process.env.NEXT_PUBLIC_BASE_URL + "/user/setting/payment",
     };
     setLoading(true);
     try {
@@ -47,8 +49,10 @@ export const StripePayment = ({ subscriptionData }: StripePaymentProps) => {
     const body = {
       plan_id: "lifetime",
       tier: "premium",
-      success_url: process.env.NEXT_PUBLIC_BASE_URL + "/user/setting",
-      cancel_url: process.env.NEXT_PUBLIC_BASE_URL + "/user/setting",
+      success_url:
+        process.env.NEXT_PUBLIC_BASE_URL +
+        "/user/setting/payment?session_id={CHECKOUT_SESSION_ID}",
+      cancel_url: process.env.NEXT_PUBLIC_BASE_URL + "/user/setting/payment",
     };
     setLifetimeLoading(true);
     try {
@@ -106,7 +110,11 @@ export const StripePayment = ({ subscriptionData }: StripePaymentProps) => {
           discountBadge="Popular"
           buttonColor="blue"
           isSubscription={true}
-          isCurrentPlan={subscriptionData?.has_subscription && subscriptionData?.plan === "annual" && !subscriptionData?.is_lifetime}
+          isCurrentPlan={
+            subscriptionData?.has_subscription &&
+            subscriptionData?.plan === "annual" &&
+            !subscriptionData?.is_lifetime
+          }
           subscriptionStatus={subscriptionData?.status}
         />
         {/* Lifetime Plan Card */}

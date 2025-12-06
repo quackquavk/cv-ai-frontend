@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Wallet, Shield, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { TrustIndicators } from "./TrustIndicators";
@@ -7,12 +7,14 @@ import { PricingCard } from "./PricingCard";
 import { premiumFeatures, lifetimeFeatures, freeFeatures } from "../constants";
 import { RazorpayService, PlanType } from "@/utils/razorpay";
 import { SubscriptionData } from "../hooks/useSubscription";
+import { UserContext } from "@/context/UserContext";
 
 interface RazorPayPaymentProps {
   subscriptionData?: SubscriptionData | null;
 }
 
 export const RazorPayPayment = ({ subscriptionData }: RazorPayPaymentProps) => {
+  const userContext = useContext(UserContext);
   const [loadingPlan, setLoadingPlan] = useState<PlanType | null>(null);
   const razorpayService = new RazorpayService();
 
@@ -23,9 +25,15 @@ export const RazorPayPayment = ({ subscriptionData }: RazorPayPaymentProps) => {
     if (plan === "annual") {
       await razorpayService.initiateSubscription({
         plan,
-        onSuccess: () => {
+        onSuccess: async () => {
           toast.success("Subscription activated successfully!");
           setLoadingPlan(null);
+          // Refresh user token to get updated premium status
+          if (userContext?.refreshUser) {
+            await userContext.refreshUser();
+          }
+          // Reload the page to update subscription data
+          window.location.reload();
         },
         onError: (err: any) => {
           const message = err?.message || "Subscription failed";
@@ -37,9 +45,15 @@ export const RazorPayPayment = ({ subscriptionData }: RazorPayPaymentProps) => {
       // Use regular payment method for lifetime plan
       await razorpayService.initiatePayment({
         plan,
-        onSuccess: () => {
+        onSuccess: async () => {
           toast.success("Payment successful!");
           setLoadingPlan(null);
+          // Refresh user token to get updated premium status
+          if (userContext?.refreshUser) {
+            await userContext.refreshUser();
+          }
+          // Reload the page to update subscription data
+          window.location.reload();
         },
         onError: (err: any) => {
           const message = err?.message || "Payment failed";
@@ -84,7 +98,11 @@ export const RazorPayPayment = ({ subscriptionData }: RazorPayPaymentProps) => {
           discountBadge="Popular"
           buttonColor="purple"
           isSubscription={true}
-          isCurrentPlan={subscriptionData?.has_subscription && subscriptionData?.plan === "annual" && !subscriptionData?.is_lifetime}
+          isCurrentPlan={
+            subscriptionData?.has_subscription &&
+            subscriptionData?.plan === "annual" &&
+            !subscriptionData?.is_lifetime
+          }
           subscriptionStatus={subscriptionData?.status}
         />
         <PricingCard

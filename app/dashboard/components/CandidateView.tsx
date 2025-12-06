@@ -533,17 +533,27 @@ const CandidateView = () => {
                 )}
               </Button> */}
 
-              <Button
-                onClick={handleGetClaimableCV}
-                disabled={loader}
-                className="w-full"
-              >
-                {loader ? (
-                  <LoaderCircle className="h-5 w-5 animate-spin" />
-                ) : (
-                  "Get Claimable CV"
-                )}
-              </Button>
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleGetClaimableCV}
+                  disabled={loader}
+                  className="flex-1"
+                >
+                  {loader ? (
+                    <LoaderCircle className="h-5 w-5 animate-spin" />
+                  ) : (
+                    "Get Claimable CV"
+                  )}
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={() => router.push("/dashboard/resumes")}
+                  className="flex-1 flex items-center gap-1"
+                >
+                  <FileText className="h-4 w-4" />
+                  Create Resume
+                </Button>
+              </div>
             </div>
           </Card>
         ) : (

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import { Smartphone, Shield, Zap, BadgeCheck, Loader2 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
@@ -9,6 +9,7 @@ import { TrustIndicators } from "./TrustIndicators";
 import { PricingCard } from "./PricingCard";
 import { premiumFeatures, lifetimeFeatures, freeFeatures } from "../constants";
 import { SubscriptionData } from "../hooks/useSubscription";
+import { UserContext } from "@/context/UserContext";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +22,7 @@ interface FonePayPaymentProps {
 }
 
 export const FonePayPayment = ({ subscriptionData }: FonePayPaymentProps) => {
+  const userContext = useContext(UserContext);
   const [loading, setLoading] = useState(false);
   const [lifetimeLoading, setLifetimeLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -140,13 +142,17 @@ export const FonePayPayment = ({ subscriptionData }: FonePayPaymentProps) => {
 
   useEffect(() => {
     if (paymentStatus === "success") {
-      const timer = setTimeout(() => {
+      const timer = setTimeout(async () => {
         setOpen(false);
         toast.success("Payment successful!!!");
+        if (userContext?.refreshUser) {
+          await userContext.refreshUser();
+        }
+        window.location.reload();
       }, 3500);
       return () => clearTimeout(timer);
     }
-  }, [paymentStatus]);
+  }, [paymentStatus, userContext]);
 
   return (
     <div className="space-y-8 mt-12">
@@ -183,7 +189,11 @@ export const FonePayPayment = ({ subscriptionData }: FonePayPaymentProps) => {
           discountBadge="Popular"
           buttonColor="red"
           isSubscription={true}
-          isCurrentPlan={subscriptionData?.has_subscription && subscriptionData?.plan === "annual" && !subscriptionData?.is_lifetime}
+          isCurrentPlan={
+            subscriptionData?.has_subscription &&
+            subscriptionData?.plan === "annual" &&
+            !subscriptionData?.is_lifetime
+          }
           subscriptionStatus={subscriptionData?.status}
         />
         {/* Lifetime Plan Card */}
