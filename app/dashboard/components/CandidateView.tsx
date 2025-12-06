@@ -533,27 +533,17 @@ const CandidateView = () => {
                 )}
               </Button> */}
 
-              <div className="flex gap-3">
-                <Button
-                  onClick={handleGetClaimableCV}
-                  disabled={loader}
-                  className="flex-1"
-                >
-                  {loader ? (
-                    <LoaderCircle className="h-5 w-5 animate-spin" />
-                  ) : (
-                    "Get Claimable CV"
-                  )}
-                </Button>
-                <Button
-                  variant="default"
-                  onClick={() => router.push("/dashboard/resumes")}
-                  className="flex-1 flex items-center gap-1"
-                >
-                  <FileText className="h-4 w-4" />
-                  Create Resume
-                </Button>
-              </div>
+              <Button
+                onClick={handleGetClaimableCV}
+                disabled={loader}
+                className="w-full"
+              >
+                {loader ? (
+                  <LoaderCircle className="h-5 w-5 animate-spin" />
+                ) : (
+                  "Get Claimable CV"
+                )}
+              </Button>
             </div>
           </Card>
         ) : (
@@ -673,16 +663,7 @@ const CandidateView = () => {
   return (
     <div className="h-full w-full relative">
       {/* Action Buttons */}
-      <div className="absolute top-4 right-4 z-10 flex gap-2">
-        <Button
-          variant="default"
-          size="sm"
-          onClick={() => router.push("/dashboard/resumes")}
-          className="flex items-center gap-1"
-        >
-          <FileText className="h-4 w-4" />
-          Build Resume
-        </Button>
+      {/* <div className="absolute top-4 right-4 z-10 flex gap-2">
         <Button
           variant="outline"
           size="icon"
@@ -694,7 +675,7 @@ const CandidateView = () => {
             <Upload className="h-4 w-4" />
           )}
         </Button>
-      </div>
+      </div> */}
 
       {/* Sidebar for claimed users */}
       {/* {showSidebar && hasClaimed && (
