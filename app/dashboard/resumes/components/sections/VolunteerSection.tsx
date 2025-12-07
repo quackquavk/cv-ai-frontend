@@ -15,6 +15,7 @@ import {
 import { useResumeStore } from "../../store/resumeStore";
 import { VolunteerItem } from "../../services/resumeApi";
 import { HeartHandshake, Plus, Trash2, Link } from "lucide-react";
+import { AIRewriteButton } from "../AIRewriteButton";
 
 export function VolunteerSection() {
   const resume = useResumeStore((state) => state.resume);
@@ -169,7 +170,18 @@ export function VolunteerSection() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Summary</Label>
+                    <div className="flex items-center justify-between">
+                      <Label>Summary</Label>
+                      <AIRewriteButton
+                        content={item.summary}
+                        contentType="volunteer"
+                        onRewrite={(newContent) =>
+                          updateItem("volunteer", item.id, {
+                            summary: newContent,
+                          })
+                        }
+                      />
+                    </div>
                     <Textarea
                       placeholder="Describe your volunteer work..."
                       value={item.summary}

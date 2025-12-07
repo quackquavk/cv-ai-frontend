@@ -17,6 +17,7 @@ import { useResumeStore } from "../../store/resumeStore";
 import { ProjectItem } from "../../services/resumeApi";
 import { FolderKanban, Plus, Trash2, Link, X } from "lucide-react";
 import { useState } from "react";
+import { AIRewriteButton } from "../AIRewriteButton";
 
 export function ProjectsSection() {
   const resume = useResumeStore((state) => state.resume);
@@ -213,7 +214,18 @@ export function ProjectsSection() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Summary</Label>
+                    <div className="flex items-center justify-between">
+                      <Label>Summary</Label>
+                      <AIRewriteButton
+                        content={item.summary}
+                        contentType="project"
+                        onRewrite={(newContent) =>
+                          updateItem("projects", item.id, {
+                            summary: newContent,
+                          })
+                        }
+                      />
+                    </div>
                     <Textarea
                       placeholder="Describe the project, your role, and key achievements..."
                       value={item.summary}

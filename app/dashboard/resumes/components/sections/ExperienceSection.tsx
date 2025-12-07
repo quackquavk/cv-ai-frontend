@@ -15,6 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { useResumeStore } from "../../store/resumeStore";
 import { ExperienceItem } from "../../services/resumeApi";
 import { Briefcase, Plus, Trash2, Eye, EyeOff, Link } from "lucide-react";
+import { AIRewriteButton } from "../AIRewriteButton";
 
 export function ExperienceSection() {
   const resume = useResumeStore((state) => state.resume);
@@ -169,7 +170,18 @@ export function ExperienceSection() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Summary</Label>
+                    <div className="flex items-center justify-between">
+                      <Label>Summary</Label>
+                      <AIRewriteButton
+                        content={item.summary}
+                        contentType="experience"
+                        onRewrite={(newContent) =>
+                          updateItem("experience", item.id, {
+                            summary: newContent,
+                          })
+                        }
+                      />
+                    </div>
                     <Textarea
                       placeholder="Describe your responsibilities and achievements..."
                       value={item.summary}

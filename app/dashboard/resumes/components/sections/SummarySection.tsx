@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useResumeStore } from "../../store/resumeStore";
 import { FileText } from "lucide-react";
+import { AIRewriteButton } from "../AIRewriteButton";
 
 export function SummarySection() {
   const resume = useResumeStore((state) => state.resume);
@@ -16,10 +17,17 @@ export function SummarySection() {
   return (
     <Card>
       <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <FileText className="h-5 w-5" />
-          {summary.name}
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <FileText className="h-5 w-5" />
+            {summary.name}
+          </CardTitle>
+          <AIRewriteButton
+            content={summary.content}
+            contentType="summary"
+            onRewrite={(newContent) => updateSummary(newContent)}
+          />
+        </div>
       </CardHeader>
       <CardContent>
         <Textarea

@@ -363,4 +363,17 @@ export const resumeApi = {
     const response = await axiosInstance.post(`/resume/${id}/duplicate`);
     return response.data;
   },
+
+  rewriteContent: async (
+    content: string,
+    contentType: string,
+    style: string = "professional"
+  ): Promise<{ rewritten_content: string; original_content: string }> => {
+    const response = await axiosInstance.post("/resume/rewrite", {
+      content,
+      content_type: contentType,
+      style,
+    });
+    return response.data;
+  },
 };

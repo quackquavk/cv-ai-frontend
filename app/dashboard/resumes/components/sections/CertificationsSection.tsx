@@ -15,6 +15,7 @@ import {
 import { useResumeStore } from "../../store/resumeStore";
 import { CertificationItem } from "../../services/resumeApi";
 import { Award, Plus, Trash2, Link } from "lucide-react";
+import { AIRewriteButton } from "../AIRewriteButton";
 
 export function CertificationsSection() {
   const resume = useResumeStore((state) => state.resume);
@@ -145,7 +146,18 @@ export function CertificationsSection() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Summary</Label>
+                    <div className="flex items-center justify-between">
+                      <Label>Summary</Label>
+                      <AIRewriteButton
+                        content={item.summary}
+                        contentType="certification"
+                        onRewrite={(newContent) =>
+                          updateItem("certifications", item.id, {
+                            summary: newContent,
+                          })
+                        }
+                      />
+                    </div>
                     <Textarea
                       placeholder="Additional details..."
                       value={item.summary}
