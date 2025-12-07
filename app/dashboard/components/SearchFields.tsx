@@ -1,5 +1,11 @@
 "use client";
-import React, { useState, useContext, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  useContext,
+  useEffect,
+  useCallback,
+  Suspense,
+} from "react";
 import { Input } from "@/components/ui/input";
 import { IFormInputData } from "@/interfaces/FormInputData";
 import { SearchContext } from "../context/SearchContext";
@@ -36,7 +42,7 @@ import axiosInstance from "@/utils/axiosConfig";
 import { UserContext } from "@/context/UserContext";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
-const SearchFields = () => {
+const SearchFieldsContent = () => {
   const searchContext = useContext(SearchContext);
   const { setSearchData } = searchContext;
   const viewContext = useContext(ViewContext);
@@ -709,5 +715,17 @@ const SearchFields = () => {
     </div>
   );
 };
+
+const SearchFields = () => (
+  <Suspense
+    fallback={
+      <div className="w-full mt-3 animate-pulse">
+        <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+      </div>
+    }
+  >
+    <SearchFieldsContent />
+  </Suspense>
+);
 
 export default SearchFields;
