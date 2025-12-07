@@ -28,7 +28,7 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const userContext = useContext(UserContext);
-  const { user, setIsAuthenticated } = userContext;
+  const { user, logout } = userContext;
 
   const navigationItems = [
     {
@@ -76,22 +76,26 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
         },
       ],
     },
-    ...(user?.is_admin ? [{
-      category: "Administration",
-      items: [
-        {
-          name: "Admin Panel",
-          href: "/user/setting/admin",
-          icon: Shield,
-        },
-      ],
-    }] : []),
+    ...(user?.is_admin
+      ? [
+          {
+            category: "Administration",
+            items: [
+              {
+                name: "Admin Panel",
+                href: "/user/setting/admin",
+                icon: Shield,
+              },
+            ],
+          },
+        ]
+      : []),
   ];
 
   const handleLogOut = async () => {
     try {
       await axiosInstance.get("/user/logout");
-      setIsAuthenticated(false);
+      logout();
       router.push("/auth/login");
       toast.success("Logged out successfully");
     } catch (error) {

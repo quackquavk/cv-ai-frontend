@@ -15,6 +15,7 @@ interface UserContextType {
   isAuthenticated: boolean;
   setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
   refreshUser: () => Promise<void>;
+  logout: () => void;
 }
 
 export const UserContext = createContext<UserContextType | null>({
@@ -23,6 +24,7 @@ export const UserContext = createContext<UserContextType | null>({
   isAuthenticated: false,
   setIsAuthenticated: () => {},
   refreshUser: async () => {},
+  logout: () => {},
 });
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
@@ -30,28 +32,52 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // Initialize from localStorage and listen for changes
   useEffect(() => {
     const storedAuth = localStorage.getItem("isAuthenticated");
     if (storedAuth === "true") {
       setIsAuthenticated(true);
+    } else {
+      setLoading(false);
     }
+
+    // Listen for localStorage changes (including from other components)
+    const handleStorageChange = () => {
+      const currentAuth = localStorage.getItem("isAuthenticated");
+      setIsAuthenticated(currentAuth === "true");
+    };
+
+    window.addEventListener("local-storage", handleStorageChange);
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("local-storage", handleStorageChange);
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, []);
 
   const fetchUser = useCallback(async () => {
     try {
+      setLoading(true);
       const response = await axiosInstance.get("/user/me");
       setUser(response.data);
       setIsAuthenticated(true);
       localStorage.setItem("isAuthenticated", "true");
-      window.dispatchEvent(new Event("local-storage"));
     } catch (error) {
       console.error("Error fetching user data:", error);
+      setUser(null);
       setIsAuthenticated(false);
       localStorage.setItem("isAuthenticated", "false");
-      window.dispatchEvent(new Event("local-storage"));
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  const logout = useCallback(() => {
+    setUser(null);
+    setIsAuthenticated(false);
+    localStorage.setItem("isAuthenticated", "false");
+    window.dispatchEvent(new Event("local-storage"));
   }, []);
 
   const refreshUser = useCallback(async () => {
@@ -60,16 +86,19 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       await fetchUser();
     } catch (error) {
       console.error("Error refreshing user:", error);
+      logout();
     }
-  }, [fetchUser]);
+  }, [fetchUser, logout]);
 
+  // Fetch user when isAuthenticated becomes true
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !user) {
       fetchUser();
-    } else {
+    } else if (!isAuthenticated) {
+      setUser(null);
       setLoading(false);
     }
-  }, [isAuthenticated, fetchUser]);
+  }, [isAuthenticated, fetchUser, user]);
 
   return (
     <UserContext.Provider
@@ -79,6 +108,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         isAuthenticated,
         setIsAuthenticated,
         refreshUser,
+        logout,
       }}
     >
       {children}

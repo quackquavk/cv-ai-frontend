@@ -2,7 +2,13 @@
 import { useState, useEffect, useContext, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { UserContext } from "@/context/UserContext";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -52,7 +58,7 @@ interface TokenInfo {
 }
 
 function ClaimCVContent() {
-  const { user, loading: userLoading } = useContext(UserContext);
+  const { user, loading: userLoading, logout } = useContext(UserContext);
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -101,7 +107,9 @@ function ClaimCVContent() {
       setClaiming(true);
       setError(null);
 
-      const response = await axiosInstance.post(`/cv-claim/claim-with-token?token=${encodeURIComponent(token)}`);
+      const response = await axiosInstance.post(
+        `/cv-claim/claim-with-token?token=${encodeURIComponent(token)}`
+      );
       const data: ClaimResponse = response.data;
 
       setCvData(data);
@@ -119,9 +127,13 @@ function ClaimCVContent() {
       if (error.response?.data?.detail) {
         const errorMessage = error.response.data.detail;
         if (errorMessage.includes("email does not match")) {
-          toast.error("The email on your account doesn't match the email this CV was sent to. Please log in with the correct email address.");
+          toast.error(
+            "The email on your account doesn't match the email this CV was sent to. Please log in with the correct email address."
+          );
         } else if (errorMessage.includes("already claimed a CV")) {
-          toast.error("You have already claimed a CV. Each user can only claim one CV.");
+          toast.error(
+            "You have already claimed a CV. Each user can only claim one CV."
+          );
         } else {
           toast.error(errorMessage);
         }
@@ -136,15 +148,15 @@ function ClaimCVContent() {
   const handleLogin = () => {
     // Store the token in sessionStorage so we can come back after login
     if (token) {
-      sessionStorage.setItem('claimToken', token);
+      sessionStorage.setItem("claimToken", token);
     }
-    router.push('/auth/login');
+    router.push("/auth/login");
   };
 
   const handleLogout = async () => {
     try {
       await axiosInstance.get("/user/logout");
-      // UserContext will handle the logout state update
+      logout();
       toast.success("Logged out successfully");
     } catch (error) {
       console.error("Logout error:", error);
@@ -154,10 +166,10 @@ function ClaimCVContent() {
 
   // Check if we came from login with a stored token
   useEffect(() => {
-    const storedToken = sessionStorage.getItem('claimToken');
+    const storedToken = sessionStorage.getItem("claimToken");
     if (storedToken && !token && user) {
       // We have a user and a stored token but no token in URL - this shouldn't happen, but handle it
-      sessionStorage.removeItem('claimToken');
+      sessionStorage.removeItem("claimToken");
     }
   }, [token, user]);
 
@@ -171,7 +183,8 @@ function ClaimCVContent() {
             </div>
             <CardTitle className="text-xl">No Token Provided</CardTitle>
             <CardDescription className="text-muted-foreground">
-              Please use the claim link from your email or make sure you have the complete URL.
+              Please use the claim link from your email or make sure you have
+              the complete URL.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -179,10 +192,14 @@ function ClaimCVContent() {
               The link should look like:
               <br />
               <code className="text-xs bg-muted p-2 rounded">
-                {typeof window !== 'undefined' ? window.location.origin : ''}/claim-cv?token=your-token-here
+                {typeof window !== "undefined" ? window.location.origin : ""}
+                /claim-cv?token=your-token-here
               </code>
             </div>
-            <Button onClick={() => router.push('/dashboard')} className="w-full">
+            <Button
+              onClick={() => router.push("/dashboard")}
+              className="w-full"
+            >
               Back to Dashboard
             </Button>
           </CardContent>
@@ -209,12 +226,14 @@ function ClaimCVContent() {
             </div>
             <CardTitle className="text-xl">Login Required</CardTitle>
             <CardDescription className="text-muted-foreground">
-              You need to be logged in to claim your CV using the token from your email.
+              You need to be logged in to claim your CV using the token from
+              your email.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm-muted-foreground text-center">
-              The email containing your claim link is associated with: <strong>{user?.email || 'your email address'}</strong>
+              The email containing your claim link is associated with:{" "}
+              <strong>{user?.email || "your email address"}</strong>
             </p>
             <Button onClick={handleLogin} className="w-full">
               <Mail className="h-4 w-4 mr-2" />
@@ -222,7 +241,7 @@ function ClaimCVContent() {
             </Button>
             <Button
               variant="outline"
-              onClick={() => router.push('/dashboard')}
+              onClick={() => router.push("/dashboard")}
               className="w-full"
             >
               Back to Dashboard
@@ -241,7 +260,9 @@ function ClaimCVContent() {
             <div className="mx-auto w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mb-4 dark:bg-green-500/20">
               <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
-            <CardTitle className="text-xl text-green-800 dark:text-green-400">CV Claimed Successfully!</CardTitle>
+            <CardTitle className="text-xl text-green-800 dark:text-green-400">
+              CV Claimed Successfully!
+            </CardTitle>
             <CardDescription className="text-muted-foreground">
               Your CV has been successfully claimed and added to your account.
             </CardDescription>
@@ -251,16 +272,20 @@ function ClaimCVContent() {
               <h4 className="font-semibold mb-2">CV Details:</h4>
               <div className="space-y-2 text-sm">
                 <div>
-                  <span className="font-medium">Name:</span>{cvData.cv.parsed_cv.name || 'No name provided'}
+                  <span className="font-medium">Name:</span>
+                  {cvData.cv.parsed_cv.name || "No name provided"}
                 </div>
                 {cvData.cv.parsed_cv.email && (
                   <div>
-                    <span className="font-medium">Email:</span>{cvData.cv.parsed_cv.email}
+                    <span className="font-medium">Email:</span>
+                    {cvData.cv.parsed_cv.email}
                   </div>
                 )}
                 <div>
                   <span className="font-medium">CV ID:</span>
-                  <code className="text-xs bg-background border border-border p-1 rounded">{cvData.cv_id}</code>
+                  <code className="text-xs bg-background border border-border p-1 rounded">
+                    {cvData.cv_id}
+                  </code>
                 </div>
                 {cvData.cv.parsed_cv.summary && (
                   <div>
@@ -329,7 +354,6 @@ function ClaimCVContent() {
                 Claiming as: <strong>{user.email}</strong>
               </span>
             </div>
-           
           </div>
 
           <div className="flex gap-3">
@@ -353,15 +377,13 @@ function ClaimCVContent() {
             </Button>
             <Button
               variant="outline"
-              onClick={() => router.push('/dashboard')}
+              onClick={() => router.push("/dashboard")}
               disabled={claiming}
               className="flex-1"
             >
               Cancel
             </Button>
           </div>
-
-          
         </CardContent>
       </Card>
     </div>
@@ -370,11 +392,13 @@ function ClaimCVContent() {
 
 export default function ClaimCVPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-foreground" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-foreground" />
+        </div>
+      }
+    >
       <ClaimCVContent />
     </Suspense>
   );

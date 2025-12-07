@@ -86,7 +86,7 @@ export default function RedeemPage() {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const userContext = useContext(UserContext);
-  const { setIsAuthenticated } = userContext;
+  const { logout: contextLogout } = userContext;
 
   const [code, setCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -96,7 +96,7 @@ export default function RedeemPage() {
   const handleLogOut = async () => {
     try {
       await axiosInstance.get("/user/logout");
-      setIsAuthenticated(false);
+      contextLogout();
       router.push("/auth/login");
       toast.success("Logged out successfully");
     } catch (error) {
@@ -121,7 +121,7 @@ export default function RedeemPage() {
       return Math.random() * (max - min) + min;
     }
 
-    const interval: any = setInterval(function() {
+    const interval: any = setInterval(function () {
       const timeLeft = animationEnd - Date.now();
 
       if (timeLeft <= 0) {
@@ -134,20 +134,20 @@ export default function RedeemPage() {
         ...defaults,
         particleCount,
         origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
-        colors: ['#f59e0b', '#f97316', '#eab308', '#fbbf24', '#fcd34d']
+        colors: ["#f59e0b", "#f97316", "#eab308", "#fbbf24", "#fcd34d"],
       });
       confetti({
         ...defaults,
         particleCount,
         origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
-        colors: ['#f59e0b', '#f97316', '#eab308', '#fbbf24', '#fcd34d']
+        colors: ["#f59e0b", "#f97316", "#eab308", "#fbbf24", "#fcd34d"],
       });
     }, 250);
   };
 
   const handleRedeem = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!code.trim()) {
       setStatus("error");
       setMessage("Please enter your AppSumo code");
@@ -159,15 +159,18 @@ export default function RedeemPage() {
     setMessage("");
 
     try {
-      const response = await axiosInstance.post<RedemptionResponse>("/appsumo/redeem", {
-        code: code.trim(),
-      });
+      const response = await axiosInstance.post<RedemptionResponse>(
+        "/appsumo/redeem",
+        {
+          code: code.trim(),
+        }
+      );
 
       if (response.data.success) {
         setStatus("success");
         setMessage(response.data.message || "Code redeemed successfully!");
         setCode("");
-        
+
         triggerConfetti();
       } else {
         setStatus("error");
@@ -176,7 +179,7 @@ export default function RedeemPage() {
     } catch (error: any) {
       setStatus("error");
       if (error.response?.status === 401) {
-        setIsAuthenticated(false);
+        contextLogout();
         router.push("/auth/login");
         toast.error("Please log in to redeem your code");
         return;
@@ -336,7 +339,9 @@ export default function RedeemPage() {
                     >
                       <Check
                         className={`h-4 w-4 ${
-                          feature.highlight ? "text-amber-500" : "text-green-500"
+                          feature.highlight
+                            ? "text-amber-500"
+                            : "text-green-500"
                         }`}
                       />
                       {feature.text}
