@@ -4,7 +4,7 @@ import axios from "axios";
 import { getAllKeywords, getKeywordStats } from "./seo-keywords.js";
 
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:8000",
+  baseURL: "https://api.cvai.dev",
   timeout: 30000,
   headers: {
     "Content-Type": "application/json",
