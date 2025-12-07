@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
+Allow: /dashboard
+Allow: /cv-detail
 Disallow: /api/
 Disallow: /user/setting/
 Disallow: /_next/

@@ -219,6 +219,7 @@ export interface ResumeData {
       margin: number;
       format: string;
     };
+    layout?: string[];
   };
 }
 

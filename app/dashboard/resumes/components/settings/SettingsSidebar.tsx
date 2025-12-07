@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/select";
 import { Palette, Type, Layout, Eye, Layers } from "lucide-react";
 
+import { ExportSection } from "./ExportSection";
+
 const FONTS = [
   { value: "Inter", label: "Inter" },
   { value: "Roboto", label: "Roboto" },
@@ -101,6 +103,8 @@ export function SettingsSidebar() {
 
   return (
     <div className="space-y-4">
+      {/* Template Picker */}
+
       {/* Theme Colors */}
       <Card>
         <CardHeader className="pb-3">
@@ -278,6 +282,8 @@ export function SettingsSidebar() {
         </CardContent>
       </Card>
 
+      {/* Section Order (Drag & Drop) */}
+
       {/* Section Visibility */}
       <Card>
         <CardHeader className="pb-3">
@@ -313,6 +319,9 @@ export function SettingsSidebar() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Export Section */}
+      <ExportSection />
     </div>
   );
 }

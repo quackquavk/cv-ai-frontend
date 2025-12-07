@@ -6,6 +6,22 @@ import { ModernTemplate } from "./templates/ModernTemplate";
 import { MinimalTemplate } from "./templates/MinimalTemplate";
 import { ProfessionalTemplate } from "./templates/ProfessionalTemplate";
 import { CreativeTemplate } from "./templates/CreativeTemplate";
+// Reactive-Resume Templates
+import { AzurillTemplate } from "./templates/AzurillTemplate";
+import { GengarTemplate } from "./templates/GengarTemplate";
+import { OnyxTemplate } from "./templates/OnyxTemplate";
+import { PikachuTemplate } from "./templates/PikachuTemplate";
+import {
+  BronzorTemplate,
+  ChikoritaTemplate,
+  DittoTemplate,
+  GlalieTemplate,
+  KakunaTemplate,
+  LeafishTemplate,
+  NosepassTemplate,
+  RhyhornTemplate,
+} from "./templates/ReactiveResumeTemplates";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,11 +35,25 @@ import { Download, Palette, ZoomIn, ZoomOut } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 const templates = [
+  // Original templates
   { id: "classic", name: "Classic", component: ClassicTemplate },
   { id: "modern", name: "Modern", component: ModernTemplate },
   { id: "minimal", name: "Minimal", component: MinimalTemplate },
   { id: "professional", name: "Professional", component: ProfessionalTemplate },
   { id: "creative", name: "Creative", component: CreativeTemplate },
+  // Reactive-Resume templates (actual implementations)
+  { id: "azurill", name: "Azurill", component: AzurillTemplate },
+  { id: "bronzor", name: "Bronzor", component: BronzorTemplate },
+  { id: "chikorita", name: "Chikorita", component: ChikoritaTemplate },
+  { id: "ditto", name: "Ditto", component: DittoTemplate },
+  { id: "gengar", name: "Gengar", component: GengarTemplate },
+  { id: "glalie", name: "Glalie", component: GlalieTemplate },
+  { id: "kakuna", name: "Kakuna", component: KakunaTemplate },
+  { id: "leafish", name: "Leafish", component: LeafishTemplate },
+  { id: "nosepass", name: "Nosepass", component: NosepassTemplate },
+  { id: "onyx", name: "Onyx", component: OnyxTemplate },
+  { id: "pikachu", name: "Pikachu", component: PikachuTemplate },
+  { id: "rhyhorn", name: "Rhyhorn", component: RhyhornTemplate },
 ];
 
 // Google Fonts that need to be loaded
