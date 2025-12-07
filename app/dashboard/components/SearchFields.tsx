@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { IFormInputData } from "@/interfaces/FormInputData";
 import { SearchContext } from "../context/SearchContext";
@@ -34,7 +34,7 @@ import {
 import { Label } from "@/components/ui/label";
 import axiosInstance from "@/utils/axiosConfig";
 import { UserContext } from "@/context/UserContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 const SearchFields = () => {
   const searchContext = useContext(SearchContext);
@@ -43,6 +43,9 @@ const SearchFields = () => {
   const [tags, setTags] = useState<string[]>([]);
   const { user } = useContext(UserContext);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const [isUrlInitialized, setIsUrlInitialized] = useState<boolean>(false);
   const [isFiltersDialogOpen, setIsFiltersDialogOpen] =
     useState<boolean>(false);
   // const inputRefs = useRef(null);
@@ -75,6 +78,55 @@ const SearchFields = () => {
   if (!viewContext) {
     throw new Error("ViewContext must be used within a ViewProvider");
   }
+
+  // ============================================================
+  // SEO URL QUERY PARAMETER SYNC
+  // Creates indexable URLs like /dashboard?q=senior+react+developer
+  // This allows search engines to discover and index unlimited search pages
+  // ============================================================
+
+  /**
+   * Update URL with prompt query parameter
+   */
+  const updateUrlWithQuery = useCallback(
+    (prompt: string) => {
+      const params = new URLSearchParams();
+      if (prompt) {
+        params.set("q", prompt);
+      }
+      const queryString = params.toString();
+      const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
+      router.push(newUrl, { scroll: false });
+    },
+    [pathname, router]
+  );
+
+  // Initialize form data from URL on mount
+  useEffect(() => {
+    if (!isUrlInitialized) {
+      const q = searchParams.get("q");
+      if (q) {
+        setFormData((prev) => ({
+          ...prev,
+          prompt: q,
+        }));
+
+        // Trigger search with URL params after a short delay to ensure state is set
+        setTimeout(() => {
+          setSearchData({
+            ...formData,
+            prompt: q,
+            foldersToSearch: selectFolderId ? [selectFolderId] : [""],
+          });
+        }, 100);
+      }
+      setIsUrlInitialized(true);
+    }
+  }, [searchParams, isUrlInitialized, selectFolderId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ============================================================
+  // END SEO URL QUERY PARAMETER SYNC
+  // ============================================================
 
   useEffect(() => {
     setFormData((prev) => ({
@@ -128,6 +180,8 @@ const SearchFields = () => {
       paid_by: "",
     });
     setTags([]);
+    // Clear URL query parameter
+    router.push(pathname, { scroll: false });
   };
 
   // Function to validate inputs salary
@@ -257,6 +311,12 @@ const SearchFields = () => {
       foldersToSearch: foldersScope.length > 0 ? foldersScope : [""],
     };
     setSearchData(nextPayload);
+
+    // Update URL with prompt for SEO indexing
+    const searchPrompt = overrides.prompt ?? formData.prompt;
+    if (searchPrompt) {
+      updateUrlWithQuery(searchPrompt);
+    }
   };
   const handleUpgradeToPro = () => {
     router.push("/user/setting");
