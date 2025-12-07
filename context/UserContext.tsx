@@ -37,7 +37,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const fetchUser = useCallback(async () => {
+  const fetchUser = async () => {
     try {
       const response = await axiosInstance.get("/user/me");
       setUser(response.data);
@@ -52,7 +52,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
   const refreshUser = useCallback(async () => {
     try {
