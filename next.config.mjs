@@ -5,6 +5,7 @@ const nextConfig = {
 
     return config;
   },
+  turbopack: {},
   reactStrictMode: false,
   // Production
   images: {
