@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -14,7 +14,9 @@ import {
   User,
   AlertCircle,
   Crown,
+  LogIn,
 } from "lucide-react";
+import { UserContext } from "@/context/UserContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -39,9 +41,16 @@ import axiosInstance from "@/utils/axiosConfig";
 
 export default function ResumesPage() {
   const router = useRouter();
+  const userContext = useContext(UserContext);
+  const { isAuthenticated, loading: authLoading } = userContext || {
+    isAuthenticated: false,
+    loading: true,
+  };
+
   const [resumes, setResumes] = useState<ResumeListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [newResumeTitle, setNewResumeTitle] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [hasClaimedCV, setHasClaimedCV] = useState(false);
@@ -52,6 +61,15 @@ export default function ResumesPage() {
     current: number;
     max: number;
   } | null>(null);
+
+  // Show login dialog if user is not authenticated after loading
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      setShowLoginDialog(true);
+    } else {
+      setShowLoginDialog(false);
+    }
+  }, [authLoading, isAuthenticated]);
 
   const fetchResumes = async () => {
     try {
@@ -546,6 +564,74 @@ export default function ResumesPage() {
             </Button>
             <Button onClick={handleCreateResume} disabled={isCreating}>
               {isCreating ? "Creating..." : "Create"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Login Required Dialog */}
+      <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <LogIn className="h-5 w-5" style={{ color: "#ff6600" }} />
+              Login Required
+            </DialogTitle>
+            <DialogDescription>
+              Please log in to access the Resume Builder and create your
+              professional resumes.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50">
+              <Image
+                src="/assets/logo.png"
+                alt="Resume AI Logo"
+                width={48}
+                height={48}
+                className="rounded-lg"
+              />
+              <div>
+                <p className="font-medium">Resume AI Builder</p>
+                <p className="text-sm text-muted-foreground">
+                  Create ATS-optimized resumes in minutes
+                </p>
+              </div>
+            </div>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li className="flex items-center gap-2">
+                <FileText className="h-4 w-4" style={{ color: "#ff6600" }} />
+                Create unlimited professional resumes
+              </li>
+              <li className="flex items-center gap-2">
+                <Download className="h-4 w-4" style={{ color: "#ff6600" }} />
+                Export to PDF with one click
+              </li>
+              <li className="flex items-center gap-2">
+                <Crown className="h-4 w-4" style={{ color: "#ff6600" }} />
+                Access premium templates
+              </li>
+            </ul>
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => router.push("/dashboard")}
+              className="w-full sm:w-auto"
+            >
+              Back to Dashboard
+            </Button>
+            <Button
+              onClick={() => {
+                const googleLogin =
+                  process.env.NEXT_PUBLIC_API_BASE_URL + "/user/google/login";
+                window.location.href = googleLogin;
+              }}
+              className="w-full sm:w-auto"
+              style={{ backgroundColor: "#ff6600" }}
+            >
+              <LogIn className="mr-2 h-4 w-4" />
+              Login with Google
             </Button>
           </DialogFooter>
         </DialogContent>
