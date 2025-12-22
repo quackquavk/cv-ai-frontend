@@ -360,55 +360,26 @@ export default function ResumesPage() {
         </span>
       </nav>
 
-      {/* Branding Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <Image
-          src="/assets/logo.png"
-          alt="Resume AI Logo"
-          width={40}
-          height={40}
-          className="rounded-lg"
-        />
-        <div>
-          <h1
-            className="text-2xl font-bold flex items-center gap-2"
-            style={{ color: "#ff6600" }}
-          >
-            Resume AI
-            <span
-              className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-white rounded-full"
-              style={{ backgroundColor: "#ff6600" }}
-            >
-              <FileText className="h-3 w-3" />
-              Builder
-            </span>
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Create ATS-optimized, professional resumes in minutes
-          </p>
-        </div>
-      </div>
-
       {/* Page Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <div className="flex items-center gap-3">
-            <h2 className="text-xl font-semibold">My Resumes</h2>
+            <h2 className="text-lg font-semibold">My Resumes</h2>
             {resumeLimit && !resumeLimit.isPremium && (
               <span
                 className={`text-xs px-2 py-1 rounded-full font-medium ${
                   resumeLimit.current >= resumeLimit.max
-                    ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                    ? "bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400"
                     : resumeLimit.current >= resumeLimit.max - 1
-                    ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                    : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                    ? "bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                    : "bg-muted text-muted-foreground"
                 }`}
               >
                 {resumeLimit.current}/{resumeLimit.max} used
               </span>
             )}
             {resumeLimit?.isPremium && (
-              <span className="text-xs px-2 py-1 rounded-full font-medium bg-gradient-to-r from-amber-500 to-orange-500 text-white flex items-center gap-1">
+              <span className="text-xs px-2 py-1 rounded-full font-medium bg-muted text-foreground flex items-center gap-1">
                 <Crown className="h-3 w-3" />
                 Premium
               </span>
@@ -460,13 +431,13 @@ export default function ResumesPage() {
       {resumeLimit &&
         !resumeLimit.isPremium &&
         resumeLimit.current >= resumeLimit.max && (
-          <div className="mb-6 p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+          <div className="mb-4 p-3 rounded-md bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 flex items-start gap-3">
+            <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-medium text-amber-800 dark:text-amber-200">
+              <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
                 Resume limit reached
               </p>
-              <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+              <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-0.5">
                 You've created {resumeLimit.max} resumes. Delete an existing
                 resume or upgrade to premium for unlimited resumes.
               </p>
@@ -476,7 +447,7 @@ export default function ResumesPage() {
 
       {/* Resume Grid */}
       {isLoading ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {[...Array(4)].map((_, i) => (
             <Card key={i}>
               <CardContent className="p-0">
@@ -522,7 +493,7 @@ export default function ResumesPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {resumes.map((resume) => (
             <ResumeCard
               key={resume.resume_id}
@@ -574,7 +545,7 @@ export default function ResumesPage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <LogIn className="h-5 w-5" style={{ color: "#ff6600" }} />
+              <LogIn className="h-5 w-5 text-muted-foreground" />
               Login Required
             </DialogTitle>
             <DialogDescription>
@@ -600,15 +571,15 @@ export default function ResumesPage() {
             </div>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-center gap-2">
-                <FileText className="h-4 w-4" style={{ color: "#ff6600" }} />
+                <FileText className="h-4 w-4 text-muted-foreground" />
                 Create unlimited professional resumes
               </li>
               <li className="flex items-center gap-2">
-                <Download className="h-4 w-4" style={{ color: "#ff6600" }} />
+                <Download className="h-4 w-4 text-muted-foreground" />
                 Export to PDF with one click
               </li>
               <li className="flex items-center gap-2">
-                <Crown className="h-4 w-4" style={{ color: "#ff6600" }} />
+                <Crown className="h-4 w-4 text-muted-foreground" />
                 Access premium templates
               </li>
             </ul>
@@ -628,7 +599,6 @@ export default function ResumesPage() {
                 window.location.href = googleLogin;
               }}
               className="w-full sm:w-auto"
-              style={{ backgroundColor: "#ff6600" }}
             >
               <LogIn className="mr-2 h-4 w-4" />
               Login with Google

@@ -213,15 +213,11 @@ export default function ResumeEditorPage() {
               height={28}
               className="rounded"
             />
-            <span
-              className="text-sm font-semibold hidden sm:inline"
-              style={{ color: "#ff6600" }}
-            >
+            <span className="text-sm font-semibold hidden sm:inline">
               Resume AI
             </span>
             <span
               className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium text-white rounded-full"
-              style={{ backgroundColor: "#ff6600" }}
             >
               <FileText className="h-2.5 w-2.5" />
             </span>

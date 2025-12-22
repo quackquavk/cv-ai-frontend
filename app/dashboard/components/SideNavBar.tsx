@@ -25,6 +25,8 @@ import {
   FolderLock,
   Plus,
   FileText,
+  Bot,
+  Briefcase,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -53,7 +55,7 @@ import {
 import Image from "next/image";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserContext } from "@/context/UserContext";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TabContext } from "../context/TabContext";
 import { Upload, RefreshCw } from "lucide-react";
@@ -77,6 +79,15 @@ const SideNavBar = ({
   }
 
   const { activeTab } = tabContext;
+  const pathname = usePathname();
+
+  // Check if we're on a LinkedIn automation page - should show candidate sidebar
+  const isLinkedInPage =
+    pathname === "/dashboard/job-preferences" ||
+    pathname === "/dashboard/job-applications";
+
+  // Use effectiveTab to determine which sidebar section to show
+  const effectiveTab = isLinkedInPage ? "candidate" : activeTab;
 
   const setUploading = spinnerContext?.setUploading;
   const uploading = spinnerContext?.uploading;
@@ -460,7 +471,7 @@ const SideNavBar = ({
     event.stopPropagation();
     setIsDragging(false);
     if (event.dataTransfer.files) {
-      if (activeTab === "candidate") {
+      if (effectiveTab === "candidate") {
         handleCandidateCVUpload(event.dataTransfer.files);
       } else {
         handleFileUpload(event.dataTransfer.files);
@@ -623,7 +634,7 @@ const SideNavBar = ({
               isCollapsed && "hidden"
             } w-full px-4 pt-0 sticky top-0 z-10`}
           >
-            {activeTab === "candidate" ? (
+            {effectiveTab === "candidate" ? (
               // Candidate Section - CV Upload/Replace
               <div
                 onDrop={handleDrop}
@@ -692,7 +703,7 @@ const SideNavBar = ({
               </div>
             )}
 
-            {activeTab === "candidate" ? (
+            {effectiveTab === "candidate" ? (
               <input
                 id="candidate-cv-input"
                 className="hidden"
@@ -714,7 +725,7 @@ const SideNavBar = ({
             )}
           </div>
 
-          {activeTab === "recruiter" && (
+          {effectiveTab === "recruiter" && (
             <>
               <UploadQueue
                 uploadFiles={uploadFiles}
@@ -808,8 +819,41 @@ const SideNavBar = ({
           )}
 
           {/* Candidate section - Empty space as requested */}
-          {activeTab === "candidate" && !isCollapsed && (
+          {effectiveTab === "candidate" && !isCollapsed && (
             <>
+              {/* LinkedIn Automation Section - Show at TOP when user has claimed CV */}
+              {hasClaimedAnyCV && (
+                <div className="px-4 py-4 space-y-2">
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
+                    LinkedIn Automation
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push("/dashboard/job-preferences")}
+                    className="w-full flex items-center justify-start gap-2"
+                  >
+                    <Briefcase className="h-4 w-4" />
+                    Job Preferences
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push("/dashboard/job-applications")}
+                    className="w-full flex items-center justify-start gap-2"
+                  >
+                    <Bot className="h-4 w-4" />
+                    Job Applications
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push("/dashboard/resumes")}
+                    className="w-full flex items-center justify-start gap-2"
+                  >
+                    <FileText className="h-4 w-4" />
+                    {hasClaimedAnyCV ? "Build Resume" : "Create Resume"}
+                  </Button>
+                </div>
+              )}
+
               {/* Folder Selection - Only show for initial upload when user hasn't claimed CV yet */}
               {!hasClaimedAnyCV && (
                 <div className="w-full px-4 py-4 sticky top-[120px] z-10">
@@ -863,25 +907,20 @@ const SideNavBar = ({
                     : "Please select a folder to upload your CV"}
                 </div>
 
-                {/* Resume Builder Button */}
-                <div className="mt-4">
-                  <Button
-                    variant="default"
-                    onClick={() => router.push("/dashboard/resumes")}
-                    className="w-full flex items-center justify-center gap-2"
-                  >
-                    <FileText className="h-4 w-4" />
-                    {hasClaimedAnyCV ? "Build Resume" : "Create Resume"}
-                  </Button>
-                </div>
+                {/* Resume Builder Button - Only show when hasn't claimed CV */}
+                {!hasClaimedAnyCV && (
+                  <div className="mt-4">
+                    <Button
+                      variant="outline"
+                      onClick={() => router.push("/dashboard/resumes")}
+                      className="w-full flex items-center justify-start gap-2"
+                    >
+                      <FileText className="h-4 w-4" />
+                      Create Resume
+                    </Button>
+                  </div>
+                )}
               </div>
-
-              {/* LinkedIn Bot Section - Only show when user has claimed CV */}
-              {hasClaimedAnyCV && (
-                <div className="px-4 py-4 border-t border-gray-200 dark:border-gray-700">
-                  <LinkedInBot />
-                </div>
-              )}
             </>
           )}
         </SidebarContent>

@@ -20,9 +20,13 @@ import { PiGlobeLight, PiNotePencilBold } from "react-icons/pi";
 import { IoLocation } from "react-icons/io5";
 import { MdEmail } from "react-icons/md";
 import { Button } from "@/components/ui/button";
-import { LoaderCircle, Save } from "lucide-react";
+import { LoaderCircle, Save, Bot, Settings, Briefcase } from "lucide-react";
 import { toast } from "sonner";
 import LinkedInBot from "@/app/dashboard/components/LinkedInBot";
+import LinkedInJobPreferences from "@/app/dashboard/components/LinkedInJobPreferences";
+import LinkedInSessionManager from "@/app/dashboard/components/LinkedInSessionManager";
+import LinkedInApplicationsTable from "@/app/dashboard/components/LinkedInApplicationsTable";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,

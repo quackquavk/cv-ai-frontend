@@ -33,6 +33,11 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     /^\/dashboard\/resumes(?:\/[^\/]+)?\/?$/
   );
 
+  // Check if we're on a LinkedIn automation page (candidate-specific)
+  const isLinkedInPage =
+    pathname === "/dashboard/job-preferences" ||
+    pathname === "/dashboard/job-applications";
+
   const handleCollapsedChange = (collapsed: boolean) => {
     setIsCollapsed(collapsed);
   };
@@ -102,12 +107,14 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             {/* Navigation Tabs at the very top */}
             <NavigationTabs />
 
-            {/* Search Fields - Only show for Recruiter tab */}
-            {activeTab === "recruiter" && pathname !== "/dashboard/resumes" && (
-              <div className="pb-4">
-                <SearchFields />
-              </div>
-            )}
+            {/* Search Fields - Only show for Recruiter tab (not on candidate pages) */}
+            {activeTab === "recruiter" &&
+              pathname !== "/dashboard/resumes" &&
+              !isLinkedInPage && (
+                <div className="pb-4">
+                  <SearchFields />
+                </div>
+              )}
 
             {/* Main Content */}
             <div className="flex-grow w-full">{children}</div>

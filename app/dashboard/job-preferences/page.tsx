@@ -198,7 +198,7 @@ export default function JobPreferencesPage() {
   if (loading) {
     return (
       <div className="h-full w-full flex items-center justify-center">
-        <LoaderCircle className="h-8 w-8 animate-spin text-blue-600" />
+        <LoaderCircle className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -206,331 +206,315 @@ export default function JobPreferencesPage() {
   if (!preferences) return null;
 
   return (
-    <div className="h-full w-full p-6 overflow-auto">
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Linked-In Bot</h1>
-          <p className="text-gray-500">
-            Apply to jobs in linkedin automatically. Fill the options below and
-            our bot will start applying for jobs on your behalf while you can
-            focus on your own thing.
+    <div className="h-full w-full pt-4 overflow-auto">
+      {/* Compact Header Row */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+        <div>
+          <h2 className="text-lg font-semibold">Job Preferences</h2>
+          <p className="text-sm text-muted-foreground">
+            Configure your LinkedIn automation settings
           </p>
         </div>
+        <div className="flex gap-2">
+          <Button variant="ghost" onClick={handleClearAll}>
+            Clear All
+          </Button>
+          <Button onClick={handleApply} disabled={saving}>
+            {saving && <LoaderCircle className="h-4 w-4 mr-2 animate-spin" />}
+            Save & Apply
+          </Button>
+        </div>
+      </div>
 
-        {/* LinkedIn Credentials (Collapsible or inline) */}
-        <div className="mb-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <LinkedInBot />
+      {/* LinkedIn Credentials */}
+      {/* <div className="mb-4 p-3 bg-muted rounded-md">
+        <LinkedInBot />
+      </div> */}
+
+      {/* Form Grid */}
+      <div className="space-y-6">
+        {/* Row 1: Job Title, Location, Selected CV */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Job Title
+            </Label>
+            <Input
+              placeholder="Flutter Developer"
+              value={preferences.positions[0] || ""}
+              onChange={(e) =>
+                setPreferences({
+                  ...preferences,
+                  positions: [
+                    e.target.value,
+                    ...preferences.positions.slice(1),
+                  ],
+                })
+              }
+              className="bg-gray-100 dark:bg-gray-800 border-0"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Location
+            </Label>
+            <Input
+              placeholder="Nepal"
+              value={preferences.locations[0] || ""}
+              onChange={(e) =>
+                setPreferences({
+                  ...preferences,
+                  locations: [
+                    e.target.value,
+                    ...preferences.locations.slice(1),
+                  ],
+                })
+              }
+              className="bg-gray-100 dark:bg-gray-800 border-0"
+            />
+          </div>
+          {/* <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Selected CV
+            </Label>
+            <Select value={selectedCv} onValueChange={setSelectedCv}>
+              <SelectTrigger className="bg-muted border-0">
+                <SelectValue placeholder="Select CV" />
+              </SelectTrigger>
+              <SelectContent>
+                {cvList.map((cv) => (
+                  <SelectItem key={cv.id} value={cv.id}>
+                    Resume: {cv.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div> */}
         </div>
 
-        {/* Form Grid */}
-        <div className="space-y-8">
-          {/* Row 1: Job Title, Location, Selected CV */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Job Title
-              </Label>
-              <Input
-                placeholder="Flutter Developer"
-                value={preferences.positions[0] || ""}
-                onChange={(e) =>
-                  setPreferences({
-                    ...preferences,
-                    positions: [
-                      e.target.value,
-                      ...preferences.positions.slice(1),
-                    ],
-                  })
-                }
-                className="bg-gray-100 dark:bg-gray-800 border-0"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Location
-              </Label>
-              <Input
-                placeholder="Nepal"
-                value={preferences.locations[0] || ""}
-                onChange={(e) =>
-                  setPreferences({
-                    ...preferences,
-                    locations: [
-                      e.target.value,
-                      ...preferences.locations.slice(1),
-                    ],
-                  })
-                }
-                className="bg-gray-100 dark:bg-gray-800 border-0"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Selected CV
-              </Label>
-              <Select value={selectedCv} onValueChange={setSelectedCv}>
-                <SelectTrigger className="bg-blue-100 dark:bg-blue-900 border-0">
-                  <SelectValue placeholder="Select CV" />
-                </SelectTrigger>
-                <SelectContent>
-                  {cvList.map((cv) => (
-                    <SelectItem key={cv.id} value={cv.id}>
-                      Resume: {cv.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        {/* Row 2: Experience, Work Type, Job Type */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Experience
+            </Label>
+            <Select
+              value={preferences.experience_level[0]?.toString() || ""}
+              onValueChange={(value) =>
+                setPreferences({
+                  ...preferences,
+                  experience_level: value ? [parseInt(value)] : [],
+                })
+              }
+            >
+              <SelectTrigger className="bg-gray-100 dark:bg-gray-800 border-0">
+                <SelectValue placeholder="check below" />
+              </SelectTrigger>
+              <SelectContent>
+                {EXPERIENCE_LEVELS.map((level) => (
+                  <SelectItem key={level.value} value={level.value.toString()}>
+                    {level.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-
-          {/* Row 2: Experience, Work Type, Job Type */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Experience
-              </Label>
-              <Select
-                value={preferences.experience_level[0]?.toString() || ""}
-                onValueChange={(value) =>
-                  setPreferences({
-                    ...preferences,
-                    experience_level: value ? [parseInt(value)] : [],
-                  })
-                }
-              >
-                <SelectTrigger className="bg-gray-100 dark:bg-gray-800 border-0">
-                  <SelectValue placeholder="check below" />
-                </SelectTrigger>
-                <SelectContent>
-                  {EXPERIENCE_LEVELS.map((level) => (
-                    <SelectItem
-                      key={level.value}
-                      value={level.value.toString()}
-                    >
-                      {level.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Work Type
-              </Label>
-              <Select
-                value={preferences.job_type[0] || ""}
-                onValueChange={(value) =>
-                  setPreferences({
-                    ...preferences,
-                    job_type: value ? [value] : [],
-                  })
-                }
-              >
-                <SelectTrigger className="bg-gray-100 dark:bg-gray-800 border-0">
-                  <SelectValue placeholder="Select..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {WORK_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Job Type
-              </Label>
-              <Select>
-                <SelectTrigger className="bg-gray-100 dark:bg-gray-800 border-0">
-                  <SelectValue placeholder="Select..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {JOB_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Work Type
+            </Label>
+            <Select
+              value={preferences.job_type[0] || ""}
+              onValueChange={(value) =>
+                setPreferences({
+                  ...preferences,
+                  job_type: value ? [value] : [],
+                })
+              }
+            >
+              <SelectTrigger className="bg-gray-100 dark:bg-gray-800 border-0">
+                <SelectValue placeholder="Select..." />
+              </SelectTrigger>
+              <SelectContent>
+                {WORK_TYPES.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Job Type
+            </Label>
+            <Select>
+              <SelectTrigger className="bg-gray-100 dark:bg-gray-800 border-0">
+                <SelectValue placeholder="Select..." />
+              </SelectTrigger>
+              <SelectContent>
+                {JOB_TYPES.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
-          {/* Row 3: Time to Start, Apply Interval, No of Apply */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-2">
+        {/* Row 3: Time to Start, Apply Interval, No of Apply */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Time to Start
+            </Label>
+            <Select
+              value={preferences.time_to_start}
+              onValueChange={(value) =>
+                setPreferences({ ...preferences, time_to_start: value })
+              }
+            >
+              <SelectTrigger className="bg-gray-100 dark:bg-gray-800 border-0">
+                <SelectValue placeholder="Start Time" />
+              </SelectTrigger>
+              <SelectContent>
+                {TIME_TO_START_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center gap-1">
               <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Time to Start
+                Apply Interval
               </Label>
-              <Select
-                value={preferences.time_to_start}
-                onValueChange={(value) =>
-                  setPreferences({ ...preferences, time_to_start: value })
-                }
-              >
-                <SelectTrigger className="bg-gray-100 dark:bg-gray-800 border-0">
-                  <SelectValue placeholder="Start Time" />
-                </SelectTrigger>
-                <SelectContent>
-                  {TIME_TO_START_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-3 w-3 text-gray-400" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Time range (hours) when bot should apply</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
-            <div className="space-y-2">
-              <div className="flex items-center gap-1">
-                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Apply Interval
-                </Label>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="h-3 w-3 text-gray-400" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Time range (hours) when bot should apply</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <Input
-                  placeholder="From"
-                  type="number"
-                  min={0}
-                  max={23}
-                  value={preferences.apply_interval_from ?? ""}
-                  onChange={(e) =>
-                    setPreferences({
-                      ...preferences,
-                      apply_interval_from: e.target.value
-                        ? parseInt(e.target.value)
-                        : null,
-                    })
-                  }
-                  className="bg-gray-100 dark:bg-gray-800 border-0"
-                />
-                <Input
-                  placeholder="To"
-                  type="number"
-                  min={0}
-                  max={23}
-                  value={preferences.apply_interval_to ?? ""}
-                  onChange={(e) =>
-                    setPreferences({
-                      ...preferences,
-                      apply_interval_to: e.target.value
-                        ? parseInt(e.target.value)
-                        : null,
-                    })
-                  }
-                  className="bg-gray-100 dark:bg-gray-800 border-0"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center gap-1">
-                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Applications per Session
-                </Label>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="h-3 w-3 text-gray-400" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Max 10 applications per day (free tier limit)</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
+            <div className="grid grid-cols-2 gap-2">
               <Input
+                placeholder="From"
                 type="number"
-                min={1}
-                max={10}
-                value={preferences.max_applications_per_session}
+                min={0}
+                max={23}
+                value={preferences.apply_interval_from ?? ""}
                 onChange={(e) =>
                   setPreferences({
                     ...preferences,
-                    max_applications_per_session: Math.min(
-                      10,
-                      Math.max(1, parseInt(e.target.value) || 1)
-                    ),
+                    apply_interval_from: e.target.value
+                      ? parseInt(e.target.value)
+                      : null,
                   })
                 }
                 className="bg-gray-100 dark:bg-gray-800 border-0"
               />
-              <p className="text-xs text-gray-500">Free: 10/day max</p>
-            </div>
-          </div>
-
-          {/* Row 4: Date Posted, Language */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Date Posted
-              </Label>
-              <Select
-                value={preferences.date_posted}
-                onValueChange={(value) =>
-                  setPreferences({ ...preferences, date_posted: value })
-                }
-              >
-                <SelectTrigger className="bg-gray-100 dark:bg-gray-800 border-0">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {DATE_POSTED_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Language
-              </Label>
               <Input
-                placeholder="English"
-                value={preferences.language || ""}
+                placeholder="To"
+                type="number"
+                min={0}
+                max={23}
+                value={preferences.apply_interval_to ?? ""}
                 onChange={(e) =>
                   setPreferences({
                     ...preferences,
-                    language: e.target.value || null,
+                    apply_interval_to: e.target.value
+                      ? parseInt(e.target.value)
+                      : null,
                   })
                 }
                 className="bg-gray-100 dark:bg-gray-800 border-0"
               />
             </div>
-            <div></div>
           </div>
+          <div className="space-y-2">
+            <div className="flex items-center gap-1">
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Applications per Session
+              </Label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-3 w-3 text-gray-400" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Max 10 applications per day (free tier limit)</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <Input
+              type="number"
+              min={1}
+              max={10}
+              value={preferences.max_applications_per_session}
+              onChange={(e) =>
+                setPreferences({
+                  ...preferences,
+                  max_applications_per_session: Math.min(
+                    10,
+                    Math.max(1, parseInt(e.target.value) || 1)
+                  ),
+                })
+              }
+              className="bg-gray-100 dark:bg-gray-800 border-0"
+            />
+            <p className="text-xs text-gray-500">Free: 10/day max</p>
+          </div>
+        </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-4 pt-4">
-            <Button
-              onClick={handleApply}
-              disabled={saving}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8"
+        {/* Row 4: Date Posted, Language */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Date Posted
+            </Label>
+            <Select
+              value={preferences.date_posted}
+              onValueChange={(value) =>
+                setPreferences({ ...preferences, date_posted: value })
+              }
             >
-              {saving ? (
-                <LoaderCircle className="h-4 w-4 animate-spin mr-2" />
-              ) : null}
-              Apply
-            </Button>
-            <button
-              onClick={handleClearAll}
-              className="text-red-500 hover:text-red-600 font-medium"
-            >
-              Clear All
-            </button>
+              <SelectTrigger className="bg-gray-100 dark:bg-gray-800 border-0">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {DATE_POSTED_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Language
+            </Label>
+            <Input
+              placeholder="English"
+              value={preferences.language || ""}
+              onChange={(e) =>
+                setPreferences({
+                  ...preferences,
+                  language: e.target.value || null,
+                })
+              }
+              className="bg-gray-100 dark:bg-gray-800 border-0"
+            />
+          </div>
+          <div></div>
         </div>
       </div>
     </div>
