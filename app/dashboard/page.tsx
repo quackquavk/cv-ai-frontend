@@ -1,43 +1,27 @@
-"use client";
-import React, { useContext } from "react";
-import ListView from "@/components/ListView";
-import GridView from "@/components/GridView";
-import { ViewContext } from "./context/ViewContext";
-import { ApiDataContext } from "./context/ApiDataContext";
-import { SearchContext } from "./context/SearchContext";
+import { Metadata } from "next";
+import DashboardClient from "./components/DashboardClient";
 
-function Dashboard() {
-  const apiContext = useContext(ApiDataContext);
-  const apiData = apiContext?.apiData ?? [];
+type Props = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
 
-  const searchContext = useContext(SearchContext);
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const searchParams = await props.searchParams;
+  const query = searchParams.q;
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://app.cvai.dev";
 
-  if (!apiContext) {
-    throw new Error("Error occured");
+  let canonicalUrl = `${baseUrl}/dashboard`;
+  if (query && typeof query === "string") {
+    canonicalUrl += `?q=${encodeURIComponent(query)}`;
   }
 
-  if (!searchContext) {
-    throw new Error("Error occured");
-  }
-
-  const { searchData } = searchContext;
-
-  const context = useContext(ViewContext);
-  if (!context) {
-    throw new Error("Dashboard must be used within a ViewProvider");
-  }
-
-  const { view } = context;
-
-  return (
-    <div className="h-full w-full overflow-auto">
-      {view === "grid" ? (
-        <GridView searchData={searchData} data={apiData} />
-      ) : (
-        <ListView searchData={searchData} data={apiData} />
-      )}
-    </div>
-  );
+  return {
+    alternates: {
+      canonical: canonicalUrl,
+    },
+  };
 }
 
-export default Dashboard;
+export default function Dashboard() {
+  return <DashboardClient />;
+}
