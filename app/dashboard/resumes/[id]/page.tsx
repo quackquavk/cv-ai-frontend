@@ -12,6 +12,7 @@ import {
   FileText,
   ChevronRight,
   Home,
+  Target,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -216,9 +217,7 @@ export default function ResumeEditorPage() {
             <span className="text-sm font-semibold hidden sm:inline">
               Resume AI
             </span>
-            <span
-              className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium text-white rounded-full"
-            >
+            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium text-white rounded-full">
               <FileText className="h-2.5 w-2.5" />
             </span>
           </div>
@@ -229,7 +228,24 @@ export default function ResumeEditorPage() {
             className="text-lg font-semibold border-none bg-transparent focus-visible:ring-0 w-64"
           />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          {/* ATS Score Badge - only show if resume was optimized */}
+          {resume.ats_optimization && (
+            <div
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${
+                resume.ats_optimization.optimized_score >= 70
+                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                  : resume.ats_optimization.optimized_score >= 50
+                  ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                  : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+              }`}
+              title={`Optimized for: ${resume.ats_optimization.job_title}\nOriginal: ${resume.ats_optimization.original_score} → Optimized: ${resume.ats_optimization.optimized_score}`}
+            >
+              <Target className="h-4 w-4" />
+              <span>ATS: {resume.ats_optimization.optimized_score}</span>
+            </div>
+          )}
+
           <span className="text-sm text-muted-foreground">
             {isSaving ? (
               "Saving..."

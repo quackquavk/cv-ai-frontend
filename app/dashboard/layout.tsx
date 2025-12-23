@@ -36,7 +36,8 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   // Check if we're on a LinkedIn automation page (candidate-specific)
   const isLinkedInPage =
     pathname === "/dashboard/job-preferences" ||
-    pathname === "/dashboard/job-applications";
+    pathname === "/dashboard/job-applications" ||
+    pathname === "/dashboard/ats-optimizer";
 
   const handleCollapsedChange = (collapsed: boolean) => {
     setIsCollapsed(collapsed);

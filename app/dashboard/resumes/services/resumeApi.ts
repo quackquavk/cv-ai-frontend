@@ -223,12 +223,21 @@ export interface ResumeData {
   };
 }
 
+export interface ATSOptimization {
+  job_title: string;
+  original_score: number;
+  optimized_score: number;
+  improvements_made: string[];
+  optimized_at: string;
+}
+
 export interface Resume {
   resume_id: string;
   user_id: string;
   title: string;
   data: ResumeData;
   status: "draft" | "completed";
+  ats_optimization?: ATSOptimization;
   created_at: string;
   updated_at: string;
 }

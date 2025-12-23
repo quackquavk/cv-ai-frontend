@@ -27,6 +27,7 @@ import {
   FileText,
   Bot,
   Briefcase,
+  Target,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -84,7 +85,8 @@ const SideNavBar = ({
   // Check if we're on a LinkedIn automation page - should show candidate sidebar
   const isLinkedInPage =
     pathname === "/dashboard/job-preferences" ||
-    pathname === "/dashboard/job-applications";
+    pathname === "/dashboard/job-applications" ||
+    pathname === "/dashboard/ats-optimizer";
 
   // Use effectiveTab to determine which sidebar section to show
   const effectiveTab = isLinkedInPage ? "candidate" : activeTab;
@@ -850,6 +852,14 @@ const SideNavBar = ({
                   >
                     <FileText className="h-4 w-4" />
                     {hasClaimedAnyCV ? "Build Resume" : "Create Resume"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push("/dashboard/ats-optimizer")}
+                    className="w-full flex items-center justify-start gap-2"
+                  >
+                    <Target className="h-4 w-4" />
+                    ATS Optimizer
                   </Button>
                 </div>
               )}
