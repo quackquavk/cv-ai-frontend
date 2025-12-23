@@ -5,47 +5,20 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   LoaderCircle,
-  Sparkles,
   Target,
   CheckCircle2,
   XCircle,
-  AlertCircle,
-  TrendingUp,
   FileText,
   Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 import axiosInstance from "@/utils/axiosConfig";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 
 interface ATSScoreResult {
   overall_score: number;
   matched_keywords: string[];
   missing_keywords: string[];
-  recommendations: string[];
-}
-
-interface ImprovementSuggestion {
-  section: string;
-  priority: string;
-  issue: string;
-  suggestion: string;
-  example?: string;
-  keywords_to_add?: string[];
-}
-
-interface SuggestionsResult {
-  current_score: number;
-  target_score: number;
-  suggestions: ImprovementSuggestion[];
-  quick_wins?: string[];
 }
 
 interface OptimizeResult {
@@ -60,17 +33,9 @@ export default function ATSOptimizerPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [hasClaimedCV, setHasClaimedCV] = useState(false);
-
-  // Simplified: single textarea for entire job posting
   const [jobPosting, setJobPosting] = useState("");
-
-  // Score state
   const [scoreResult, setScoreResult] = useState<ATSScoreResult | null>(null);
-  const [suggestions, setSuggestions] = useState<SuggestionsResult | null>(
-    null
-  );
   const [scoring, setScoring] = useState(false);
-  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [optimizing, setOptimizing] = useState(false);
 
   useEffect(() => {
@@ -92,11 +57,9 @@ export default function ATSOptimizerPage() {
     }
   };
 
-  // Extract job title from posting (first line or reasonable guess)
   const extractJobTitle = (posting: string): string => {
     const lines = posting.trim().split("\n");
     const firstLine = lines[0]?.trim() || "";
-    // If first line is short enough, use it as title
     if (firstLine.length > 0 && firstLine.length < 100) {
       return firstLine;
     }
@@ -114,7 +77,6 @@ export default function ATSOptimizerPage() {
     try {
       setScoring(true);
       setScoreResult(null);
-      setSuggestions(null);
 
       const response = await axiosInstance.post(
         "/ats/my-score",
@@ -139,37 +101,6 @@ export default function ATSOptimizerPage() {
     }
   };
 
-  const handleGetSuggestions = async () => {
-    if (!scoreResult) {
-      toast.error("Please calculate your score first");
-      return;
-    }
-
-    try {
-      setLoadingSuggestions(true);
-
-      const response = await axiosInstance.post(
-        "/ats/improve-suggestions",
-        {
-          job: {
-            title: extractJobTitle(jobPosting),
-            description: jobPosting,
-          },
-          target_score: 80,
-        },
-        { withCredentials: true }
-      );
-
-      setSuggestions(response.data);
-      toast.success("AI suggestions generated!");
-    } catch (error: any) {
-      console.error("Error getting suggestions:", error);
-      toast.error(error.response?.data?.detail || "Failed to get suggestions");
-    } finally {
-      setLoadingSuggestions(false);
-    }
-  };
-
   const handleOptimizeResume = async () => {
     try {
       setOptimizing(true);
@@ -191,8 +122,8 @@ export default function ATSOptimizerPage() {
         `Resume optimized! Score: ${result.original_score} → ${result.optimized_score_estimate}`
       );
 
-      // Redirect to the resume builder
-      router.push(`/dashboard/resumes/${result.resume_id}`);
+      // Open in new tab
+      window.open(`/dashboard/resumes/${result.resume_id}`, "_blank");
     } catch (error: any) {
       console.error("Error optimizing resume:", error);
       if (error.response?.status === 429) {
@@ -209,27 +140,10 @@ export default function ATSOptimizerPage() {
     }
   };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 70) return "text-green-600";
-    if (score >= 50) return "text-yellow-600";
-    return "text-red-600";
-  };
-
-  const getScoreGradient = (score: number) => {
-    if (score >= 70) return "from-green-500 to-emerald-500";
-    if (score >= 50) return "from-yellow-500 to-orange-500";
-    return "from-red-500 to-rose-500";
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority.toLowerCase()) {
-      case "high":
-        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
-      case "medium":
-        return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
-      default:
-        return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
-    }
+  const getScoreBg = (score: number) => {
+    if (score >= 70) return "bg-green-500";
+    if (score >= 50) return "bg-yellow-500";
+    return "bg-red-500";
   };
 
   if (loading) {
@@ -258,278 +172,157 @@ export default function ATSOptimizerPage() {
   }
 
   return (
-    <div className="h-full w-full pt-4 pb-6 overflow-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+    <div className="h-full w-full py-6 overflow-auto">
+      <div className="max-w-3xl  space-y-6">
+        {/* Header */}
         <div>
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Target className="h-5 w-5" />
-            ATS Resume Optimizer
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Check your resume score and get AI-powered optimization
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Target className="h-6 w-6" />
+            ATS Optimizer
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Optimize your resume for any job posting
           </p>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Column: Job Input */}
-        <div className="space-y-4">
-          <Card className="p-4">
-            <h3 className="font-medium mb-4 flex items-center gap-2">
-              <Sparkles className="h-4 w-4" />
-              Target Job Description
-            </h3>
+        {/* Job Input */}
+        <Card className="p-5">
+          <Textarea
+            placeholder="Paste the complete job description here..."
+            value={jobPosting}
+            onChange={(e) => setJobPosting(e.target.value)}
+            className="min-h-[180px] resize-none border-0 bg-muted/50 focus-visible:ring-1 text-sm"
+          />
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Paste the entire job posting</Label>
-                <Textarea
-                  placeholder="Copy and paste the complete job description from LinkedIn, Indeed, or any job board..."
-                  value={jobPosting}
-                  onChange={(e) => setJobPosting(e.target.value)}
-                  className="bg-gray-100 dark:bg-gray-800 border-0 min-h-[200px]"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Tip: Include the full job description, requirements, and
-                  qualifications for best results
-                </p>
+          <div className="flex gap-3 mt-4">
+            <Button
+              onClick={handleCalculateScore}
+              disabled={scoring || jobPosting.trim().length < 50}
+              variant="outline"
+              className="flex-1"
+            >
+              {scoring ? (
+                <>
+                  <LoaderCircle className="h-4 w-4 mr-2 animate-spin" />
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <Target className="h-4 w-4 mr-2" />
+                  Check Score
+                </>
+              )}
+            </Button>
+
+            <Button
+              onClick={handleOptimizeResume}
+              disabled={optimizing || jobPosting.trim().length < 50}
+              className="flex-1"
+            >
+              {optimizing ? (
+                <>
+                  <LoaderCircle className="h-4 w-4 mr-2 animate-spin" />
+                  Optimizing...
+                </>
+              ) : (
+                <>
+                  <Zap className="h-4 w-4 mr-2" />
+                  Optimize Resume
+                </>
+              )}
+            </Button>
+          </div>
+        </Card>
+
+        {/* Score Results */}
+        {scoreResult && (
+          <Card className="p-5">
+            {/* Score Header */}
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-semibold">Your ATS Score</h2>
+              <div
+                className={`${getScoreBg(
+                  scoreResult.overall_score
+                )} text-white px-4 py-2 rounded-full font-bold`}
+              >
+                {scoreResult.overall_score}/100
+              </div>
+            </div>
+
+            {/* Keywords Grid */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Matched */}
+              <div>
+                <div className="flex items-center gap-2 mb-2 text-sm font-medium text-green-600 dark:text-green-400">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Matched ({scoreResult.matched_keywords.length})
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {scoreResult.matched_keywords.slice(0, 8).map((kw, idx) => (
+                    <span
+                      key={idx}
+                      className="px-2 py-0.5 text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded"
+                    >
+                      {kw}
+                    </span>
+                  ))}
+                  {scoreResult.matched_keywords.length > 8 && (
+                    <span className="px-2 py-0.5 text-xs text-muted-foreground">
+                      +{scoreResult.matched_keywords.length - 8}
+                    </span>
+                  )}
+                </div>
               </div>
 
+              {/* Missing */}
+              <div>
+                <div className="flex items-center gap-2 mb-2 text-sm font-medium text-red-600 dark:text-red-400">
+                  <XCircle className="h-4 w-4" />
+                  Missing ({scoreResult.missing_keywords.length})
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {scoreResult.missing_keywords.slice(0, 8).map((kw, idx) => (
+                    <span
+                      key={idx}
+                      className="px-2 py-0.5 text-xs bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded"
+                    >
+                      {kw}
+                    </span>
+                  ))}
+                  {scoreResult.missing_keywords.length > 8 && (
+                    <span className="px-2 py-0.5 text-xs text-muted-foreground">
+                      +{scoreResult.missing_keywords.length - 8}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Optimize CTA */}
+            <div className="mt-5 pt-4 border-t">
               <Button
-                onClick={handleCalculateScore}
-                disabled={scoring || jobPosting.trim().length < 50}
+                onClick={handleOptimizeResume}
+                disabled={optimizing}
                 className="w-full"
               >
-                {scoring ? (
+                {optimizing ? (
                   <>
                     <LoaderCircle className="h-4 w-4 mr-2 animate-spin" />
-                    Analyzing...
+                    Creating Optimized Resume...
                   </>
                 ) : (
                   <>
-                    <Target className="h-4 w-4 mr-2" />
-                    Calculate ATS Score
+                    <Zap className="h-4 w-4 mr-2" />
+                    Create Optimized Resume
                   </>
                 )}
               </Button>
+              <p className="text-xs text-muted-foreground text-center mt-2">
+                AI will add missing keywords and improve your content
+              </p>
             </div>
           </Card>
-        </div>
-
-        {/* Right Column: Results */}
-        <div className="space-y-4">
-          {/* Score Display */}
-          {scoreResult && (
-            <Card className="p-4">
-              <h3 className="font-medium mb-4">Your ATS Score</h3>
-
-              {/* Score Circle */}
-              <div className="flex items-center justify-center mb-6">
-                <div className="relative">
-                  <div
-                    className={`w-32 h-32 rounded-full flex items-center justify-center bg-gradient-to-br ${getScoreGradient(
-                      scoreResult.overall_score
-                    )} text-white shadow-lg`}
-                  >
-                    <div className="text-center">
-                      <span className="text-4xl font-bold">
-                        {scoreResult.overall_score}
-                      </span>
-                      <span className="text-xl">/100</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Keywords */}
-              <div className="space-y-4">
-                {/* Matched Keywords */}
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    <span className="text-sm font-medium">
-                      Matched Keywords ({scoreResult.matched_keywords.length})
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {scoreResult.matched_keywords
-                      .slice(0, 10)
-                      .map((kw, idx) => (
-                        <span
-                          key={idx}
-                          className="px-2 py-1 text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded"
-                        >
-                          {kw}
-                        </span>
-                      ))}
-                    {scoreResult.matched_keywords.length > 10 && (
-                      <span className="px-2 py-1 text-xs text-muted-foreground">
-                        +{scoreResult.matched_keywords.length - 10} more
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Missing Keywords */}
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <XCircle className="h-4 w-4 text-red-500" />
-                    <span className="text-sm font-medium">
-                      Missing Keywords ({scoreResult.missing_keywords.length})
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {scoreResult.missing_keywords
-                      .slice(0, 10)
-                      .map((kw, idx) => (
-                        <span
-                          key={idx}
-                          className="px-2 py-1 text-xs bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded"
-                        >
-                          {kw}
-                        </span>
-                      ))}
-                    {scoreResult.missing_keywords.length > 10 && (
-                      <span className="px-2 py-1 text-xs text-muted-foreground">
-                        +{scoreResult.missing_keywords.length - 10} more
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-2 mt-6">
-                <Button
-                  variant="outline"
-                  onClick={handleGetSuggestions}
-                  disabled={loadingSuggestions}
-                  className="flex-1"
-                >
-                  {loadingSuggestions ? (
-                    <>
-                      <LoaderCircle className="h-4 w-4 mr-2 animate-spin" />
-                      Loading...
-                    </>
-                  ) : (
-                    <>
-                      <AlertCircle className="h-4 w-4 mr-2" />
-                      Get Suggestions
-                    </>
-                  )}
-                </Button>
-
-                <Button
-                  onClick={handleOptimizeResume}
-                  disabled={optimizing}
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                >
-                  {optimizing ? (
-                    <>
-                      <LoaderCircle className="h-4 w-4 mr-2 animate-spin" />
-                      Optimizing...
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="h-4 w-4 mr-2" />
-                      Optimize Resume
-                    </>
-                  )}
-                </Button>
-              </div>
-            </Card>
-          )}
-
-          {/* Suggestions */}
-          {suggestions && (
-            <Card className="p-4">
-              <h3 className="font-medium mb-4 flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                AI Improvement Suggestions
-              </h3>
-
-              {/* Quick Wins */}
-              {suggestions.quick_wins && suggestions.quick_wins.length > 0 && (
-                <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <p className="text-sm font-medium text-blue-700 dark:text-blue-400 mb-2">
-                    Quick Wins
-                  </p>
-                  <ul className="text-sm space-y-1">
-                    {suggestions.quick_wins.map((win, idx) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
-                        <span>{win}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Detailed Suggestions */}
-              <Accordion type="multiple" className="space-y-2">
-                {suggestions.suggestions.map((sugg, idx) => (
-                  <AccordionItem
-                    key={idx}
-                    value={`item-${idx}`}
-                    className="border rounded-lg px-3"
-                  >
-                    <AccordionTrigger className="py-3 hover:no-underline">
-                      <div className="flex items-center gap-2 text-left">
-                        <span
-                          className={`text-xs px-2 py-0.5 rounded ${getPriorityColor(
-                            sugg.priority
-                          )}`}
-                        >
-                          {sugg.priority}
-                        </span>
-                        <span className="text-sm font-medium capitalize">
-                          {sugg.section}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          - {sugg.issue}
-                        </span>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pb-3">
-                      <p className="text-sm mb-2">{sugg.suggestion}</p>
-                      {sugg.example && (
-                        <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded text-sm italic">
-                          "{sugg.example}"
-                        </div>
-                      )}
-                      {sugg.keywords_to_add &&
-                        sugg.keywords_to_add.length > 0 && (
-                          <div className="mt-2 flex flex-wrap gap-1">
-                            {sugg.keywords_to_add.map((kw, i) => (
-                              <span
-                                key={i}
-                                className="px-2 py-0.5 text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded"
-                              >
-                                +{kw}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </Card>
-          )}
-
-          {/* Placeholder when no results */}
-          {!scoreResult && (
-            <Card className="p-8 text-center">
-              <Target className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="font-medium mb-2">Enter a Job Description</h3>
-              <p className="text-sm text-muted-foreground">
-                Paste the job posting you want to apply for and we'll analyze
-                how well your resume matches.
-              </p>
-            </Card>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );

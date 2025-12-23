@@ -17,10 +17,10 @@ export default function NavigationTabs() {
 
   // Update active tab based on current pathname
   useEffect(() => {
-    if (pathname === "/dashboard/candidate") {
-      setActiveTab("candidate");
-    } else {
+    if (pathname === "/dashboard" || pathname === "/dashboard/") {
       setActiveTab("recruiter");
+    } else {
+      setActiveTab("candidate");
     }
   }, [pathname, setActiveTab]);
 
