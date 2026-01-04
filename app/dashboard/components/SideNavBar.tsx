@@ -823,45 +823,6 @@ const SideNavBar = ({
           {/* Candidate section - Empty space as requested */}
           {effectiveTab === "candidate" && !isCollapsed && (
             <>
-              {/* LinkedIn Automation Section - Show at TOP when user has claimed CV */}
-                <div className="px-4 py-4 space-y-2">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
-                    LinkedIn Automation
-                  </p>
-                  <Button
-                    variant="outline"
-                    onClick={() => router.push("/dashboard/job-preferences")}
-                    className="w-full flex items-center justify-start gap-2"
-                  >
-                    <Briefcase className="h-4 w-4" />
-                    Job Preferences
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => router.push("/dashboard/job-applications")}
-                    className="w-full flex items-center justify-start gap-2"
-                  >
-                    <Bot className="h-4 w-4" />
-                    Job Applications
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => router.push("/dashboard/resumes")}
-                    className="w-full flex items-center justify-start gap-2"
-                  >
-                    <FileText className="h-4 w-4" />
-                    {hasClaimedAnyCV ? "Build Resume" : "Create Resume"}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => router.push("/dashboard/ats-optimizer")}
-                    className="w-full flex items-center justify-start gap-2"
-                  >
-                    <Target className="h-4 w-4" />
-                    ATS Optimizer
-                  </Button>
-                </div>
-
               {/* Folder Selection - Only show for initial upload when user hasn't claimed CV yet */}
               {!hasClaimedAnyCV && (
                 <div className="w-full px-4 py-4 sticky top-[120px] z-10">
@@ -905,16 +866,54 @@ const SideNavBar = ({
                 </div>
               )}
 
+              {/* LinkedIn Automation Section - Show at TOP when user has claimed CV */}
+              <div className="px-4 py-4 space-y-2">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
+                  LinkedIn Automation
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => router.push("/dashboard/job-preferences")}
+                  className="w-full flex items-center justify-start gap-2"
+                >
+                  <Briefcase className="h-4 w-4" />
+                  Job Preferences
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => router.push("/dashboard/job-applications")}
+                  className="w-full flex items-center justify-start gap-2"
+                >
+                  <Bot className="h-4 w-4" />
+                  Job Applications
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => router.push("/dashboard/resumes")}
+                  className="w-full flex items-center justify-start gap-2"
+                >
+                  <FileText className="h-4 w-4" />
+                  {hasClaimedAnyCV ? "Build Resume" : "Create Resume"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => router.push("/dashboard/ats-optimizer")}
+                  className="w-full flex items-center justify-start gap-2"
+                >
+                  <Target className="h-4 w-4" />
+                  ATS Optimizer
+                </Button>
+              </div>
+
               {/* Status message */}
               <div className="flex-1 px-4 py-4">
                 <div className="text-center text-gray-500 dark:text-gray-400 text-sm">
                   {hasClaimedAnyCV
                     ? "Your CV is uploaded and active"
                     : localFolderId
-                    ? "Ready to upload your CV"
-                    : "Please select a folder to upload your CV"}
+                      ? "Ready to upload your CV"
+                      : "Please select a folder to upload your CV"}
                 </div>
-
               </div>
             </>
           )}
