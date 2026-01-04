@@ -51,6 +51,7 @@ import {
   CheckCircle2,
   XCircle,
   ChevronRight,
+  MessageSquare,
 } from "lucide-react";
 import {
   Accordion,
@@ -79,6 +80,7 @@ interface AdminUserDetails {
   subscription_tier?: string;
   created_at: string;
   document_count: number;
+  resume_count: number;
   total_searches: number;
 }
 
@@ -140,6 +142,24 @@ interface DuplicateGroup {
   docs_migrated: number;
 }
 
+interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  user_id?: string;
+  created_at: string;
+  is_resolved: boolean;
+}
+
+interface ContactStats {
+  total_forms: number;
+  resolved_forms: number;
+  pending_forms: number;
+  resolution_rate: number;
+}
+
 export default function AdminPage() {
   const { user } = useContext(UserContext);
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -160,6 +180,9 @@ export default function AdminPage() {
     useState<AdminSubscriptionSummary | null>(null);
   const [users, setUsers] = useState<AdminUserDetails[]>([]);
   const [duplicateGroups, setDuplicateGroups] = useState<DuplicateGroup[]>([]);
+  const [contacts, setContacts] = useState<ContactMessage[]>([]);
+  const [contactStats, setContactStats] = useState<ContactStats | null>(null);
+  const [contactsLoading, setContactsLoading] = useState(false);
   const [totalUsers, setTotalUsers] = useState(0);
   const [hasMore, setHasMore] = useState(false);
 
@@ -216,6 +239,29 @@ export default function AdminPage() {
     sortOrder,
     activeTab,
   ]);
+
+  // Load contacts when tab is selected
+  useEffect(() => {
+    if (!user?.is_admin || activeTab !== "contacts") return;
+    loadContacts();
+  }, [activeTab, user?.is_admin]);
+
+  const loadContacts = async () => {
+    try {
+      setContactsLoading(true);
+      const [contactsRes, statsRes] = await Promise.all([
+        axiosInstance.get("/admin/contacts"),
+        axiosInstance.get("/admin/contacts/stats"),
+      ]);
+      setContacts(contactsRes.data.contacts);
+      setContactStats(statsRes.data);
+    } catch (error: any) {
+      console.error("Error loading contacts:", error);
+      toast.error(error.response?.data?.detail || "Failed to load contacts");
+    } finally {
+      setContactsLoading(false);
+    }
+  };
 
   const loadDashboardData = async () => {
     try {
@@ -536,14 +582,13 @@ export default function AdminPage() {
         onValueChange={setActiveTab}
         className="space-y-6"
       >
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="contacts">Contacts</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="cv-claims">CV Claims</TabsTrigger>
-          <TabsTrigger value="duplicate-detection">
-            Duplicate Detection
-          </TabsTrigger>
+          <TabsTrigger value="duplicate-detection">Duplicates</TabsTrigger>
         </TabsList>
 
         {/* Dashboard Tab */}
@@ -753,7 +798,8 @@ export default function AdminPage() {
                     <TableRow>
                       <TableHead>User</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Documents</TableHead>
+                      <TableHead>Docs</TableHead>
+                      <TableHead>Resumes</TableHead>
                       <TableHead>Searches</TableHead>
                       <TableHead>Created</TableHead>
                       <TableHead>Actions</TableHead>
@@ -783,6 +829,7 @@ export default function AdminPage() {
                           </div>
                         </TableCell>
                         <TableCell>{user.document_count}</TableCell>
+                        <TableCell>{user.resume_count}</TableCell>
                         <TableCell>{user.total_searches}</TableCell>
                         <TableCell>
                           {new Date(user.created_at).toLocaleDateString()}
@@ -859,6 +906,151 @@ export default function AdminPage() {
                     ) : null}
                     Load More
                   </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Contacts Tab */}
+        <TabsContent value="contacts" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                Contact Messages
+              </CardTitle>
+              <CardDescription>
+                View and manage contact form submissions
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Stats */}
+              {contactStats && (
+                <div className="grid gap-4 md:grid-cols-4 mb-4">
+                  <div className="text-center p-3 border rounded-lg">
+                    <div className="text-xl font-bold">
+                      {contactStats.total_forms}
+                    </div>
+                    <div className="text-xs text-muted-foreground">Total</div>
+                  </div>
+                  <div className="text-center p-3 border rounded-lg">
+                    <div className="text-xl font-bold text-yellow-600">
+                      {contactStats.pending_forms}
+                    </div>
+                    <div className="text-xs text-muted-foreground">Pending</div>
+                  </div>
+                  <div className="text-center p-3 border rounded-lg">
+                    <div className="text-xl font-bold text-green-600">
+                      {contactStats.resolved_forms}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Resolved
+                    </div>
+                  </div>
+                  <div className="text-center p-3 border rounded-lg">
+                    <div className="text-xl font-bold text-blue-600">
+                      {contactStats.resolution_rate.toFixed(1)}%
+                    </div>
+                    <div className="text-xs text-muted-foreground">Rate</div>
+                  </div>
+                </div>
+              )}
+
+              {contactsLoading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                </div>
+              ) : contacts.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No contact messages found
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {contacts.map((contact) => (
+                    <div
+                      key={contact.id}
+                      className={`border rounded-lg p-4 ${
+                        contact.is_resolved ? "opacity-60" : ""
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-medium">{contact.name}</span>
+                            <span className="text-muted-foreground text-sm">
+                              &lt;{contact.email}&gt;
+                            </span>
+                            {contact.is_resolved ? (
+                              <Badge variant="secondary" className="text-xs">
+                                Resolved
+                              </Badge>
+                            ) : (
+                              <Badge variant="default" className="text-xs">
+                                Pending
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="font-medium text-sm mb-2">
+                            {contact.subject}
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {contact.message}
+                          </p>
+                          <div className="text-xs text-muted-foreground mt-2">
+                            {new Date(contact.created_at).toLocaleString()}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          {!contact.is_resolved && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={async () => {
+                                try {
+                                  await axiosInstance.put(
+                                    `/admin/contacts/${contact.id}/resolve`
+                                  );
+                                  setContacts((prev) =>
+                                    prev.map((c) =>
+                                      c.id === contact.id
+                                        ? { ...c, is_resolved: true }
+                                        : c
+                                    )
+                                  );
+                                  toast.success("Marked as resolved");
+                                } catch (e) {
+                                  toast.error("Failed to resolve");
+                                }
+                              }}
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={async () => {
+                              if (!confirm("Delete this message?")) return;
+                              try {
+                                await axiosInstance.delete(
+                                  `/admin/contacts/${contact.id}`
+                                );
+                                setContacts((prev) =>
+                                  prev.filter((c) => c.id !== contact.id)
+                                );
+                                toast.success("Deleted");
+                              } catch (e) {
+                                toast.error("Failed to delete");
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </CardContent>
@@ -1192,18 +1384,18 @@ export default function AdminPage() {
                   )}
                   Run Detection
                 </Button>
-                  <Button
-                    onClick={handleBulkDeleteAll}
-                    disabled={bulkDeleteRunning}
-                    variant="destructive"
-                  >
-                    {bulkDeleteRunning ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    ) : (
-                      <Trash2 className="h-4 w-4 mr-2" />
-                    )}
-                    Delete All Duplicates
-                  </Button>
+                <Button
+                  onClick={handleBulkDeleteAll}
+                  disabled={bulkDeleteRunning}
+                  variant="destructive"
+                >
+                  {bulkDeleteRunning ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Trash2 className="h-4 w-4 mr-2" />
+                  )}
+                  Delete All Duplicates
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
@@ -1363,16 +1555,15 @@ export default function AdminPage() {
                                         <div className="flex items-center gap-2">
                                           <Progress
                                             value={
-                                              group.duplicate_cv_scores[idx] 
+                                              group.duplicate_cv_scores[idx]
                                             }
                                             className="h-2 w-20"
                                             // indicatorClassName={group.duplicate_cv_scores[idx] > 0.9 ? "bg-red-600" : "bg-orange-500"}
                                           />
                                           <span className="text-sm font-medium">
-                                            {(
-                                              group.duplicate_cv_scores[idx] 
-                                              
-                                            ).toFixed(1)}
+                                            {group.duplicate_cv_scores[
+                                              idx
+                                            ].toFixed(1)}
                                             %
                                           </span>
                                         </div>
