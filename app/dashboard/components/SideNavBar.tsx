@@ -824,7 +824,6 @@ const SideNavBar = ({
           {effectiveTab === "candidate" && !isCollapsed && (
             <>
               {/* LinkedIn Automation Section - Show at TOP when user has claimed CV */}
-              {hasClaimedAnyCV && (
                 <div className="px-4 py-4 space-y-2">
                   <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
                     LinkedIn Automation
@@ -862,7 +861,6 @@ const SideNavBar = ({
                     ATS Optimizer
                   </Button>
                 </div>
-              )}
 
               {/* Folder Selection - Only show for initial upload when user hasn't claimed CV yet */}
               {!hasClaimedAnyCV && (
@@ -917,19 +915,6 @@ const SideNavBar = ({
                     : "Please select a folder to upload your CV"}
                 </div>
 
-                {/* Resume Builder Button - Only show when hasn't claimed CV */}
-                {!hasClaimedAnyCV && (
-                  <div className="mt-4">
-                    <Button
-                      variant="outline"
-                      onClick={() => router.push("/dashboard/resumes")}
-                      className="w-full flex items-center justify-start gap-2"
-                    >
-                      <FileText className="h-4 w-4" />
-                      Create Resume
-                    </Button>
-                  </div>
-                )}
               </div>
             </>
           )}
