@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { IFormInputData } from "@/interfaces/FormInputData";
 import { SearchContext } from "../context/SearchContext";
 import { ViewContext } from "../context/ViewContext";
-import LinearTagsInput from "./SearchInput/LinearTagsInput";
 import { Search, SearchX, Star, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -340,7 +339,7 @@ const SearchFieldsContent = () => {
   ].filter(Boolean).length;
 
   return (
-    <div className="w-full mt-3 flex flex-col gap-4 justify-center">
+    <div className="w-full mt-3 flex flex-col gap-4 justify-center sm:px-2">
       {/* Selected folders indicator - subtle version */}
       {selectedFolderIds.length > 0 && (
         <div className="bg-gray-50 dark:bg-gray-800/30 border border-gray-200 dark:border-gray-700 rounded-md p-2.5">
@@ -369,61 +368,36 @@ const SearchFieldsContent = () => {
       {/* Main search fields */}
       <form onSubmit={handleSubmit}>
         <div className="flex flex-col w-full gap-4">
-          {/* Tags Input */}
-          <div className="w-full">
-            <LinearTagsInput
-              isPremium={user?.premium}
-              tags={tags}
-              setTags={setTags}
-              onShiftEnter={handleSubmit}
-              onUpgradeToPro={handleUpgradeToPro}
-            />
-          </div>
-
           {/* Prompt, Location, and Action buttons */}
           <div className="flex flex-col md:flex-row w-full items-start gap-3">
             {/* Prompt Input with Help Icon */}
             <div className="w-full md:flex-1 flex items-center gap-2">
-              <Input
-                className="placeholder:text-gray-400 w-full h-10 rounded-lg"
-                type="string"
-                name="prompt"
-                value={formData.prompt}
-                onChange={handleChange}
-                placeholder="Enter Prompt (Job Descriptions...)"
-                onKeyDown={handleKeyDown}
-              />
-              <IoMdHelpCircleOutline
-                size={22}
-                className="flex-shrink-0 text-gray-500"
-              />
-            </div>
-
-            {/* Location Input */}
-            <div className="w-full md:w-[12rem]">
-              <Input
-                className="w-full h-10"
-                type="text"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                placeholder="Location"
-                onKeyDown={handleKeyDown}
-              />
+              <div className="relative w-full">
+                <Search
+                  size={20}
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                />
+                <Input
+                  className="pl-10 h-11 w-full rounded-lg shadow-sm border-gray-300 dark:border-gray-700"
+                  type="string"
+                  name="prompt"
+                  value={formData.prompt}
+                  onChange={handleChange}
+                  placeholder="Search candidates by skills, job title, or keywords..."
+                  onKeyDown={handleKeyDown}
+                />
+              </div>
             </div>
 
             {/* Action Buttons */}
             <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
               {/* Search Button */}
+              {/* Search Button */}
               <Button
                 type="submit"
-                className="group bg-[#4caf50] hover:bg-[#56b85a] dark:bg-[#4caf50] dark:hover:bg-[#56b85a]"
+                className="group h-11 bg-[#4caf50] hover:bg-[#56b85a] dark:bg-[#4caf50] dark:hover:bg-[#56b85a]"
               >
-                <Search
-                  size={20}
-                  className="text-white transform transition-transform duration-300 ease-in-out group-hover:translate-y-[-3px]"
-                />
-                <span className="ml-2 text-white">Search</span>
+                <span className="text-white">Search</span>
               </Button>
 
               {/* Filters Button */}
@@ -432,7 +406,7 @@ const SearchFieldsContent = () => {
                 onOpenChange={setIsFiltersDialogOpen}
               >
                 <DialogTrigger asChild>
-                  <Button variant="outline" className="relative">
+                  <Button variant="outline" className="relative h-11">
                     <Filter size={20} />
                     <span className="ml-2">Filters</span>
                     {activeFiltersCount > 0 && (
@@ -450,6 +424,21 @@ const SearchFieldsContent = () => {
                   </DialogHeader>
                   <div className="py-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Location */}
+                      <div className="space-y-2">
+                        <Label htmlFor="address">Location</Label>
+                        <Input
+                          id="address"
+                          className="w-full"
+                          type="text"
+                          name="address"
+                          value={formData.address}
+                          onChange={handleChange}
+                          placeholder="Location"
+                          onKeyDown={handleKeyDown}
+                        />
+                      </div>
+
                       {/* Availability */}
                       <div className="space-y-2">
                         <Label htmlFor="availability">Availability</Label>
@@ -665,53 +654,11 @@ const SearchFieldsContent = () => {
                 </DialogContent>
               </Dialog>
 
-              {/* Clear Button */}
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="group border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
-                  >
-                    <SearchX
-                      size={20}
-                      className="transform transition-transform duration-300 ease-in-out group-hover:translate-y-[-3px]"
-                    />
-                    <span className="ml-2">Clear</span>
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="w-[90%] max-w-md mx-auto">
-                  <div className="px-4 py-5 space-y-5">
-                    <h1 className="text-xl md:text-2xl font-semibold">
-                      Clear all search fields?
-                    </h1>
-                    <p className="text-gray-600 dark:text-gray-400">
-                      This action will clear all search fields and filters.
-                    </p>
-                    <section className="w-full flex space-x-7 justify-end">
-                      <DialogClose asChild>
-                        <Button variant="outline">Cancel</Button>
-                      </DialogClose>
-                      <DialogClose asChild>
-                        <Button
-                          variant="destructive"
-                          onClick={() => handleClear()}
-                        >
-                          Clear All
-                        </Button>
-                      </DialogClose>
-                    </section>
-                  </div>
-                </DialogContent>
-              </Dialog>
+              <ToogleView />
             </div>
           </div>
         </div>
       </form>
-
-      {/* View Toggle - Always visible */}
-      <div className="flex justify-end">
-        <ToogleView />
-      </div>
     </div>
   );
 };
