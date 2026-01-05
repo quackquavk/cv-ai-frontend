@@ -867,42 +867,55 @@ const SideNavBar = ({
               )}
 
               {/* LinkedIn Automation Section - Show at TOP when user has claimed CV */}
-              <div className="px-4 py-4 space-y-2">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
+              {/* LinkedIn Automation Section - Show at TOP when user has claimed CV */}
+              <div className="px-4 py-4 space-y-1">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3 px-2">
                   LinkedIn Automation
                 </p>
-                <Button
-                  variant="outline"
-                  onClick={() => router.push("/dashboard/job-preferences")}
-                  className="w-full flex items-center justify-start gap-2"
+                <Link
+                  href="/dashboard/job-preferences"
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all duration-200 ${
+                    pathname === "/dashboard/job-preferences"
+                      ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
+                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
+                  }`}
                 >
                   <Briefcase className="h-4 w-4" />
                   Job Preferences
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => router.push("/dashboard/job-applications")}
-                  className="w-full flex items-center justify-start gap-2"
+                </Link>
+                <Link
+                  href="/dashboard/job-applications"
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all duration-200 ${
+                    pathname === "/dashboard/job-applications"
+                      ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
+                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
+                  }`}
                 >
                   <Bot className="h-4 w-4" />
                   Job Applications
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => router.push("/dashboard/resumes")}
-                  className="w-full flex items-center justify-start gap-2"
+                </Link>
+                <Link
+                  href="/dashboard/resumes"
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all duration-200 ${
+                    pathname === "/dashboard/resumes"
+                      ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
+                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
+                  }`}
                 >
                   <FileText className="h-4 w-4" />
                   {hasClaimedAnyCV ? "Build Resume" : "Create Resume"}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => router.push("/dashboard/ats-optimizer")}
-                  className="w-full flex items-center justify-start gap-2"
+                </Link>
+                <Link
+                  href="/dashboard/ats-optimizer"
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all duration-200 ${
+                    pathname === "/dashboard/ats-optimizer"
+                      ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
+                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
+                  }`}
                 >
                   <Target className="h-4 w-4" />
                   ATS Optimizer
-                </Button>
+                </Link>
               </div>
 
               {/* Status message */}

@@ -32,6 +32,8 @@ interface JobPreferences {
   blacklist_titles: string[];
   max_applications_per_session: number;
   phone_number: string | null;
+  email: string | null;
+  password: string | null;
   salary_expectation: string | null;
   hourly_rate: string | null;
   llm_enabled: boolean;
@@ -113,6 +115,8 @@ export default function JobPreferencesPage() {
         blacklist_titles: [],
         max_applications_per_session: 10,
         phone_number: null,
+        email: null,
+        password: null,
         salary_expectation: null,
         hourly_rate: null,
         llm_enabled: true,
@@ -185,6 +189,8 @@ export default function JobPreferencesPage() {
       blacklist_titles: [],
       max_applications_per_session: 10,
       phone_number: null,
+      email: null,
+      password: null,
       salary_expectation: null,
       hourly_rate: null,
       llm_enabled: true,
@@ -515,6 +521,49 @@ export default function JobPreferencesPage() {
             />
           </div>
           <div></div>
+        </div>
+
+        {/* LinkedIn Credentials */}
+        <div className="space-y-4 pt-2 border-t mt-4">
+          <Label className="text-base font-semibold">
+            LinkedIn Credentials
+          </Label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Email
+              </Label>
+              <Input
+                type="email"
+                placeholder="linkedin@email.com"
+                value={preferences.email || ""}
+                onChange={(e) =>
+                  setPreferences({
+                    ...preferences,
+                    email: e.target.value || null,
+                  })
+                }
+                className="bg-gray-100 dark:bg-gray-800 border-0"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Password
+              </Label>
+              <Input
+                type="password"
+                placeholder="••••••••"
+                value={preferences.password || ""}
+                onChange={(e) =>
+                  setPreferences({
+                    ...preferences,
+                    password: e.target.value || null,
+                  })
+                }
+                className="bg-gray-100 dark:bg-gray-800 border-0"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
