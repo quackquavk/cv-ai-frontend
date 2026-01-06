@@ -826,7 +826,7 @@ const OnboardingPage = () => {
                       </>
                     ) : (
                       <>
-                        Get Started
+                        Get Started for free
                         <ChevronRight className="ml-2 h-4 w-4" />
                       </>
                     )}
