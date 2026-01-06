@@ -5,10 +5,10 @@ import { UserContext } from "@/context/UserContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import axiosInstance from "@/utils/axiosConfig";
-import { 
-  Users, 
-  User, 
-  ChevronRight, 
+import {
+  Users,
+  User,
+  ChevronRight,
   ChevronLeft,
   Check,
   Upload,
@@ -20,7 +20,7 @@ import {
   LoaderCircle,
   FolderOpen,
   Sparkles,
-  Mail
+  Mail,
 } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { freeFeatures, premiumFeatures } from "@/app/user/setting/constants";
 
 export type UserRole = "recruiter" | "candidate";
 
@@ -71,7 +72,7 @@ const OnboardingPage = () => {
   const [folders, setFolders] = useState<FolderData[]>([]);
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [isLoadingFolders, setIsLoadingFolders] = useState(true);
-  
+
   // Claimable CV state
   const [claimableCV, setClaimableCV] = useState<ClaimableCV | null>(null);
   const [isCheckingClaimable, setIsCheckingClaimable] = useState(false);
@@ -112,12 +113,19 @@ const OnboardingPage = () => {
   // Check for claimable CV when user selects candidate and moves to step 1
   useEffect(() => {
     const checkClaimableCV = async () => {
-      if (currentStep === 1 && onboardingData.userRole === "candidate" && isAuthenticated) {
+      if (
+        currentStep === 1 &&
+        onboardingData.userRole === "candidate" &&
+        isAuthenticated
+      ) {
         setIsCheckingClaimable(true);
         try {
-          const response = await axiosInstance.get("/cv-claim/get_claimable_cv", {
-            withCredentials: true,
-          });
+          const response = await axiosInstance.get(
+            "/cv-claim/get_claimable_cv",
+            {
+              withCredentials: true,
+            }
+          );
           if (response.data && response.data._id) {
             setClaimableCV(response.data);
           }
@@ -169,7 +177,9 @@ const OnboardingPage = () => {
       }
     } catch (error: any) {
       console.error("Purchase error:", error);
-      toast.error(error.response?.data?.detail || "Failed to initiate purchase");
+      toast.error(
+        error.response?.data?.detail || "Failed to initiate purchase"
+      );
     }
   };
 
@@ -197,7 +207,7 @@ const OnboardingPage = () => {
 
   const uploadFile = async () => {
     if (!file || !selectedFolderId) return;
-    
+
     setIsUploading(true);
     try {
       const formData = new FormData();
@@ -223,7 +233,7 @@ const OnboardingPage = () => {
 
   const handleClaimCV = async () => {
     if (!claimableCV?._id) return;
-    
+
     setIsClaiming(true);
     try {
       await axiosInstance.post(
@@ -251,7 +261,12 @@ const OnboardingPage = () => {
     setIsSubmitting(true);
     try {
       // Upload file if candidate has one and hasn't claimed
-      if (onboardingData.userRole === "candidate" && file && selectedFolderId && !hasClaimed) {
+      if (
+        onboardingData.userRole === "candidate" &&
+        file &&
+        selectedFolderId &&
+        !hasClaimed
+      ) {
         await uploadFile();
       }
 
@@ -281,7 +296,7 @@ const OnboardingPage = () => {
 
   const referralSources = [
     "Google Search",
-    "Friend or Colleague", 
+    "Friend or Colleague",
     "LinkedIn",
     "Twitter / X",
     "YouTube",
@@ -313,7 +328,9 @@ const OnboardingPage = () => {
                 className="object-cover"
               />
             </div>
-            <span className="text-xl font-semibold text-foreground">Resume AI</span>
+            <span className="text-xl font-semibold text-foreground">
+              Resume AI
+            </span>
           </div>
         </div>
 
@@ -327,11 +344,15 @@ const OnboardingPage = () => {
                     step < currentStep
                       ? "bg-primary text-primary-foreground"
                       : step === currentStep
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground"
                   }`}
                 >
-                  {step < currentStep ? <Check className="h-4 w-4" /> : step + 1}
+                  {step < currentStep ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    step + 1
+                  )}
                 </div>
                 {step < 2 && (
                   <div
@@ -380,16 +401,20 @@ const OnboardingPage = () => {
                     }`}
                   >
                     <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                        onboardingData.userRole === "recruiter" 
-                          ? "bg-primary text-primary-foreground" 
-                          : "bg-muted text-muted-foreground"
-                      }`}>
+                      <div
+                        className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                          onboardingData.userRole === "recruiter"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
                         <Users className="h-6 w-6" />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
-                          <h3 className="font-semibold text-foreground">I'm a Recruiter</h3>
+                          <h3 className="font-semibold text-foreground">
+                            I'm a Recruiter
+                          </h3>
                           {onboardingData.userRole === "recruiter" && (
                             <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
                               <Check className="h-3 w-3 text-primary-foreground" />
@@ -424,16 +449,20 @@ const OnboardingPage = () => {
                     }`}
                   >
                     <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                        onboardingData.userRole === "candidate" 
-                          ? "bg-primary text-primary-foreground" 
-                          : "bg-muted text-muted-foreground"
-                      }`}>
+                      <div
+                        className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                          onboardingData.userRole === "candidate"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
                         <User className="h-6 w-6" />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
-                          <h3 className="font-semibold text-foreground">I'm a Candidate</h3>
+                          <h3 className="font-semibold text-foreground">
+                            I'm a Candidate
+                          </h3>
                           {onboardingData.userRole === "candidate" && (
                             <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
                               <Check className="h-3 w-3 text-primary-foreground" />
@@ -460,12 +489,16 @@ const OnboardingPage = () => {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button variant="outline" onClick={handleBack} className="flex-1">
+                  <Button
+                    variant="outline"
+                    onClick={handleBack}
+                    className="flex-1"
+                  >
                     <ChevronLeft className="mr-2 h-4 w-4" />
                     Back
                   </Button>
-                  <Button 
-                    onClick={handleNext} 
+                  <Button
+                    onClick={handleNext}
                     className="flex-1"
                     disabled={!onboardingData.userRole}
                   >
@@ -495,22 +528,23 @@ const OnboardingPage = () => {
                       {/* Free Plan */}
                       <Card className="p-5 border-2 hover:border-muted-foreground/50 transition-colors cursor-pointer">
                         <div className="flex items-center justify-between mb-3">
-                          <h3 className="font-semibold text-foreground">Free</h3>
-                          <span className="text-2xl font-bold text-foreground">$0</span>
+                          <h3 className="font-semibold text-foreground">
+                            Free
+                          </h3>
+                          <span className="text-2xl font-bold text-foreground">
+                            $0
+                          </span>
                         </div>
                         <p className="text-sm text-muted-foreground mb-4">
                           Try Resume AI with basic features
                         </p>
                         <ul className="space-y-2 text-sm text-muted-foreground">
-                          <li className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-green-600" /> 1 CV upload
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-green-600" /> Basic search
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-green-600" /> Email support
-                          </li>
+                          {freeFeatures.map((feature, index) => (
+                            <li key={index} className="flex items-center gap-2">
+                              <Check className="h-4 w-4 text-green-600" />{" "}
+                              {feature.text}
+                            </li>
+                          ))}
                         </ul>
                       </Card>
 
@@ -520,30 +554,30 @@ const OnboardingPage = () => {
                           Recommended
                         </div>
                         <div className="flex items-center justify-between mb-3">
-                          <h3 className="font-semibold text-foreground">Premium</h3>
+                          <h3 className="font-semibold text-foreground">
+                            Premium
+                          </h3>
                           <div className="text-right">
-                            <span className="text-2xl font-bold text-foreground">$99</span>
-                            <span className="text-muted-foreground text-sm">/year</span>
+                            <span className="text-2xl font-bold text-foreground">
+                              $99
+                            </span>
+                            <span className="text-muted-foreground text-sm">
+                              /year
+                            </span>
                           </div>
                         </div>
                         <p className="text-sm text-muted-foreground mb-4">
                           Everything you need to hire efficiently
                         </p>
                         <ul className="space-y-2 text-sm text-muted-foreground">
-                          <li className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-green-600" /> Unlimited uploads
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-green-600" /> Advanced AI search
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-green-600" /> Team collaboration
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-green-600" /> Priority support
-                          </li>
+                          {premiumFeatures.map((feature, index) => (
+                            <li key={index} className="flex items-center gap-2">
+                              <Check className="h-4 w-4 text-green-600" />{" "}
+                              {feature.text}
+                            </li>
+                          ))}
                         </ul>
-                        <Button 
+                        <Button
                           onClick={handlePurchase}
                           className="w-full mt-4 bg-primary text-primary-foreground hover:bg-primary/90"
                         >
@@ -567,7 +601,8 @@ const OnboardingPage = () => {
                             Checking for your resume...
                           </h1>
                           <p className="text-muted-foreground">
-                            We're looking to see if your resume is already in our system
+                            We're looking to see if your resume is already in
+                            our system
                           </p>
                         </div>
                         <div className="flex justify-center py-8">
@@ -586,7 +621,8 @@ const OnboardingPage = () => {
                             We found your resume
                           </h1>
                           <p className="text-muted-foreground">
-                            A recruiter has already uploaded your resume. Claim it to get started instantly!
+                            A recruiter has already uploaded your resume. Claim
+                            it to get started instantly!
                           </p>
                         </div>
 
@@ -613,7 +649,7 @@ const OnboardingPage = () => {
                               )}
                             </div>
                           </div>
-                          <Button 
+                          <Button
                             onClick={handleClaimCV}
                             disabled={isClaiming}
                             className="w-full mt-4 bg-green-600 hover:bg-green-700 text-white"
@@ -693,14 +729,20 @@ const OnboardingPage = () => {
                             <label className="text-sm font-medium text-foreground">
                               Save to folder
                             </label>
-                            <Select value={selectedFolderId || ""} onValueChange={setSelectedFolderId}>
+                            <Select
+                              value={selectedFolderId || ""}
+                              onValueChange={setSelectedFolderId}
+                            >
                               <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select a folder" />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectGroup>
                                   {folders.map((folder) => (
-                                    <SelectItem key={folder.folder_id} value={folder.folder_id}>
+                                    <SelectItem
+                                      key={folder.folder_id}
+                                      value={folder.folder_id}
+                                    >
                                       <div className="flex items-center gap-2">
                                         <FolderOpen className="h-4 w-4" />
                                         <span>{folder.folder_name}</span>
@@ -766,14 +808,23 @@ const OnboardingPage = () => {
                 )}
 
                 <div className="flex gap-3">
-                  <Button variant="outline" onClick={handleBack} className="flex-1">
+                  <Button
+                    variant="outline"
+                    onClick={handleBack}
+                    className="flex-1"
+                  >
                     <ChevronLeft className="mr-2 h-4 w-4" />
                     Back
                   </Button>
-                  <Button 
-                    onClick={handleComplete} 
+                  <Button
+                    onClick={handleComplete}
                     className="flex-1"
-                    disabled={isCheckingClaimable || isClaiming || isSubmitting || isUploading}
+                    disabled={
+                      isCheckingClaimable ||
+                      isClaiming ||
+                      isSubmitting ||
+                      isUploading
+                    }
                   >
                     {isSubmitting || isUploading ? (
                       <>
@@ -807,7 +858,12 @@ const OnboardingPage = () => {
                   {referralSources.map((source) => (
                     <button
                       key={source}
-                      onClick={() => setOnboardingData(prev => ({ ...prev, referralSource: source }))}
+                      onClick={() =>
+                        setOnboardingData((prev) => ({
+                          ...prev,
+                          referralSource: source,
+                        }))
+                      }
                       className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
                         onboardingData.referralSource === source
                           ? "border-primary bg-primary/5 text-foreground"
@@ -820,10 +876,7 @@ const OnboardingPage = () => {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button 
-                    onClick={handleNext} 
-                    className="w-full"
-                  >
+                  <Button onClick={handleNext} className="w-full">
                     Continue
                     <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -831,7 +884,7 @@ const OnboardingPage = () => {
 
                 <p className="text-center text-sm text-muted-foreground">
                   Or{" "}
-                  <button 
+                  <button
                     onClick={handleNext}
                     className="text-primary hover:underline"
                   >
