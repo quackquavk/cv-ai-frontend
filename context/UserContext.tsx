@@ -16,6 +16,7 @@ interface UserContextType {
   setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
   refreshUser: () => Promise<void>;
   logout: () => void;
+  onboardingCompleted: boolean;
 }
 
 export const UserContext = createContext<UserContextType | null>({
@@ -25,6 +26,7 @@ export const UserContext = createContext<UserContextType | null>({
   setIsAuthenticated: () => {},
   refreshUser: async () => {},
   logout: () => {},
+  onboardingCompleted: false,
 });
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
@@ -77,6 +79,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     fetchUser();
   }, [isAuthenticated, fetchUser]);
 
+  const onboardingCompleted = user?.onboarding_completed ?? false;
+
   return (
     <UserContext.Provider
       value={{
@@ -86,6 +90,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         setIsAuthenticated,
         refreshUser,
         logout,
+        onboardingCompleted,
       }}
     >
       {children}

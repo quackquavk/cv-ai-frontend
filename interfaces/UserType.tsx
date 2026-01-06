@@ -7,4 +7,7 @@ export interface IUserType {
   is_admin: boolean;
   google_id: string;
   picture: string;
+  user_role?: "recruiter" | "candidate" | null;
+  onboarding_completed?: boolean;
+  referral_source?: string | null;
 }

@@ -3,6 +3,7 @@ import { useState, useContext } from "react";
 import SideNavBar from "./components/SideNavBar";
 import SearchFields from "./components/SearchFields";
 import NavigationTabs from "./components/NavigationTabs";
+import OnboardingCheck from "./components/OnboardingCheck";
 import { ViewProvider } from "./context/ViewContext";
 import { ApiDataProvider } from "./context/ApiDataContext";
 import { SearchProvider } from "./context/SearchContext";
@@ -13,7 +14,6 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
-import { useRouter } from "next/router";
 import { usePathname } from "next/navigation";
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
@@ -135,19 +135,21 @@ export default function DashboardLayout({
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SidebarProvider>
-        <TabProvider>
-          <ViewProvider>
-            <SearchProvider>
-              <ApiDataProvider>
-                <SpinnerProvider>
-                  <DashboardContent>{children}</DashboardContent>
-                </SpinnerProvider>
-              </ApiDataProvider>
-            </SearchProvider>
-          </ViewProvider>
-        </TabProvider>
-      </SidebarProvider>
+      <OnboardingCheck>
+        <SidebarProvider>
+          <TabProvider>
+            <ViewProvider>
+              <SearchProvider>
+                <ApiDataProvider>
+                  <SpinnerProvider>
+                    <DashboardContent>{children}</DashboardContent>
+                  </SpinnerProvider>
+                </ApiDataProvider>
+              </SearchProvider>
+            </ViewProvider>
+          </TabProvider>
+        </SidebarProvider>
+      </OnboardingCheck>
     </QueryClientProvider>
   );
 }
