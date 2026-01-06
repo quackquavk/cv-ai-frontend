@@ -2,7 +2,6 @@
 import { useState, useContext, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { UserContext } from "@/context/UserContext";
-import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import axiosInstance from "@/utils/axiosConfig";
 import {
@@ -370,14 +369,8 @@ const OnboardingPage = () => {
         </div>
 
         {/* Content */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentStep}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-          >
+        <div className="mt-6">
+          <div key={currentStep}>
             {/* Step 1: Role Selection */}
             {currentStep === 1 && (
               <div className="space-y-6">
@@ -893,8 +886,8 @@ const OnboardingPage = () => {
                 </p>
               </div>
             )}
-          </motion.div>
-        </AnimatePresence>
+          </div>
+        </div>
       </div>
     </div>
   );
