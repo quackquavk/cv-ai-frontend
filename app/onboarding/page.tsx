@@ -20,7 +20,16 @@ import {
   FolderOpen,
   Sparkles,
   Mail,
+  Calendar,
+  Clock,
+  DollarSign,
+  Briefcase as BriefcaseIcon,
+  AlignLeft,
+  SkipForward,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -55,6 +64,15 @@ interface ClaimableCV {
   };
 }
 
+interface AvailabilityState {
+  availability: string;
+  time_of_day: string;
+  current_salary: number | "";
+  estimated_salary: number | "";
+  paid_by: string;
+  note: string;
+}
+
 const OnboardingPage = () => {
   const router = useRouter();
   const userContext = useContext(UserContext);
@@ -78,7 +96,19 @@ const OnboardingPage = () => {
   const [isClaiming, setIsClaiming] = useState(false);
   const [hasClaimed, setHasClaimed] = useState(false);
 
-  const totalSteps = 3;
+  // Availability Step State
+  const [documentId, setDocumentId] = useState<string | null>(null);
+  const [isUpdatingAvailability, setIsUpdatingAvailability] = useState(false);
+  const [availabilityData, setAvailabilityData] = useState<AvailabilityState>({
+    availability: "",
+    time_of_day: "",
+    current_salary: "",
+    estimated_salary: "",
+    paid_by: "",
+    note: "",
+  });
+
+  const totalSteps = 4; // 0: Referral, 1: Role, 2: Upload/Plan, 3: Availability (Candidate only)
 
   // Redirect if not authenticated or already onboarded
   useEffect(() => {
@@ -188,6 +218,19 @@ const OnboardingPage = () => {
       toast.error("Please select how you'll use Resume AI");
       return;
     }
+
+    // Step 3 (Index 2): Upload/Claim
+    if (currentStep === 2 && onboardingData.userRole === "candidate") {
+      // If attempting to go to step 3 (Availability), verify CV is uploaded/claimed
+      if (!documentId && !hasClaimed && !claimableCV?._id && !file) {
+        // Allow skipping upload if desired?
+        // The original code allowed skipping: "You can skip this and upload later"
+        // If skipped, we might jump to finish logic or just carry on?
+        // If "Get Started" was clicked in previous code, it called handleComplete.
+        // We will handle this in the UI button actions instead of generic handleNext for the transition to step 3.
+      }
+    }
+
     setCurrentStep((prev) => Math.min(prev + 1, totalSteps - 1));
   };
 
@@ -213,7 +256,7 @@ const OnboardingPage = () => {
       formData.append("files", file);
       formData.append("is_claiming", "true");
 
-      await axiosInstance.post(
+      const response = await axiosInstance.post(
         `/document/document?folder_id=${selectedFolderId}`,
         formData,
         {
@@ -221,10 +264,17 @@ const OnboardingPage = () => {
           withCredentials: true,
         }
       );
+
+      if (response.data.document_ids && response.data.document_ids.length > 0) {
+        setDocumentId(response.data.document_ids[0]);
+      }
+
       toast.success("Resume uploaded successfully!");
+      return response.data;
     } catch (error: any) {
       console.error("Upload error:", error);
       toast.error(error.response?.data?.detail || "Failed to upload resume");
+      throw error;
     } finally {
       setIsUploading(false);
     }
@@ -241,12 +291,48 @@ const OnboardingPage = () => {
         { withCredentials: true }
       );
       setHasClaimed(true);
+      setDocumentId(claimableCV._id);
       toast.success("Resume claimed successfully!");
     } catch (error: any) {
       console.error("Claim error:", error);
       toast.error(error.response?.data?.detail || "Failed to claim resume");
     } finally {
       setIsClaiming(false);
+    }
+  };
+
+  const handleAvailabilityUpdate = async () => {
+    if (!documentId) return;
+
+    setIsUpdatingAvailability(true);
+    try {
+      await axiosInstance.put(
+        "/cv_document/updateAvailability",
+        {
+          document_id: documentId,
+          ...availabilityData,
+          current_salary:
+            availabilityData.current_salary === ""
+              ? null
+              : Number(availabilityData.current_salary),
+          estimated_salary:
+            availabilityData.estimated_salary === ""
+              ? null
+              : Number(availabilityData.estimated_salary),
+          star_rating: null, // Not setting rating here
+        },
+        { withCredentials: true }
+      );
+      // Proceed to complete onboarding
+      await completeOnboarding();
+    } catch (error: any) {
+      console.error("Availability update error:", error);
+      toast.error("Failed to update availability info, but continuing...");
+      // Even if availability fails, we might want to finish onboarding?
+      // Or block? Let's assume we proceed.
+      await completeOnboarding();
+    } finally {
+      setIsUpdatingAvailability(false);
     }
   };
 
@@ -259,15 +345,19 @@ const OnboardingPage = () => {
 
     setIsSubmitting(true);
     try {
-      // Upload file if candidate has one and hasn't claimed
-      if (
-        onboardingData.userRole === "candidate" &&
-        file &&
-        selectedFolderId &&
-        !hasClaimed
-      ) {
-        await uploadFile();
-      }
+      // If we are at step 2 (upload/claim) and clicking "Continue/Next", handling is different.
+      // But if we are calling this, it implies finishing up.
+
+      // Note: Logic moved to completeOnboarding function for clarity
+      await completeOnboarding();
+    } catch (error: any) {
+      // Error handled in completeOnboarding
+    }
+  };
+
+  const completeOnboarding = async () => {
+    try {
+      setIsSubmitting(true);
 
       // Complete onboarding
       await axiosInstance.post(
@@ -290,6 +380,36 @@ const OnboardingPage = () => {
       toast.error(error.response?.data?.detail || "Failed to complete setup");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleStep2Next = async () => {
+    // If candidate has file selected but not uploaded/claimed, upload it first
+    if (
+      onboardingData.userRole === "candidate" &&
+      file &&
+      !hasClaimed &&
+      !documentId
+    ) {
+      try {
+        await uploadFile();
+        // After upload, documentId should be set (but react state update is async,
+        // wait, we modified uploadFile to return data if we want, or we rely on await)
+        // Ideally we need to wait for state to reflect or use the return value.
+        // Since uploadFile sets state, we can't trust documentId state immediately in this same closure if we needed it right now.
+        // But we just need to move to next step.
+        setCurrentStep(3);
+      } catch (e) {
+        return; // Stay on step if upload fails
+      }
+    } else if (onboardingData.userRole === "candidate") {
+      // If claimed or skipping upload?
+      // logic: if claimed or file uploaded, move to 3. If nothing, can we skip?
+      // Original code said "You can skip this and upload later".
+      setCurrentStep(3);
+    } else {
+      // Recruiter flow - shouldn't happen here as Recruiter UI is different
+      handleNext();
     }
   };
 
@@ -499,6 +619,29 @@ const OnboardingPage = () => {
                     <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
+
+                {/* Skip to Dashboard */}
+                {onboardingData.userRole && (
+                  <div className="text-center pt-2">
+                    <button
+                      onClick={completeOnboarding}
+                      disabled={isSubmitting}
+                      className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+                          Setting up...
+                        </>
+                      ) : (
+                        <>
+                          <SkipForward className="h-3.5 w-3.5" />
+                          Skip to Dashboard
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -810,7 +953,7 @@ const OnboardingPage = () => {
                     Back
                   </Button>
                   <Button
-                    onClick={handleComplete}
+                    onClick={handleStep2Next}
                     className="flex-1"
                     disabled={
                       isCheckingClaimable ||
@@ -819,18 +962,234 @@ const OnboardingPage = () => {
                       isUploading
                     }
                   >
-                    {isSubmitting || isUploading ? (
+                    {isUploading ? (
                       <>
                         <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-                        {isUploading ? "Uploading..." : "Setting up..."}
+                        Uploading...
                       </>
                     ) : (
                       <>
-                        Get Started for free
+                        Continue
                         <ChevronRight className="ml-2 h-4 w-4" />
                       </>
                     )}
                   </Button>
+                </div>
+
+                {/* Skip to Dashboard */}
+                <div className="text-center pt-2">
+                  <button
+                    onClick={completeOnboarding}
+                    disabled={isSubmitting}
+                    className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+                        Setting up...
+                      </>
+                    ) : (
+                      <>
+                        <SkipForward className="h-3.5 w-3.5" />
+                        Skip to Dashboard
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Availability (Candidate Only) */}
+            {currentStep === 3 && onboardingData.userRole === "candidate" && (
+              <div className="space-y-6">
+                <div className="text-center space-y-2">
+                  <h1 className="text-2xl font-semibold text-foreground">
+                    Availability & Preferences
+                  </h1>
+                  <p className="text-muted-foreground">
+                    Help recruiters find you by setting your availability
+                  </p>
+                </div>
+
+                <div className="grid gap-4">
+                  {/* Availability */}
+                  <div className="space-y-2">
+                    <Label>Where would you like to work?</Label>
+                    <Select
+                      value={availabilityData.availability}
+                      onValueChange={(val) =>
+                        setAvailabilityData((prev) => ({
+                          ...prev,
+                          availability: val,
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select availability" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="remote">Remote</SelectItem>
+                        <SelectItem value="onsite">Onsite</SelectItem>
+                        <SelectItem value="hybrid">Hybrid</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Time of Day */}
+                  <div className="space-y-2">
+                    <Label>Preferred work schedule</Label>
+                    <Select
+                      value={availabilityData.time_of_day}
+                      onValueChange={(val) =>
+                        setAvailabilityData((prev) => ({
+                          ...prev,
+                          time_of_day: val,
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select schedule" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="day">Day</SelectItem>
+                        <SelectItem value="night">Night</SelectItem>
+                        <SelectItem value="flexible">Flexible</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Salary */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Current Salary</Label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          type="number"
+                          placeholder="0.00"
+                          className="pl-9"
+                          value={availabilityData.current_salary}
+                          onChange={(e) =>
+                            setAvailabilityData((prev) => ({
+                              ...prev,
+                              current_salary:
+                                e.target.value === ""
+                                  ? ""
+                                  : Number(e.target.value),
+                            }))
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Expected Salary</Label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          type="number"
+                          placeholder="0.00"
+                          className="pl-9"
+                          value={availabilityData.estimated_salary}
+                          onChange={(e) =>
+                            setAvailabilityData((prev) => ({
+                              ...prev,
+                              estimated_salary:
+                                e.target.value === ""
+                                  ? ""
+                                  : Number(e.target.value),
+                            }))
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Paid By */}
+                  <div className="space-y-2">
+                    <Label>Pay Frequency</Label>
+                    <Select
+                      value={availabilityData.paid_by}
+                      onValueChange={(val) =>
+                        setAvailabilityData((prev) => ({
+                          ...prev,
+                          paid_by: val,
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select frequency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="annually">Annually</SelectItem>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                        <SelectItem value="hourly">Hourly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Note */}
+                  <div className="space-y-2">
+                    <Label>Additional Notes</Label>
+                    <Textarea
+                      placeholder="Any other details about your availability..."
+                      value={availabilityData.note}
+                      onChange={(e) =>
+                        setAvailabilityData((prev) => ({
+                          ...prev,
+                          note: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={handleBack}
+                    className="flex-1"
+                  >
+                    <ChevronLeft className="mr-2 h-4 w-4" />
+                    Back
+                  </Button>
+                  <Button
+                    onClick={handleAvailabilityUpdate}
+                    className="flex-1"
+                    disabled={isUpdatingAvailability || isSubmitting}
+                  >
+                    {isUpdatingAvailability || isSubmitting ? (
+                      <>
+                        <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                        Finishing...
+                      </>
+                    ) : (
+                      <>
+                        Complete Setup
+                        <Check className="ml-2 h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {/* Skip to Dashboard */}
+                <div className="text-center pt-2">
+                  <button
+                    onClick={completeOnboarding}
+                    disabled={isSubmitting}
+                    className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+                        Setting up...
+                      </>
+                    ) : (
+                      <>
+                        <SkipForward className="h-3.5 w-3.5" />
+                        Skip to Dashboard
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
             )}
