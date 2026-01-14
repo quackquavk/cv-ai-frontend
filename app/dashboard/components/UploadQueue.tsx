@@ -1,8 +1,9 @@
 "use client";
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { SpinnerContext, type UploadFile } from "../context/SpinnerContext";
+import axiosInstance from "@/utils/axiosConfig";
 import {
   ChevronDown,
   ChevronUp,
@@ -10,6 +11,7 @@ import {
   AlertCircle,
   Loader2,
   X,
+  RefreshCw,
 } from "lucide-react";
 
 interface UploadQueueProps {
@@ -19,6 +21,7 @@ interface UploadQueueProps {
   cancelUpload?: (fileId: string) => void;
   removeUploadFile?: (fileId: string) => void;
   formatFileSize: (bytes: number) => string;
+  onRefreshFolder?: () => void;
 }
 
 const UploadQueue: React.FC<UploadQueueProps> = ({
@@ -28,9 +31,33 @@ const UploadQueue: React.FC<UploadQueueProps> = ({
   cancelUpload,
   removeUploadFile,
   formatFileSize,
+  onRefreshFolder,
 }) => {
+  const spinnerContext = useContext(SpinnerContext);
   const [isUploadQueueCollapsed, setIsUploadQueueCollapsed] =
     useState<boolean>(false);
+  const [hasFetched, setHasFetched] = useState(false);
+
+  // Fetch active jobs from backend on mount (persistence across refresh)
+  useEffect(() => {
+    if (hasFetched) return;
+
+    const fetchActiveJobs = async () => {
+      try {
+        const response = await axiosInstance.get("/document/my_upload_jobs");
+        const jobs = response.data?.jobs || [];
+        if (jobs.length > 0 && spinnerContext?.hydrateFromBackend) {
+          spinnerContext.hydrateFromBackend(jobs);
+        }
+      } catch (error) {
+        console.error("Error fetching active upload jobs:", error);
+      } finally {
+        setHasFetched(true);
+      }
+    };
+
+    fetchActiveJobs();
+  }, [hasFetched, spinnerContext]);
 
   if (uploadFiles.length === 0) return null;
 
@@ -81,6 +108,7 @@ const UploadQueue: React.FC<UploadQueueProps> = ({
                 )}
               </>
             )}
+
             <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
               {isUploadQueueCollapsed ? (
                 <ChevronDown className="h-4 w-4" />
@@ -214,18 +242,7 @@ const UploadQueue: React.FC<UploadQueueProps> = ({
                             </svg>
                           </Button>
                         )}
-                        {(file.status === "uploading" ||
-                          file.status === "processing") && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => cancelUpload?.(file.id)}
-                            className="h-5 w-5 p-0"
-                            title="Cancel upload"
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        )}
+
                         {(file.status === "completed" ||
                           file.status === "error") && (
                           <Button
@@ -279,8 +296,12 @@ const UploadQueue: React.FC<UploadQueueProps> = ({
               />
               <div className="flex justify-between mt-1">
                 <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {uploadFiles.filter((f) => f.status === "completed").length}{" "}
-                  of {uploadFiles.length} completed
+                  {
+                    uploadFiles.filter(
+                      (f) => f.status === "processing" || f.status === "queued"
+                    ).length
+                  }{" "}
+                  of {uploadFiles.length} processing
                 </span>
                 {uploadFiles.some((f) => f.status === "error") && (
                   <span className="text-xs text-red-500 dark:text-red-400">
@@ -288,6 +309,11 @@ const UploadQueue: React.FC<UploadQueueProps> = ({
                     failed
                   </span>
                 )}
+              </div>
+              {/* Background processing info */}
+              <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-xs text-blue-700 dark:text-blue-300">
+                💡 Uploads continue in the background. You can safely leave this
+                page.
               </div>
             </div>
           )}

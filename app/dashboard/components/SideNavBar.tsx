@@ -217,6 +217,133 @@ const SideNavBar = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
+  // Handle bulk upload for multiple files using async backend
+  const handleBulkUpload = async (fileArray: File[]) => {
+    setUploading?.(true);
+
+    // Add all files to the queue with "queued" status
+    const fileIds = fileArray.map((file) => {
+      const fileId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      addUploadFile?.({
+        id: fileId,
+        name: file.name,
+        progress: 0,
+        status: "queued",
+        size: file.size,
+        type: file.type,
+      });
+      return { file, fileId };
+    });
+
+    try {
+      // Submit all files to async bulk upload endpoint
+      const formData = new FormData();
+      formData.append("folder_id", selectedFolderId!);
+      fileArray.forEach((file) => {
+        formData.append("files", file);
+      });
+
+      // Update all to uploading status
+      fileIds.forEach(({ fileId }) => {
+        updateUploadFile?.(fileId, { status: "uploading", progress: 10 });
+      });
+
+      const response = await axiosInstance.post(
+        "/document/async_bulk_upload",
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+
+      const jobId = response.data.job_id;
+      toast.success(`Bulk upload started: ${fileArray.length} files queued`);
+
+      // Update to processing status
+      fileIds.forEach(({ fileId }) => {
+        updateUploadFile?.(fileId, {
+          status: "processing",
+          progress: 30,
+          processingStage: "Processing with AI...",
+        });
+      });
+
+      // Poll for job status
+      const pollInterval = setInterval(async () => {
+        try {
+          const statusResponse = await axiosInstance.get(
+            `/document/bulk_upload_status/${jobId}`
+          );
+          const job = statusResponse.data;
+
+          // Calculate progress
+          const progress = Math.round(
+            (job.processed_count / job.total_files) * 100
+          );
+
+          // Update progress on all files
+          fileIds.forEach(({ fileId }) => {
+            updateUploadFile?.(fileId, {
+              progress: Math.max(30, progress),
+              processingStage: `${job.processed_count}/${job.total_files} processed`,
+            });
+          });
+
+          if (job.status === "completed") {
+            clearInterval(pollInterval);
+
+            // Mark all as completed
+            fileIds.forEach(({ fileId }) => {
+              updateUploadFile?.(fileId, {
+                status: "completed",
+                progress: 100,
+              });
+            });
+
+            toast.success(
+              `Bulk upload complete: ${job.success_count} succeeded, ${job.failure_count} failed`
+            );
+
+            // Refresh folder contents
+            queryClient.invalidateQueries({
+              queryKey: ["documents", selectedFolderId],
+            });
+            queryClient.invalidateQueries({
+              queryKey: ["folderFiles", selectedFolderId],
+            });
+
+            setUploading?.(false);
+
+            // Auto-clear after delay
+            setTimeout(() => {
+              clearCompletedFiles?.();
+            }, 5000);
+          }
+        } catch (error) {
+          console.error("Error polling bulk upload status:", error);
+        }
+      }, 5000);
+    } catch (error: any) {
+      console.error("Error starting bulk upload:", error);
+
+      // Mark all as failed
+      fileIds.forEach(({ fileId }) => {
+        updateUploadFile?.(fileId, {
+          status: "error",
+          error: error.response?.data?.detail || "Bulk upload failed",
+        });
+      });
+
+      if (error.response?.status === 403) {
+        toast.error(error.response?.data?.detail);
+      } else {
+        toast.error(
+          error.response?.data?.detail || "Failed to start bulk upload"
+        );
+      }
+
+      setUploading?.(false);
+    }
+  };
+
   const handleFileUpload = async (files: FileList) => {
     if (!files || files.length === 0) return;
     if (!isAuthenticated) {
@@ -230,10 +357,17 @@ const SideNavBar = ({
       return;
     }
 
+    const fileArray = Array.from(files);
+
+    // Use async bulk upload for ALL uploads (single and multiple)
+    await handleBulkUpload(fileArray);
+    return;
+
+    // Legacy sync upload code removed - all uploads now use async
+
+    // Single file - use synchronous upload
     setUploading?.(true);
 
-    // Process each file individually
-    const fileArray = Array.from(files);
     let completedCount = 0; // Track completed uploads
     let errorCount = 0; // Track failed uploads
 
@@ -736,12 +870,21 @@ const SideNavBar = ({
                 cancelUpload={cancelUpload}
                 removeUploadFile={removeUploadFile}
                 formatFileSize={formatFileSize}
+                onRefreshFolder={() => {
+                  queryClient.invalidateQueries({
+                    queryKey: ["documents", selectedFolderId],
+                  });
+                  queryClient.invalidateQueries({
+                    queryKey: ["folderFiles", selectedFolderId],
+                  });
+                  toast.success("Folder refreshed");
+                }}
               />
 
               <div
                 className={` ${
                   isCollapsed && "hidden"
-                } w-full px-4 py-4 sticky top-[120px] z-10`}
+                } w-full px-4 py-4 sticky top-[120px] z-10 flex items-center gap-2`}
               >
                 <Select
                   value={localFolderId || ""}
@@ -779,6 +922,24 @@ const SideNavBar = ({
                     </SelectGroup>
                   </SelectContent>
                 </Select>
+                {/* Refresh Folder Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    queryClient.invalidateQueries({
+                      queryKey: ["documents", selectedFolderId],
+                    });
+                    queryClient.invalidateQueries({
+                      queryKey: ["folderFiles", selectedFolderId],
+                    });
+                    toast.success("Folder refreshed");
+                  }}
+                  className="h-9 w-9 p-0 flex-shrink-0"
+                  title="Refresh folder contents"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
               </div>
 
               {/* Fixed Folder Creation - Only show for recruiter when expanded */}
