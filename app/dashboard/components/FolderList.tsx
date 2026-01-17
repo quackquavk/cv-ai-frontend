@@ -106,10 +106,19 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
   const [newPrivateSubfolderName, setNewPrivateSubfolderName] = useState("");
   const inputRefs = useRef({});
   const user = useContext(UserContext);
-  // New state for folder positioning
-  const [folderOrder, setFolderOrder] = useState({
-    public: [],
-    private: [],
+  // New state for folder positioning - load from localStorage synchronously to avoid race condition
+  const [folderOrder, setFolderOrder] = useState(() => {
+    if (typeof window !== "undefined") {
+      const savedOrder = localStorage.getItem("folderOrder");
+      if (savedOrder) {
+        try {
+          return JSON.parse(savedOrder);
+        } catch (e) {
+          console.error("Error parsing folder order from localStorage", e);
+        }
+      }
+    }
+    return { public: [], private: [] };
   });
   const [draggedFolder, setDraggedFolder] = useState(null);
   const [folderDragOver, setFolderDragOver] = useState(null);
@@ -120,17 +129,6 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
     (state) => state.setShouldRefetchDocuments
   );
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    const savedOrder = localStorage.getItem("folderOrder");
-    if (savedOrder) {
-      try {
-        setFolderOrder(JSON.parse(savedOrder));
-      } catch (e) {
-        console.error("Error parsing folder order from localStorage", e);
-      }
-    }
-  }, []);
 
   // Save folder order to localStorage whenever it changes
   useEffect(() => {
