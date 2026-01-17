@@ -634,16 +634,28 @@ const SideNavBar = ({
       return;
     }
 
+    // Generate file ID for tracking
+    const fileId = `cv-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
     try {
       setCvUploadLoader(true);
 
       if (hasClaimedAnyCV) {
-        // Replace existing CV (doesn't need folder)
+        // Replace existing CV using async endpoint for persistence across refresh
+        addUploadFile?.({
+          id: fileId,
+          name: file.name,
+          progress: 0,
+          status: "uploading",
+          size: file.size,
+          type: file.type,
+        });
+
         const formData = new FormData();
         formData.append("new_cv_file", file);
 
         const response = await axiosInstance.post(
-          "/cv-claim/replace_cv",
+          "/cv-claim/async_replace_cv",
           formData,
           {
             headers: { "Content-Type": "multipart/form-data" },
@@ -651,15 +663,76 @@ const SideNavBar = ({
           }
         );
 
-        toast.success("CV replaced successfully!");
+        const jobId = response.data.job_id;
+        toast.success("CV replacement started! Processing in background...");
+
+        // Update to processing status
+        updateUploadFile?.(fileId, {
+          status: "processing",
+          progress: 30,
+          processingStage: "Replacing CV with AI...",
+        });
+
+        // Poll for job status
+        const pollInterval = setInterval(async () => {
+          try {
+            const statusResponse = await axiosInstance.get(
+              `/document/bulk_upload_status/${jobId}`
+            );
+            const job = statusResponse.data;
+
+            const progress = Math.round(
+              (job.processed_count / job.total_files) * 100
+            );
+
+            updateUploadFile?.(fileId, {
+              progress: Math.max(30, progress),
+              processingStage: `${job.processed_count}/${job.total_files} processed`,
+            });
+
+            if (job.status === "completed") {
+              clearInterval(pollInterval);
+
+              updateUploadFile?.(fileId, {
+                status: "completed",
+                progress: 100,
+              });
+
+              if (job.success_count > 0) {
+                toast.success("CV replaced successfully!");
+              } else {
+                toast.error("CV replacement failed. Please try again.");
+              }
+
+              setCvUploadLoader(false);
+
+              // Auto-clear after delay
+              setTimeout(() => {
+                clearCompletedFiles?.();
+              }, 5000);
+            }
+          } catch (error) {
+            console.error("Error polling CV replacement status:", error);
+          }
+        }, 3000);
       } else {
-        // Upload new CV as claim with folder
+        // Upload new CV using async endpoint for persistence across refresh
+        addUploadFile?.({
+          id: fileId,
+          name: file.name,
+          progress: 0,
+          status: "uploading",
+          size: file.size,
+          type: file.type,
+        });
+
         const formData = new FormData();
+        formData.append("folder_id", localFolderId!);
         formData.append("files", file);
         formData.append("is_claiming", "true");
 
         const response = await axiosInstance.post(
-          `/document/document?folder_id=${localFolderId}`,
+          "/document/async_cv_upload",
           formData,
           {
             headers: { "Content-Type": "multipart/form-data" },
@@ -667,11 +740,70 @@ const SideNavBar = ({
           }
         );
 
-        toast.success("CV uploaded and claimed successfully!");
-        setHasClaimedAnyCV(true);
+        const jobId = response.data.job_id;
+        toast.success("CV upload started! Processing in background...");
+
+        // Update to processing status
+        updateUploadFile?.(fileId, {
+          status: "processing",
+          progress: 30,
+          processingStage: "Processing with AI...",
+        });
+
+        // Poll for job status
+        const pollInterval = setInterval(async () => {
+          try {
+            const statusResponse = await axiosInstance.get(
+              `/document/bulk_upload_status/${jobId}`
+            );
+            const job = statusResponse.data;
+
+            // Calculate progress
+            const progress = Math.round(
+              (job.processed_count / job.total_files) * 100
+            );
+
+            updateUploadFile?.(fileId, {
+              progress: Math.max(30, progress),
+              processingStage: `${job.processed_count}/${job.total_files} processed`,
+            });
+
+            if (job.status === "completed") {
+              clearInterval(pollInterval);
+
+              updateUploadFile?.(fileId, {
+                status: "completed",
+                progress: 100,
+              });
+
+              if (job.success_count > 0) {
+                toast.success("CV uploaded and claimed successfully!");
+                setHasClaimedAnyCV(true);
+              } else {
+                toast.error("CV processing failed. Please try again.");
+              }
+
+              setCvUploadLoader(false);
+
+              // Auto-clear after delay
+              setTimeout(() => {
+                clearCompletedFiles?.();
+              }, 5000);
+            }
+          } catch (error) {
+            console.error("Error polling CV upload status:", error);
+          }
+        }, 3000);
       }
     } catch (error: any) {
       console.error("Error uploading CV:", error);
+
+      // Update file status to error if it was added
+      updateUploadFile?.(fileId, {
+        status: "error",
+        error: error.response?.data?.detail || "Upload failed",
+      });
+
       if (error.response?.status === 429) {
         toast.error(
           "Upload limit reached! Please upgrade to premium for unlimited uploads."
@@ -679,7 +811,6 @@ const SideNavBar = ({
       } else {
         toast.error(error.response?.data?.detail || "Failed to upload CV");
       }
-    } finally {
       setCvUploadLoader(false);
     }
   };
@@ -779,7 +910,7 @@ const SideNavBar = ({
                 onDragOver={handleDragOver}
                 className={`relative flex flex-col items-center justify-center border-2 border-dashed border-gray-800 dark:border-white p-4 pb-6 rounded-md transition-all duration-300 ease-in-out ${
                   isDragging ? "opacity-50 backdrop-blur-sm" : "opacity-100"
-                }`}
+                } ${cvUploadLoader ? "pointer-events-none" : ""}`}
               >
                 <div
                   onClick={() =>
@@ -803,13 +934,16 @@ const SideNavBar = ({
                 </div>
 
                 {cvUploadLoader && (
-                  <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 flex items-center justify-center rounded-md">
-                    <div className="flex flex-col items-center">
-                      <LoaderCircle className="h-6 w-6 animate-spin" />
-                      <p className="text-sm mt-2">
+                  <div className="absolute inset-0 bg-white/95 dark:bg-gray-900/95 flex items-center justify-center rounded-md z-10 pointer-events-auto">
+                    <div className="flex flex-col items-center px-4 text-center">
+                      <LoaderCircle className="h-8 w-8 animate-spin text-primary" />
+                      <p className="text-sm font-medium mt-3">
                         {hasClaimedAnyCV
-                          ? "Replacing CV..."
-                          : "Uploading CV..."}
+                          ? "Replacing your CV..."
+                          : "Uploading your resume..."}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Your resume is being processed by AI. Please wait...
                       </p>
                     </div>
                   </div>
@@ -860,6 +994,21 @@ const SideNavBar = ({
               />
             )}
           </div>
+
+          {/* Show UploadQueue for candidates to track async CV uploads */}
+          {effectiveTab === "candidate" && uploadFiles.length > 0 && (
+            <UploadQueue
+              uploadFiles={uploadFiles}
+              clearCompletedFiles={clearCompletedFiles}
+              retryUpload={retryUpload}
+              cancelUpload={cancelUpload}
+              removeUploadFile={removeUploadFile}
+              formatFileSize={formatFileSize}
+              onRefreshFolder={() => {
+                toast.success("Data refreshed");
+              }}
+            />
+          )}
 
           {effectiveTab === "recruiter" && (
             <>

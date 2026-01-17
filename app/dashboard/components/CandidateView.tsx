@@ -528,7 +528,7 @@ const CandidateView = () => {
               one from the sidebar.
             </p>
 
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-row gap-3">
               {/* <Button onClick={handleClaimCV} disabled={loader} className="w-full">
                 {loader ? (
                   <LoaderCircle className="h-5 w-5 animate-spin" />
@@ -546,6 +546,19 @@ const CandidateView = () => {
                   <LoaderCircle className="h-5 w-5 animate-spin" />
                 ) : (
                   "Get Claimable CV"
+                )}
+              </Button>
+              <Button
+              onClick={()=>{
+                router.push("/dashboard/resumes")
+              }}
+              disabled={loader}
+              className="w-full bg-black dark:bg-black dark:border-2 dark:border-gray-500 text-white dark:text-white"
+              >
+                {loader ? (
+                  <LoaderCircle className="h-5 w-5 animate-spin " />
+                ) : (
+                  "Create Resume"
                 )}
               </Button>
             </div>
