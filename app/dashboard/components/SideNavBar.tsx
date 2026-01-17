@@ -8,7 +8,7 @@ import {
 } from "react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { SpinnerContext, type UploadFile } from "../context/SpinnerContext";
+import { SpinnerContext } from "../context/SpinnerContext";
 import { IoIosCloudUpload } from "react-icons/io";
 import FolderCreation from "./FolderCreation";
 import FolderList from "./FolderList";
@@ -23,11 +23,11 @@ import {
   Settings,
   FolderOpen,
   FolderLock,
-  Plus,
   FileText,
   Bot,
   Briefcase,
   Target,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,7 +46,6 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import DialogueComponent from "./DialogueComponent";
-import LinkedInBot from "./LinkedInBot";
 import { MdFolderZip } from "react-icons/md";
 import {
   folderSelectStore,
@@ -57,10 +56,8 @@ import Image from "next/image";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserContext } from "@/context/UserContext";
 import { useRouter, usePathname } from "next/navigation";
-import { Checkbox } from "@/components/ui/checkbox";
 import { TabContext } from "../context/TabContext";
-import { Upload, RefreshCw } from "lucide-react";
-import { LoaderCircle } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 
 const MAX_CONCURRENT_UPLOADS = 3; // Maximum number of concurrent uploads
 
@@ -82,14 +79,17 @@ const SideNavBar = ({
   const { activeTab } = tabContext;
   const pathname = usePathname();
 
-  // Check if we're on a LinkedIn automation page - should show candidate sidebar
-  const isLinkedInPage =
+  // Check if we're on a candidate page - should show candidate sidebar
+  const isCandidatePage =
     pathname === "/dashboard/job-preferences" ||
     pathname === "/dashboard/job-applications" ||
-    pathname === "/dashboard/ats-optimizer";
+    pathname === "/dashboard/ats-optimizer" ||
+    pathname === "/dashboard/my-resume" ||
+    pathname === "/dashboard/resumes" ||
+    pathname?.startsWith("/dashboard/resumes/");
 
   // Use effectiveTab to determine which sidebar section to show
-  const effectiveTab = isLinkedInPage ? "candidate" : activeTab;
+  const effectiveTab = isCandidatePage ? "candidate" : activeTab;
 
   const setUploading = spinnerContext?.setUploading;
   const uploading = spinnerContext?.uploading;
@@ -115,9 +115,6 @@ const SideNavBar = ({
     selectFolderId
   );
   const [isPageLoading, setIsPageLoading] = useState<boolean>(false);
-  const [shouldClaimCV, setShouldClaimCV] = useState<boolean>(false);
-  const [hasClaimedAnyCV, setHasClaimedAnyCV] = useState<boolean>(false);
-  const [cvUploadLoader, setCvUploadLoader] = useState<boolean>(false);
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -183,28 +180,6 @@ const SideNavBar = ({
     };
     checkPrivateFolder();
   }, [isAuthenticated, setHasPrivateFolder]);
-
-  useEffect(() => {
-    const checkHasClaimedCV = async () => {
-      if (!isAuthenticated) return;
-      try {
-        const response = await axiosInstance.get("/cv-claim/has_claimed_cv", {
-          withCredentials: true,
-        });
-
-        if (response.data) {
-          setHasClaimedAnyCV(response.data);
-        }
-      } catch (error: any) {
-        console.error("Error checking claimed CV status:", error);
-        if (error.response?.status === 401) {
-          // User not logged in, just leave as false
-        }
-        setHasClaimedAnyCV(false);
-      }
-    };
-    checkHasClaimedCV();
-  }, [isAuthenticated]);
 
   // Helper function to format file size
   const formatFileSize = (bytes: number): string => {
@@ -361,224 +336,7 @@ const SideNavBar = ({
 
     // Use async bulk upload for ALL uploads (single and multiple)
     await handleBulkUpload(fileArray);
-    return;
-
-    // Legacy sync upload code removed - all uploads now use async
-
-    // Single file - use synchronous upload
-    setUploading?.(true);
-
-    let completedCount = 0; // Track completed uploads
-    let errorCount = 0; // Track failed uploads
-
-    const uploadQueue = fileArray.map((file) => {
-      const fileId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-      // Add file to upload queue
-      addUploadFile?.({
-        id: fileId,
-        name: file.name,
-        progress: 0,
-        status: "queued",
-        size: file.size,
-        type: file.type,
-      });
-
-      return { file, fileId };
-    });
-
-    let activeUploads = 0;
-
-    // Function to check if all uploads are complete
-    const checkAllComplete = () => {
-      const totalProcessed = completedCount + errorCount;
-      if (totalProcessed === fileArray.length) {
-        setUploading?.(false); // ✅ Reset uploading state when all done
-
-        // Show summary toast for multiple files
-        if (fileArray.length > 1) {
-          if (errorCount === 0) {
-            toast("All files uploaded successfully", {
-              description: `${fileArray.length} files have been uploaded and processed`,
-            });
-          } else {
-            toast("Upload completed with errors", {
-              description: `${completedCount} files uploaded, ${errorCount} failed`,
-            });
-          }
-        }
-
-        // Auto-clear completed files after 5 seconds
-        setTimeout(() => {
-          clearCompletedFiles?.();
-        }, 5000);
-      }
-    };
-
-    // Function to process the upload queue
-    const processQueue = async () => {
-      if (uploadQueue.length === 0 || activeUploads >= MAX_CONCURRENT_UPLOADS)
-        return;
-
-      const { file, fileId } = uploadQueue.shift()!;
-      activeUploads++;
-
-      // Update status to uploading
-      updateUploadFile?.(fileId, { status: "uploading" });
-
-      try {
-        const formData = new FormData();
-        formData.append("files", file);
-        formData.append("is_claiming", shouldClaimCV.toString());
-
-        // Start upload progress simulation
-        const startTime = Date.now();
-        const progressInterval = setInterval(() => {
-          // Simulate progress during upload
-          const elapsed = Date.now() - startTime;
-          const simulatedProgress = Math.min(90, Math.floor(elapsed / 300)); // Reach 90% in about 30 seconds
-
-          updateUploadFile?.(fileId, {
-            progress: simulatedProgress,
-            estimatedTimeRemaining: Math.max(
-              1,
-              Math.floor((100 - simulatedProgress) * 0.3)
-            ),
-          });
-        }, 1000);
-
-        const response = await axiosInstance.post(
-          `/document/document?folder_id=${selectedFolderId}`,
-          formData,
-          {
-            headers: { "Content-Type": "multipart/form-data" },
-            onUploadProgress: (progressEvent) => {
-              if (progressEvent.total) {
-                const progress = Math.round(
-                  (progressEvent.loaded * 100) / progressEvent.total
-                );
-                updateUploadFile?.(fileId, {
-                  progress: Math.min(progress, 90), // Keep at 90% until API response
-                  status: progress >= 90 ? "processing" : "uploading",
-                  processingStage:
-                    progress >= 90 ? "AI Processing" : "Uploading",
-                });
-              }
-            },
-          }
-        );
-
-        // Clear progress simulation
-        clearInterval(progressInterval);
-
-        if (response.status === 200) {
-          // File successfully uploaded and processed
-          updateUploadFile?.(fileId, {
-            progress: 100,
-            status: "completed",
-            processingStage: "Completed",
-          });
-
-          completedCount++; // ✅ Increment completed count
-
-          // Show success toast only for single file
-          if (fileArray.length === 1) {
-            toast("Uploaded successfully", {
-              description: `${file.name} has been uploaded and processed`,
-            });
-          }
-
-          // Optimistically update cache for instant UI updates
-          queryClient.setQueryData(
-            ["folderFiles", selectedFolderId],
-            (oldData: any) => {
-              if (!oldData) return oldData;
-              const newFile = {
-                doc_id: response.data.doc_id || `temp-${fileId}`,
-                doc_name: file.name,
-                created_at: new Date().toISOString(),
-                // Add other properties as needed
-              };
-              return [...oldData, newFile];
-            }
-          );
-
-          // Also update the documents cache for ListView/GridView
-          queryClient.invalidateQueries({
-            queryKey: ["documents", selectedFolderId],
-          });
-
-          // Update hasClaimedAnyCV state if user claimed this CV
-          if (shouldClaimCV) {
-            setHasClaimedAnyCV(true);
-          }
-        } else {
-          updateUploadFile?.(fileId, {
-            status: "error",
-            error: "Upload failed",
-            processingStage: undefined,
-          });
-          errorCount++; // ✅ Increment error count
-        }
-      } catch (error: any) {
-        console.error(`Error uploading ${file.name}:`, error);
-
-        if (error.response?.status === 429) {
-          const errorMessage =
-            "Upload limit reached! Free users can only upload 1 CV total. Please upgrade to premium for unlimited uploads.";
-          toast.error(errorMessage, {
-            duration: 5000,
-          });
-          updateUploadFile?.(fileId, {
-            status: "error",
-            error: "Upload limit reached",
-            processingStage: undefined,
-          });
-        } else {
-          updateUploadFile?.(fileId, {
-            status: "error",
-            error: error.response?.data?.detail || "Upload failed",
-            processingStage: undefined,
-          });
-        }
-
-        errorCount++; // ✅ Increment error count
-      } finally {
-        activeUploads--;
-
-        // ✅ Check if all uploads are complete after each file
-        checkAllComplete();
-
-        // Process next file in queue
-        processQueue();
-      }
-    };
-
-    // Start initial uploads
-    for (
-      let i = 0;
-      i < Math.min(MAX_CONCURRENT_UPLOADS, uploadQueue.length);
-      i++
-    ) {
-      processQueue();
-    }
   };
-
-  // Hook to check if all uploads are complete
-  // useEffect(() => {
-  //   console.log("uploadFiles", uploadFiles);
-  //   console.log("uploading", uploading);
-  //   const activeFiles = uploadFiles.filter(
-  //     (f) =>
-  //       f.status === "uploading" ||
-  //       f.status === "processing" ||
-  //       f.status === "queued"
-  //   );
-
-  //   if (uploading && activeFiles.length === 0 && uploadFiles.length > 0) {
-  //     setUploading?.(false);
-  //   }
-  // }, [uploadFiles, uploading]);
 
   const handleFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) handleFileUpload(event.target.files);
@@ -606,218 +364,8 @@ const SideNavBar = ({
     event.preventDefault();
     event.stopPropagation();
     setIsDragging(false);
-    if (event.dataTransfer.files) {
-      if (effectiveTab === "candidate") {
-        handleCandidateCVUpload(event.dataTransfer.files);
-      } else {
-        handleFileUpload(event.dataTransfer.files);
-      }
-    }
-  };
-
-  const handleCandidateCVUpload = async (files: FileList) => {
-    if (!files || files.length === 0) return;
-    if (!isAuthenticated) {
-      router.push("../../auth/login");
-      return;
-    }
-
-    const file = files[0];
-    if (file.type !== "application/pdf") {
-      toast.error("Please upload a PDF file only");
-      return;
-    }
-
-    // Check if folder is selected for initial upload
-    if (!hasClaimedAnyCV && !localFolderId) {
-      toast.error("Please select a folder to upload your CV");
-      return;
-    }
-
-    // Generate file ID for tracking
-    const fileId = `cv-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-    try {
-      setCvUploadLoader(true);
-
-      if (hasClaimedAnyCV) {
-        // Replace existing CV using async endpoint for persistence across refresh
-        addUploadFile?.({
-          id: fileId,
-          name: file.name,
-          progress: 0,
-          status: "uploading",
-          size: file.size,
-          type: file.type,
-        });
-
-        const formData = new FormData();
-        formData.append("new_cv_file", file);
-
-        const response = await axiosInstance.post(
-          "/cv-claim/async_replace_cv",
-          formData,
-          {
-            headers: { "Content-Type": "multipart/form-data" },
-            withCredentials: true,
-          }
-        );
-
-        const jobId = response.data.job_id;
-        toast.success("CV replacement started! Processing in background...");
-
-        // Update to processing status
-        updateUploadFile?.(fileId, {
-          status: "processing",
-          progress: 30,
-          processingStage: "Replacing CV with AI...",
-        });
-
-        // Poll for job status
-        const pollInterval = setInterval(async () => {
-          try {
-            const statusResponse = await axiosInstance.get(
-              `/document/bulk_upload_status/${jobId}`
-            );
-            const job = statusResponse.data;
-
-            const progress = Math.round(
-              (job.processed_count / job.total_files) * 100
-            );
-
-            updateUploadFile?.(fileId, {
-              progress: Math.max(30, progress),
-              processingStage: `${job.processed_count}/${job.total_files} processed`,
-            });
-
-            if (job.status === "completed") {
-              clearInterval(pollInterval);
-
-              updateUploadFile?.(fileId, {
-                status: "completed",
-                progress: 100,
-              });
-
-              if (job.success_count > 0) {
-                toast.success("CV replaced successfully!");
-              } else {
-                toast.error("CV replacement failed. Please try again.");
-              }
-
-              setCvUploadLoader(false);
-
-              // Auto-clear after delay
-              setTimeout(() => {
-                clearCompletedFiles?.();
-              }, 5000);
-            }
-          } catch (error) {
-            console.error("Error polling CV replacement status:", error);
-          }
-        }, 3000);
-      } else {
-        // Upload new CV using async endpoint for persistence across refresh
-        addUploadFile?.({
-          id: fileId,
-          name: file.name,
-          progress: 0,
-          status: "uploading",
-          size: file.size,
-          type: file.type,
-        });
-
-        const formData = new FormData();
-        formData.append("folder_id", localFolderId!);
-        formData.append("files", file);
-        formData.append("is_claiming", "true");
-
-        const response = await axiosInstance.post(
-          "/document/async_cv_upload",
-          formData,
-          {
-            headers: { "Content-Type": "multipart/form-data" },
-            withCredentials: true,
-          }
-        );
-
-        const jobId = response.data.job_id;
-        toast.success("CV upload started! Processing in background...");
-
-        // Update to processing status
-        updateUploadFile?.(fileId, {
-          status: "processing",
-          progress: 30,
-          processingStage: "Processing with AI...",
-        });
-
-        // Poll for job status
-        const pollInterval = setInterval(async () => {
-          try {
-            const statusResponse = await axiosInstance.get(
-              `/document/bulk_upload_status/${jobId}`
-            );
-            const job = statusResponse.data;
-
-            // Calculate progress
-            const progress = Math.round(
-              (job.processed_count / job.total_files) * 100
-            );
-
-            updateUploadFile?.(fileId, {
-              progress: Math.max(30, progress),
-              processingStage: `${job.processed_count}/${job.total_files} processed`,
-            });
-
-            if (job.status === "completed") {
-              clearInterval(pollInterval);
-
-              updateUploadFile?.(fileId, {
-                status: "completed",
-                progress: 100,
-              });
-
-              if (job.success_count > 0) {
-                toast.success("CV uploaded and claimed successfully!");
-                setHasClaimedAnyCV(true);
-              } else {
-                toast.error("CV processing failed. Please try again.");
-              }
-
-              setCvUploadLoader(false);
-
-              // Auto-clear after delay
-              setTimeout(() => {
-                clearCompletedFiles?.();
-              }, 5000);
-            }
-          } catch (error) {
-            console.error("Error polling CV upload status:", error);
-          }
-        }, 3000);
-      }
-    } catch (error: any) {
-      console.error("Error uploading CV:", error);
-
-      // Update file status to error if it was added
-      updateUploadFile?.(fileId, {
-        status: "error",
-        error: error.response?.data?.detail || "Upload failed",
-      });
-
-      if (error.response?.status === 429) {
-        toast.error(
-          "Upload limit reached! Please upgrade to premium for unlimited uploads."
-        );
-      } else {
-        toast.error(error.response?.data?.detail || "Failed to upload CV");
-      }
-      setCvUploadLoader(false);
-    }
-  };
-
-  const handleCandidateFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      handleCandidateCVUpload(event.target.files);
+    if (event.dataTransfer.files && effectiveTab === "recruiter") {
+      handleFileUpload(event.dataTransfer.files);
     }
   };
 
@@ -895,119 +443,47 @@ const SideNavBar = ({
             isCollapsed && "hidden"
           } flex flex-col flex-1 overflow-hidden`}
         >
-          {/* Fixed Drop Files Section - Only show when expanded */}
-          <div
-            className={`${
-              isCollapsed && "hidden"
-            } w-full px-4 pt-0 sticky top-0 z-10`}
-          >
-            {effectiveTab === "candidate" ? (
-              // Candidate Section - CV Upload/Replace
+          {/* Recruiter Section - Upload and Folder Management */}
+          {effectiveTab === "recruiter" && (
+            <>
+              {/* Fixed Drop Files Section - Only show when expanded */}
               <div
-                onDrop={handleDrop}
-                onDragEnter={handleDragEnter}
-                onDragLeave={handleDragLeave}
-                onDragOver={handleDragOver}
-                className={`relative flex flex-col items-center justify-center border-2 border-dashed border-gray-800 dark:border-white p-4 pb-6 rounded-md transition-all duration-300 ease-in-out ${
-                  isDragging ? "opacity-50 backdrop-blur-sm" : "opacity-100"
-                } ${cvUploadLoader ? "pointer-events-none" : ""}`}
+                className={`${
+                  isCollapsed && "hidden"
+                } w-full px-4 pt-0 sticky top-0 z-10`}
               >
                 <div
-                  onClick={() =>
-                    document.getElementById("candidate-cv-input")?.click()
-                  }
-                  className="flex flex-col items-center w-full justify-center cursor-pointer"
+                  onDrop={handleDrop}
+                  onDragEnter={handleDragEnter}
+                  onDragLeave={handleDragLeave}
+                  onDragOver={handleDragOver}
+                  className={`relative flex flex-col items-center justify-center border-2 border-dashed border-gray-800 dark:border-white p-4 pb-6 rounded-md transition-all duration-300 ease-in-out ${
+                    isDragging ? "opacity-50 backdrop-blur-sm" : "opacity-100"
+                  }`}
                 >
-                  {hasClaimedAnyCV ? (
-                    <RefreshCw
+                  <div
+                    onClick={() => document.getElementById("file-input")?.click()}
+                    className="flex flex-col items-center w-full justify-center cursor-pointer"
+                  >
+                    <IoIosCloudUpload
                       size={40}
                       className="text-black dark:text-white"
                     />
-                  ) : (
-                    <Upload size={40} className="text-black dark:text-white" />
-                  )}
-                  <p className="text-center mt-2">
-                    {hasClaimedAnyCV
-                      ? "Drop your new CV here to replace (PDF only)"
-                      : "Drop your resume here (PDF only)"}
-                  </p>
-                </div>
-
-                {cvUploadLoader && (
-                  <div className="absolute inset-0 bg-white/95 dark:bg-gray-900/95 flex items-center justify-center rounded-md z-10 pointer-events-auto">
-                    <div className="flex flex-col items-center px-4 text-center">
-                      <LoaderCircle className="h-8 w-8 animate-spin text-primary" />
-                      <p className="text-sm font-medium mt-3">
-                        {hasClaimedAnyCV
-                          ? "Replacing your CV..."
-                          : "Uploading your resume..."}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Your resume is being processed by AI. Please wait...
-                      </p>
-                    </div>
+                    <p className="text-center">Drop your files here (PDF only)</p>
                   </div>
-                )}
-              </div>
-            ) : (
-              // Recruiter Section - Regular File Upload
-              <div
-                onDrop={handleDrop}
-                onDragEnter={handleDragEnter}
-                onDragLeave={handleDragLeave}
-                onDragOver={handleDragOver}
-                className={`relative flex flex-col items-center justify-center border-2 border-dashed border-gray-800 dark:border-white p-4 pb-6 rounded-md transition-all duration-300 ease-in-out ${
-                  isDragging ? "opacity-50 backdrop-blur-sm" : "opacity-100"
-                }`}
-              >
-                <div
-                  onClick={() => document.getElementById("file-input")?.click()}
-                  className="flex flex-col items-center w-full justify-center cursor-pointer"
-                >
-                  <IoIosCloudUpload
-                    size={40}
-                    className="text-black dark:text-white"
-                  />
-                  <p className="text-center">Drop your files here (PDF only)</p>
                 </div>
+
+                <input
+                  id="file-input"
+                  className="hidden"
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handleFileSelect}
+                  multiple
+                  disabled={uploading}
+                />
               </div>
-            )}
-
-            {effectiveTab === "candidate" ? (
-              <input
-                id="candidate-cv-input"
-                className="hidden"
-                type="file"
-                accept="application/pdf"
-                onChange={handleCandidateFileSelect}
-                disabled={cvUploadLoader}
-              />
-            ) : (
-              <input
-                id="file-input"
-                className="hidden"
-                type="file"
-                accept="application/pdf"
-                onChange={handleFileSelect}
-                multiple
-                disabled={uploading}
-              />
-            )}
-          </div>
-
-          {/* Show UploadQueue for candidates to track async CV uploads */}
-          {effectiveTab === "candidate" && uploadFiles.length > 0 && (
-            <UploadQueue
-              uploadFiles={uploadFiles}
-              clearCompletedFiles={clearCompletedFiles}
-              retryUpload={retryUpload}
-              cancelUpload={cancelUpload}
-              removeUploadFile={removeUploadFile}
-              formatFileSize={formatFileSize}
-              onRefreshFolder={() => {
-                toast.success("Data refreshed");
-              }}
-            />
+            </>
           )}
 
           {effectiveTab === "recruiter" && (
@@ -1130,115 +606,74 @@ const SideNavBar = ({
             </>
           )}
 
-          {/* Candidate section - Empty space as requested */}
+          {/* Candidate section - Navigation Links */}
           {effectiveTab === "candidate" && !isCollapsed && (
-            <>
-              {/* Folder Selection - Only show for initial upload when user hasn't claimed CV yet */}
-              {!hasClaimedAnyCV && (
-                <div className="w-full px-4 py-4 sticky top-[120px] z-10">
-                  <Select
-                    value={localFolderId || ""}
-                    onValueChange={handleValueChange}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select folder for CV...">
-                        {displayedFolderName()}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {/* Public Folders */}
-                        {folderListData.map((item, index) => (
-                          <div key={`pub-${index}`} className="">
-                            <SelectItem value={item.folder_id}>
-                              <div className="flex items-center space-x-2">
-                                <FolderOpen className="h-4 w-4 text-gray-600" />
-                                <span>{item.folder_name}</span>
-                              </div>
-                            </SelectItem>
-                          </div>
-                        ))}
-                        {/* Private Subfolders */}
-                        {hasPrivateFolder &&
-                          privateSubfolders.map((pf, index) => (
-                            <div key={`pri-${index}`} className="">
-                              <SelectItem value={pf.folder_id}>
-                                <div className="flex items-center space-x-2">
-                                  <FolderLock className="h-4 w-4 text-gray-600" />
-                                  <span>{pf.name}</span>
-                                </div>
-                              </SelectItem>
-                            </div>
-                          ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+            <div className="px-4 py-4 space-y-1">
+              {/* My Resume - Primary Action */}
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3 px-2">
+                Resume Management
+              </p>
+              <Link
+                href="/dashboard/my-resume"
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all duration-200 ${
+                  pathname === "/dashboard/my-resume"
+                    ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
+                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
+                }`}
+              >
+                <Upload className="h-4 w-4" />
+                My Resume
+              </Link>
+              <Link
+                href="/dashboard/resumes"
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all duration-200 ${
+                  pathname === "/dashboard/resumes"
+                    ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
+                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
+                }`}
+              >
+                <FileText className="h-4 w-4" />
+                Resume Builder
+              </Link>
 
-              {/* LinkedIn Automation Section - Show at TOP when user has claimed CV */}
-              {/* LinkedIn Automation Section - Show at TOP when user has claimed CV */}
-              <div className="px-4 py-4 space-y-1">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3 px-2">
-                  LinkedIn Automation
-                </p>
-                <Link
-                  href="/dashboard/job-preferences"
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all duration-200 ${
-                    pathname === "/dashboard/job-preferences"
-                      ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
-                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
-                  }`}
-                >
-                  <Briefcase className="h-4 w-4" />
-                  Job Preferences
-                </Link>
-                <Link
-                  href="/dashboard/job-applications"
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all duration-200 ${
-                    pathname === "/dashboard/job-applications"
-                      ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
-                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
-                  }`}
-                >
-                  <Bot className="h-4 w-4" />
-                  Job Applications
-                </Link>
-                <Link
-                  href="/dashboard/resumes"
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all duration-200 ${
-                    pathname === "/dashboard/resumes"
-                      ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
-                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
-                  }`}
-                >
-                  <FileText className="h-4 w-4" />
-                  {hasClaimedAnyCV ? "Build Resume" : "Create Resume"}
-                </Link>
-                <Link
-                  href="/dashboard/ats-optimizer"
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all duration-200 ${
-                    pathname === "/dashboard/ats-optimizer"
-                      ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
-                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
-                  }`}
-                >
-                  <Target className="h-4 w-4" />
-                  ATS Optimizer
-                </Link>
-              </div>
-
-              {/* Status message */}
-              <div className="flex-1 px-4 py-4">
-                <div className="text-center text-gray-500 dark:text-gray-400 text-sm">
-                  {hasClaimedAnyCV
-                    ? "Your CV is uploaded and active"
-                    : localFolderId
-                      ? "Ready to upload your CV"
-                      : "Please select a folder to upload your CV"}
-                </div>
-              </div>
-            </>
+              {/* LinkedIn Automation Section */}
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3 mt-6 px-2">
+                LinkedIn Automation
+              </p>
+              <Link
+                href="/dashboard/job-preferences"
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all duration-200 ${
+                  pathname === "/dashboard/job-preferences"
+                    ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
+                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
+                }`}
+              >
+                <Briefcase className="h-4 w-4" />
+                Job Preferences
+              </Link>
+              <Link
+                href="/dashboard/job-applications"
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all duration-200 ${
+                  pathname === "/dashboard/job-applications"
+                    ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
+                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
+                }`}
+              >
+                <Bot className="h-4 w-4" />
+                Job Applications
+              </Link>
+              <Link
+                href="/dashboard/ats-optimizer"
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all duration-200 ${
+                  pathname === "/dashboard/ats-optimizer"
+                    ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
+                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
+                }`}
+              >
+                <Target className="h-4 w-4" />
+                ATS Optimizer
+              </Link>
+            </div>
           )}
         </SidebarContent>
 
