@@ -3,26 +3,38 @@ import { usePathname, useRouter } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TabContext } from "../context/TabContext";
 import { useContext, useEffect } from "react";
+import { UserContext } from "@/context/UserContext";
 
 export default function NavigationTabs() {
   const pathname = usePathname();
   const router = useRouter();
   const tabContext = useContext(TabContext);
+  const userContext = useContext(UserContext);
 
   if (!tabContext) {
     throw new Error("NavigationTabs must be used within TabProvider");
   }
 
   const { activeTab, setActiveTab } = tabContext;
+  const { user, loading } = userContext || {};
 
-  // Update active tab based on current pathname
+  // Update active tab based on current pathname and handle automatic routing
   useEffect(() => {
+    if (loading) return;
+
     if (pathname === "/dashboard" || pathname === "/dashboard/") {
-      setActiveTab("recruiter");
-    } else {
+      // If user is a candidate, automatically route to candidate tab
+      console.log(user)
+      if (user?.user_role === "candidate") {
+        setActiveTab("candidate");
+        router.replace("/dashboard/candidate");
+      } else {
+        setActiveTab("recruiter");
+      }
+    } else if (pathname.startsWith("/dashboard/candidate")) {
       setActiveTab("candidate");
     }
-  }, [pathname, setActiveTab]);
+  }, [pathname, setActiveTab, user, router, loading]);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
