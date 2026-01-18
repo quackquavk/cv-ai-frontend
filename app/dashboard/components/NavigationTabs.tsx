@@ -24,14 +24,14 @@ export default function NavigationTabs() {
 
     if (pathname === "/dashboard" || pathname === "/dashboard/") {
       // If user is a candidate, automatically route to candidate tab
-      console.log(user)
       if (user?.user_role === "candidate") {
         setActiveTab("candidate");
         router.replace("/dashboard/candidate");
       } else {
         setActiveTab("recruiter");
       }
-    } else if (pathname.startsWith("/dashboard/candidate")) {
+    } else {
+      // Any other path under /dashboard (like /dashboard/candidate, /dashboard/my-resume, etc.)
       setActiveTab("candidate");
     }
   }, [pathname, setActiveTab, user, router, loading]);
