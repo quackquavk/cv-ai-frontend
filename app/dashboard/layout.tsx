@@ -30,7 +30,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
   // Check if we're in the resume editor (editing a specific resume)
   const isResumeEditor = pathname.match(
-    /^\/dashboard\/resumes(?:\/[^\/]+)?\/?$/
+    /^\/dashboard\/resumes\/[^\/]+\/?$/
   );
 
   // Check if we're on a LinkedIn automation page (candidate-specific)

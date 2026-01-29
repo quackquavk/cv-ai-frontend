@@ -336,30 +336,6 @@ export default function ResumesPage() {
 
   return (
     <div className="container mx-auto py-6 px-4">
-      {/* Breadcrumb Navigation */}
-      <nav className="flex items-center gap-1 text-sm text-muted-foreground mb-4">
-        <Link
-          href="/dashboard"
-          className="flex items-center gap-1 hover:text-foreground transition-colors"
-        >
-          <Home className="h-3.5 w-3.5" />
-          Dashboard
-        </Link>
-        <ChevronRight className="h-3.5 w-3.5" />
-        <Link
-          href="/dashboard/candidate"
-          className="flex items-center gap-1 hover:text-foreground transition-colors"
-        >
-          <User className="h-3.5 w-3.5" />
-          Candidate
-        </Link>
-        <ChevronRight className="h-3.5 w-3.5" />
-        <span className="text-foreground font-medium flex items-center gap-1">
-          <FileText className="h-3.5 w-3.5" />
-          Resumes
-        </span>
-      </nav>
-
       {/* Page Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
