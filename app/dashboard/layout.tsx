@@ -1,5 +1,5 @@
 "use client";
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import SideNavBar from "./components/SideNavBar";
 import SearchFields from "./components/SearchFields";
 import NavigationTabs from "./components/NavigationTabs";
@@ -22,6 +22,16 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
+  // Resizable sidebar state - default to 300px
+  const [sidebarWidth, setSidebarWidth] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("sidebar-width");
+      return saved ? Number(saved) : 300;
+    }
+    return 300;
+  });
+  const [isResizing, setIsResizing] = useState(false);
+
   if (!tabContext) {
     throw new Error("DashboardContent must be used within TabProvider");
   }
@@ -29,9 +39,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const { activeTab, setActiveTab } = tabContext;
 
   // Check if we're in the resume editor (editing a specific resume)
-  const isResumeEditor = pathname.match(
-    /^\/dashboard\/resumes\/[^\/]+\/?$/
-  );
+  const isResumeEditor = pathname.match(/^\/dashboard\/resumes\/[^\/]+\/?$/);
 
   // Check if we're on a LinkedIn automation page (candidate-specific)
   const isLinkedInPage =
@@ -56,14 +64,18 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     <div className="h-screen flex w-full overflow-hidden relative">
       {/* Desktop Sidebar */}
       <div
-        className={`transition-all ease-in-out duration-300 flex-shrink-0 hidden lg:block ${
-          isCollapsed ? "w-16" : "w-1/5"
+        className={`${isResizing ? "" : "transition-[width] ease-in-out duration-300"} flex-shrink-0 hidden lg:block relative ${
+          isCollapsed ? "w-16" : ""
         }`}
+        style={!isCollapsed ? { width: `${sidebarWidth}px` } : {}}
       >
         <SideNavBar
           isCollapsed={isCollapsed}
           onCollapsedChange={handleCollapsedChange}
           isMobile={false}
+          width={sidebarWidth}
+          onWidthChange={setSidebarWidth}
+          onResizingChange={setIsResizing}
         />
       </div>
 
@@ -97,6 +109,8 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           onCollapsedChange={() => {}}
           isMobile={true}
           onMobileClose={toggleMobileSidebar}
+          width={300} // Mobile fixed width or ignored
+          onWidthChange={() => {}}
         />
       </div>
 

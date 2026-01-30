@@ -79,6 +79,28 @@ const TIME_TO_START_OPTIONS = [
   { value: "evening", label: "Evening (6pm-12am)" },
 ];
 
+const DEFAULT_PREFERENCES: JobPreferences = {
+  positions: [""],
+  locations: [""],
+  experience_level: [],
+  job_type: [],
+  date_posted: "any",
+  language: "English",
+  blacklist_companies: [],
+  blacklist_titles: [],
+  max_applications_per_session: 10,
+  phone_number: null,
+  email: null,
+  password: null,
+  salary_expectation: null,
+  hourly_rate: null,
+  llm_enabled: true,
+  auto_start_enabled: false,
+  apply_interval_from: null,
+  apply_interval_to: null,
+  time_to_start: "immediate",
+};
+
 export default function JobPreferencesPage() {
   const [preferences, setPreferences] = useState<JobPreferences | null>(null);
   const [loading, setLoading] = useState(true);
@@ -97,34 +119,47 @@ export default function JobPreferencesPage() {
       const response = await axiosInstance.get("/linkedin_bot/preferences", {
         withCredentials: true,
       });
-      setPreferences(response.data);
+
+      const data = response.data || {};
+
+      // Merge with defaults and ensure arrays are valid arrays (handle nulls from backend)
+      const sanitizedPreferences: JobPreferences = {
+        ...DEFAULT_PREFERENCES,
+        ...data,
+        positions: Array.isArray(data.positions)
+          ? data.positions
+          : DEFAULT_PREFERENCES.positions,
+        locations: Array.isArray(data.locations)
+          ? data.locations
+          : DEFAULT_PREFERENCES.locations,
+        experience_level: Array.isArray(data.experience_level)
+          ? data.experience_level
+          : DEFAULT_PREFERENCES.experience_level,
+        job_type: Array.isArray(data.job_type)
+          ? data.job_type
+          : DEFAULT_PREFERENCES.job_type,
+        blacklist_companies: Array.isArray(data.blacklist_companies)
+          ? data.blacklist_companies
+          : DEFAULT_PREFERENCES.blacklist_companies,
+        blacklist_titles: Array.isArray(data.blacklist_titles)
+          ? data.blacklist_titles
+          : DEFAULT_PREFERENCES.blacklist_titles,
+      };
+
+      // If positions or locations came back empty array, ensure at least one empty string for inputs
+      if (sanitizedPreferences.positions.length === 0)
+        sanitizedPreferences.positions = [""];
+      if (sanitizedPreferences.locations.length === 0)
+        sanitizedPreferences.locations = [""];
+
+      setPreferences(sanitizedPreferences);
     } catch (error: any) {
       console.error("Error fetching preferences:", error);
       if (error.response?.status !== 404) {
         toast.error("Failed to load job preferences");
       }
-      // Set defaults
-      setPreferences({
-        positions: [""],
-        locations: [""],
-        experience_level: [],
-        job_type: [],
-        date_posted: "past_day",
-        language: "English",
-        blacklist_companies: [],
-        blacklist_titles: [],
-        max_applications_per_session: 10,
-        phone_number: null,
-        email: null,
-        password: null,
-        salary_expectation: null,
-        hourly_rate: null,
-        llm_enabled: true,
-        auto_start_enabled: false,
-        apply_interval_from: null,
-        apply_interval_to: null,
-        time_to_start: "immediate",
-      });
+      // Set defaults on error
+      setPreferences(DEFAULT_PREFERENCES);
     } finally {
       setLoading(false);
     }
@@ -165,7 +200,7 @@ export default function JobPreferencesPage() {
         {},
         {
           withCredentials: true,
-        }
+        },
       );
 
       toast.success("Job application session started!");
@@ -247,13 +282,13 @@ export default function JobPreferencesPage() {
             </Label>
             <Input
               placeholder="Flutter Developer"
-              value={preferences.positions[0] || ""}
+              value={preferences.positions?.[0] || ""}
               onChange={(e) =>
                 setPreferences({
                   ...preferences,
                   positions: [
                     e.target.value,
-                    ...preferences.positions.slice(1),
+                    ...(preferences.positions?.slice(1) || []),
                   ],
                 })
               }
@@ -266,13 +301,13 @@ export default function JobPreferencesPage() {
             </Label>
             <Input
               placeholder="Nepal"
-              value={preferences.locations[0] || ""}
+              value={preferences.locations?.[0] || ""}
               onChange={(e) =>
                 setPreferences({
                   ...preferences,
                   locations: [
                     e.target.value,
-                    ...preferences.locations.slice(1),
+                    ...(preferences.locations?.slice(1) || []),
                   ],
                 })
               }
@@ -305,7 +340,7 @@ export default function JobPreferencesPage() {
               Experience
             </Label>
             <Select
-              value={preferences.experience_level[0]?.toString() || ""}
+              value={preferences.experience_level?.[0]?.toString() || ""}
               onValueChange={(value) =>
                 setPreferences({
                   ...preferences,
@@ -330,7 +365,7 @@ export default function JobPreferencesPage() {
               Work Type
             </Label>
             <Select
-              value={preferences.job_type[0] || ""}
+              value={preferences.job_type?.[0] || ""}
               onValueChange={(value) =>
                 setPreferences({
                   ...preferences,
@@ -470,7 +505,7 @@ export default function JobPreferencesPage() {
                   ...preferences,
                   max_applications_per_session: Math.min(
                     10,
-                    Math.max(1, parseInt(e.target.value) || 1)
+                    Math.max(1, parseInt(e.target.value) || 1),
                   ),
                 })
               }

@@ -28,6 +28,7 @@ import {
   Briefcase,
   Target,
   Upload,
+  GripVertical,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -61,12 +62,81 @@ import { RefreshCw } from "lucide-react";
 
 const MAX_CONCURRENT_UPLOADS = 3; // Maximum number of concurrent uploads
 
+interface SideNavBarProps {
+  isCollapsed: boolean;
+  onCollapsedChange: (collapsed: boolean) => void;
+  isMobile?: boolean;
+  onMobileClose?: () => void;
+  width?: number;
+  onWidthChange?: (width: number) => void;
+  onResizingChange?: (isResizing: boolean) => void;
+}
+
 const SideNavBar = ({
   isCollapsed,
   onCollapsedChange,
   isMobile = false,
   onMobileClose = () => {},
-}) => {
+  width: externalWidth,
+  onWidthChange,
+  onResizingChange,
+}: SideNavBarProps) => {
+  const [internalWidth, setInternalWidth] = useState<number>(300);
+  const [isResizing, setIsResizing] = useState(false);
+
+  // Effective width uses prop if provided, otherwise internal state
+  const sidebarWidth =
+    externalWidth !== undefined ? externalWidth : internalWidth;
+
+  // Initialize internal width from localStorage if prop not provided
+  useEffect(() => {
+    if (externalWidth === undefined) {
+      const savedWidth = localStorage.getItem("sidebar-width");
+      if (savedWidth) {
+        const parsed = parseInt(savedWidth, 10);
+        if (!isNaN(parsed)) setInternalWidth(parsed);
+      }
+    }
+  }, [externalWidth]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+    onResizingChange?.(true);
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+      const newWidth = e.clientX;
+      if (newWidth >= 200 && newWidth <= 600) {
+        if (onWidthChange) {
+          onWidthChange(newWidth);
+        } else {
+          setInternalWidth(newWidth);
+        }
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (isResizing) {
+        setIsResizing(false);
+        onResizingChange?.(false);
+        localStorage.setItem("sidebar-width", sidebarWidth.toString());
+      }
+    };
+
+    if (isResizing) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isResizing, sidebarWidth, onWidthChange, internalWidth]);
+
   const spinnerContext = useContext(SpinnerContext);
   const userContext = useContext(UserContext);
   const tabContext = useContext(TabContext);
@@ -112,7 +182,7 @@ const SideNavBar = ({
   const { hasPrivateFolder, setHasPrivateFolder, privateSubfolders } =
     privateFolderStore();
   const [localFolderId, setLocalFolderId] = useState<string | null>(
-    selectFolderId
+    selectFolderId,
   );
   const [isPageLoading, setIsPageLoading] = useState<boolean>(false);
   const queryClient = useQueryClient();
@@ -143,11 +213,11 @@ const SideNavBar = ({
   const displayedFolderName = () => {
     if (!localFolderId) return "Uploading to....";
     const publicName = folderListData.find(
-      (item: any) => item.folder_id === localFolderId
+      (item: any) => item.folder_id === localFolderId,
     )?.folder_name;
     if (publicName) return publicName;
     const privateName = privateSubfolders.find(
-      (pf) => pf.folder_id === localFolderId
+      (pf) => pf.folder_id === localFolderId,
     )?.name;
     return privateName || "Unknown Folder";
   };
@@ -226,7 +296,7 @@ const SideNavBar = ({
       const response = await axiosInstance.post(
         "/document/async_bulk_upload",
         formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        { headers: { "Content-Type": "multipart/form-data" } },
       );
 
       const jobId = response.data.job_id;
@@ -245,13 +315,13 @@ const SideNavBar = ({
       const pollInterval = setInterval(async () => {
         try {
           const statusResponse = await axiosInstance.get(
-            `/document/bulk_upload_status/${jobId}`
+            `/document/bulk_upload_status/${jobId}`,
           );
           const job = statusResponse.data;
 
           // Calculate progress
           const progress = Math.round(
-            (job.processed_count / job.total_files) * 100
+            (job.processed_count / job.total_files) * 100,
           );
 
           // Update progress on all files
@@ -274,7 +344,7 @@ const SideNavBar = ({
             });
 
             toast.success(
-              `Bulk upload complete: ${job.success_count} succeeded, ${job.failure_count} failed`
+              `Bulk upload complete: ${job.success_count} succeeded, ${job.failure_count} failed`,
             );
 
             // Refresh folder contents
@@ -311,7 +381,7 @@ const SideNavBar = ({
         toast.error(error.response?.data?.detail);
       } else {
         toast.error(
-          error.response?.data?.detail || "Failed to start bulk upload"
+          error.response?.data?.detail || "Failed to start bulk upload",
         );
       }
 
@@ -370,8 +440,11 @@ const SideNavBar = ({
   };
 
   return (
-    <div className={`h-full w-full ${isMobile ? "block" : ""}`}>
-      <Card className="border h-full rounded-none flex flex-col relative">
+    <div
+      className={`h-full relative ${isMobile ? "w-full" : ""}`}
+      style={!isMobile && !isCollapsed ? { width: `${sidebarWidth}px` } : {}}
+    >
+      <Card className="border h-full rounded-none flex flex-col relative overflow-visible shadow-none">
         {/* Close button for mobile */}
         {isMobile && (
           <Button
@@ -416,7 +489,7 @@ const SideNavBar = ({
                   height={800}
                 />
               </div>
-              <h1 className="text-2xl text-black dark:text-white font-semibold font-sans">
+              <h1 className="text-2xl text-black dark:text-white font-semibold font-sans truncate min-w-0">
                 Resume AI
               </h1>
             </div>
@@ -441,7 +514,7 @@ const SideNavBar = ({
         <SidebarContent
           className={` ${
             isCollapsed && "hidden"
-          } flex flex-col flex-1 overflow-hidden`}
+          } flex flex-col flex-1 overflow-y-auto overflow-x-hidden scrollbar-custom`}
         >
           {/* Recruiter Section - Upload and Folder Management */}
           {effectiveTab === "recruiter" && (
@@ -462,14 +535,18 @@ const SideNavBar = ({
                   }`}
                 >
                   <div
-                    onClick={() => document.getElementById("file-input")?.click()}
+                    onClick={() =>
+                      document.getElementById("file-input")?.click()
+                    }
                     className="flex flex-col items-center w-full justify-center cursor-pointer"
                   >
                     <IoIosCloudUpload
                       size={40}
                       className="text-black dark:text-white"
                     />
-                    <p className="text-center">Drop your files here (PDF only)</p>
+                    <p className="text-center">
+                      Drop your files here (PDF only)
+                    </p>
                   </div>
                 </div>
 
@@ -583,7 +660,7 @@ const SideNavBar = ({
               <div
                 className={`${
                   isCollapsed && "hidden"
-                } w-full px-4 flex-1 overflow-y-auto mt-4 scrollbar-thin`}
+                } w-full px-4 flex-1 overflow-y-auto overflow-x-hidden mt-4 scrollbar-custom`}
               >
                 {isFolderListOpen && displayFolder && (
                   <div className="flex flex-col">
@@ -692,7 +769,7 @@ const SideNavBar = ({
         {/* Fixed Profile and Settings Section */}
         <SidebarFooter className="sticky bottom-0 z-10 pb-6 pt-2 px-4 p-3 w-full">
           <Card
-            className={`w-[100%] flex items-center px-2 justify-between ${
+            className={`w-full flex items-center px-2 justify-between ${
               isCollapsed && " border-none"
             }`}
           >
@@ -762,12 +839,55 @@ const SideNavBar = ({
         </SidebarFooter>
       </Card>
 
+      {/* Resize Handle - Moved outside Card to avoid overflow-hidden clipping */}
+      {!isCollapsed && !isMobile && (
+        <div
+          onMouseDown={handleMouseDown}
+          className={`absolute top-0 -right-0.5 w-1.5 h-full cursor-col-resize z-50 transition-all duration-300 ${
+            isResizing
+              ? "bg-primary/40"
+              : "bg-transparent hover:bg-primary/20 hover:w-2"
+          }`}
+          title="Drag to resize"
+        />
+      )}
+
+      {/* Resize Grip Icon - Bottom Right */}
+      {!isCollapsed && !isMobile && (
+        <div className="absolute bottom-1 right-1 pointer-events-none opacity-30 group-hover:opacity-100 transition-opacity">
+          <GripVertical className="h-4 w-4 rotate-45 text-muted-foreground" />
+        </div>
+      )}
+
       {/* Loader (shown when isLoading is true) */}
       {isPageLoading && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
           <div className="loader border-t-4 border-white border-solid rounded-full w-12 h-12 animate-spin"></div>
         </div>
       )}
+
+      <style jsx global>{`
+        .scrollbar-custom::-webkit-scrollbar {
+          width: 5px;
+          height: 5px;
+        }
+        .scrollbar-custom::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .scrollbar-custom::-webkit-scrollbar-thumb {
+          background: #3a3a3a;
+          border-radius: 10px;
+        }
+        .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+          background: #4a4a4a;
+        }
+        .dark .scrollbar-custom::-webkit-scrollbar-thumb {
+          background: #555;
+        }
+        .dark .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+          background: #666;
+        }
+      `}</style>
     </div>
   );
 };

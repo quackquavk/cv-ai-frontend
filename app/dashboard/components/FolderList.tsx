@@ -126,7 +126,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
 
   // State to track the changes (archive files)
   const setShouldRefetchDocuments = useDocumentStore(
-    (state) => state.setShouldRefetchDocuments
+    (state) => state.setShouldRefetchDocuments,
   );
   const queryClient = useQueryClient();
 
@@ -156,7 +156,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
           setHasPrivateFolder(true);
           // fetch subfolders under private root
           const childrenRes = await axiosInstance.get(
-            `/folder/children?parent_id=${rootId}&include_private=true`
+            `/folder/children?parent_id=${rootId}&include_private=true`,
           );
           const subs = (childrenRes.data || [])
             .filter((f) => f.visibility === "private")
@@ -187,7 +187,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
 
   // Fetch public folders using TanStack Query
   const { data: fetchedFolders = [], isLoading: foldersLoading } = useQuery({
-    queryKey: ["folders", "public"],
+    queryKey: ["folders", "public", folderOrder.public],
     queryFn: async () => {
       const response = await axiosInstance.get("/folder/getAllFolders");
       let folders = response.data;
@@ -223,6 +223,17 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
         }
         return prevFolders;
       });
+
+      // Initialize folderOrder.public with all folder IDs if it's empty
+      setFolderOrder((prev) => {
+        if (prev.public.length === 0 && fetchedFolders.length > 0) {
+          return {
+            ...prev,
+            public: fetchedFolders.map((f) => f.folder_id),
+          };
+        }
+        return prev;
+      });
     }
   }, [fetchedFolders]);
 
@@ -232,7 +243,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
       queryKey: ["folderFiles", folder.folder_id],
       queryFn: async () => {
         const response = await axiosInstance.get(
-          `/folder/getFiles/${folder.folder_id}`
+          `/folder/getFiles/${folder.folder_id}`,
         );
         return response.data || [];
       },
@@ -286,7 +297,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
       queryKey: ["folderFiles", subfolder.folder_id],
       queryFn: async () => {
         const response = await axiosInstance.get(
-          `/folder/getFiles/${subfolder.folder_id}`
+          `/folder/getFiles/${subfolder.folder_id}`,
         );
         return response.data || [];
       },
@@ -377,7 +388,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
     file,
     fromFolderId,
     actionType: "copy" | "move",
-    toFolderId?: string
+    toFolderId?: string,
   ) => {
     // Use TanStack Query cache updates for instant UI updates
     if (actionType === "move") {
@@ -387,7 +398,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
         (oldData: any) => {
           if (!oldData) return oldData;
           return oldData.filter((f: any) => f.doc_id !== file.doc_id);
-        }
+        },
       );
     }
 
@@ -430,8 +441,8 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
         prevFolders.map((folder) =>
           folder.folder_id === folderId
             ? { ...folder, folder_name: newFolderName }
-            : folder
-        )
+            : folder,
+        ),
       );
       // Reset editing state
       setEditingFolder(null);
@@ -516,7 +527,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
         (oldData: any) => {
           if (!oldData) return [file];
           return [...oldData, file];
-        }
+        },
       );
 
       queryClient.setQueryData(["folderFiles", toFolderId], (oldData: any) => {
@@ -535,7 +546,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
       (oldData: any) => {
         if (!oldData) return oldData;
         return oldData.filter((f: any) => f.doc_id !== file.doc_id);
-      }
+      },
     );
 
     queryClient.setQueryData(["folderFiles", folderId], (oldData: any) => {
@@ -565,7 +576,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
         (oldData: any) => {
           if (!oldData) return [file];
           return [...oldData, file];
-        }
+        },
       );
 
       queryClient.setQueryData(["folderFiles", folderId], (oldData: any) => {
@@ -579,10 +590,10 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
   const reorderArray = (array, sourceId, targetId, position) => {
     const newArray = [...array];
     const sourceIndex = newArray.findIndex(
-      (item) => item.folder_id === sourceId
+      (item) => item.folder_id === sourceId,
     );
     const targetIndex = newArray.findIndex(
-      (item) => item.folder_id === targetId
+      (item) => item.folder_id === targetId,
     );
 
     if (sourceIndex === -1) return newArray;
@@ -646,24 +657,43 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
     setFolderOrder((prev) => {
       const newOrder = { ...prev };
       const section = type;
+
+      // Get all folder IDs for this section to ensure we have a complete list
+      const allFolderIds =
+        section === "public"
+          ? folders.map((f) => f.folder_id)
+          : privateSubfolders.map((f) => f.folder_id);
+
+      // Initialize with all IDs if the order array is empty or incomplete
+      if (newOrder[section].length === 0) {
+        newOrder[section] = [...allFolderIds];
+      } else {
+        // Add any new folders that aren't in the order array yet
+        allFolderIds.forEach((id) => {
+          if (!newOrder[section].includes(id)) {
+            newOrder[section].push(id);
+          }
+        });
+      }
+
       const sourceIndex = newOrder[section].indexOf(sourceFolderId);
       const targetIndex = newOrder[section].indexOf(targetFolderId);
 
-      // Remove source from its current position
+      // Remove source from its current position (it should always exist now)
       if (sourceIndex !== -1) {
         newOrder[section].splice(sourceIndex, 1);
-      } else {
-        // If source wasn't in the order array, add it
-        newOrder[section].push(sourceFolderId);
       }
+
+      // Recalculate target index after removing source
+      const newTargetIndex = newOrder[section].indexOf(targetFolderId);
 
       // Determine insert position based on drop position
       let insertIndex =
-        targetIndex !== -1 ? targetIndex : newOrder[section].length;
+        newTargetIndex !== -1 ? newTargetIndex : newOrder[section].length;
 
       if (folderDragOver && folderDragOver.position === "below") {
         insertIndex =
-          targetIndex !== -1 ? targetIndex + 1 : newOrder[section].length;
+          newTargetIndex !== -1 ? newTargetIndex + 1 : newOrder[section].length;
       }
 
       // Insert source at the calculated position
@@ -679,8 +709,8 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
           prevFolders,
           sourceFolderId,
           targetFolderId,
-          folderDragOver.position
-        )
+          folderDragOver.position,
+        ),
       );
     } else if (type === "private") {
       setPrivateSubfolders(
@@ -688,8 +718,8 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
           privateSubfolders,
           sourceFolderId,
           targetFolderId,
-          folderDragOver.position
-        )
+          folderDragOver.position,
+        ),
       );
     }
 
@@ -706,7 +736,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
 
   const fetchDocumentsByIds = async (docIds: string[]) => {
     const promises = docIds.map((docId) =>
-      axiosInstance.get(`/document/cv/${docId}`).then((res) => res.data)
+      axiosInstance.get(`/document/cv/${docId}`).then((res) => res.data),
     );
     return Promise.all(promises);
   };
@@ -732,7 +762,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
     try {
       const [documentData] = await fetchDocumentsByIds([docId]);
       const url = `/cv-detail/${docId}/${formatName(
-        documentData?.parsed_cv?.name
+        documentData?.parsed_cv?.name,
       )}/${formatLanguages(documentData?.parsed_cv?.programming_languages)}`;
       window.open(url, "_blank");
     } catch (error) {
@@ -1369,7 +1399,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                                       file,
                                       folder.folder_id,
                                       actionType,
-                                      toFolderId
+                                      toFolderId,
                                     );
                                   }}
                                 />
@@ -1401,7 +1431,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                                               setValue(
                                                 currentValue === value
                                                   ? ""
-                                                  : currentValue
+                                                  : currentValue,
                                               );
                                               setFolderId(folder.folder_id);
                                             }}
@@ -1412,7 +1442,7 @@ const FolderList = ({ updateFolderList, setUpdateFolderList }) => {
                                                 "ml-auto",
                                                 value === folder.folder_name
                                                   ? "opacity-100"
-                                                  : "opacity-0"
+                                                  : "opacity-0",
                                               )}
                                             />
                                           </CommandItem>

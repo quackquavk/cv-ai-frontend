@@ -1,6 +1,12 @@
 "use client";
 import { useState, useEffect, useContext } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -75,7 +81,7 @@ export default function ApiKeysPage() {
   });
   const [formLoading, setFormLoading] = useState(false);
   const [validationLoading, setValidationLoading] = useState<string | null>(
-    null
+    null,
   );
   const [showApiKey, setShowApiKey] = useState<Record<string, boolean>>({});
 
@@ -88,13 +94,9 @@ export default function ApiKeysPage() {
 
   useEffect(() => {
     if (!userLoading && user) {
-      if (hasPremiumAccess) {
-        fetchApiKeys();
-      } else {
-        setLoading(false);
-      }
+      fetchApiKeys();
     }
-  }, [user, userLoading, hasPremiumAccess]);
+  }, [user, userLoading]);
 
   const fetchSupportedModels = async () => {
     try {
@@ -152,13 +154,13 @@ export default function ApiKeysPage() {
       setShowAddDialog(false);
       resetForm();
       toast.success(
-        `${PROVIDER_CONFIGS[formData.provider].name} API key added successfully`
+        `${PROVIDER_CONFIGS[formData.provider].name} API key added successfully`,
       );
     } catch (error: any) {
       console.error("Error adding API key:", error);
       if (error.response?.status === 400) {
         toast.error(
-          error.response.data.detail || "Invalid API key or model name"
+          error.response.data.detail || "Invalid API key or model name",
         );
       } else {
         toast.error("Failed to add API key");
@@ -190,7 +192,7 @@ export default function ApiKeysPage() {
 
       const response = await axiosInstance.put(
         `/api_key/${selectedApiKey.api_key_id}`,
-        updateData
+        updateData,
       );
 
       // If enabling this key, disable others
@@ -204,8 +206,8 @@ export default function ApiKeysPage() {
       } else {
         setApiKeys(
           apiKeys.map((key) =>
-            key.api_key_id === selectedApiKey.api_key_id ? response.data : key
-          )
+            key.api_key_id === selectedApiKey.api_key_id ? response.data : key,
+          ),
         );
       }
 
@@ -228,7 +230,7 @@ export default function ApiKeysPage() {
     try {
       await axiosInstance.delete(`/api_key/${selectedApiKey.api_key_id}`);
       setApiKeys(
-        apiKeys.filter((key) => key.api_key_id !== selectedApiKey.api_key_id)
+        apiKeys.filter((key) => key.api_key_id !== selectedApiKey.api_key_id),
       );
       setShowDeleteDialog(false);
       setSelectedApiKey(null);
@@ -245,7 +247,7 @@ export default function ApiKeysPage() {
     setValidationLoading(apiKey.api_key_id);
     try {
       const response = await axiosInstance.post(
-        `/api_key/${apiKey.api_key_id}/validate`
+        `/api_key/${apiKey.api_key_id}/validate`,
       );
       const newStatus = response.data.is_valid ? "active" : "invalid";
 
@@ -253,8 +255,8 @@ export default function ApiKeysPage() {
         apiKeys.map((key) =>
           key.api_key_id === apiKey.api_key_id
             ? { ...key, status: newStatus }
-            : key
-        )
+            : key,
+        ),
       );
 
       if (response.data.is_valid) {
@@ -287,8 +289,8 @@ export default function ApiKeysPage() {
           updatedKeys.map((key) =>
             axiosInstance.put(`/api_key/${key.api_key_id}`, {
               is_enabled: key.is_enabled,
-            })
-          )
+            }),
+          ),
         );
 
         toast.success("API key activated successfully");
@@ -297,8 +299,8 @@ export default function ApiKeysPage() {
         const updatedKey = { ...apiKey, is_enabled: false };
         setApiKeys(
           apiKeys.map((key) =>
-            key.api_key_id === apiKey.api_key_id ? updatedKey : key
-          )
+            key.api_key_id === apiKey.api_key_id ? updatedKey : key,
+          ),
         );
 
         await axiosInstance.put(`/api_key/${apiKey.api_key_id}`, {
@@ -353,30 +355,6 @@ export default function ApiKeysPage() {
       <div className="p-4 md:p-6">
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-        </div>
-      </div>
-    );
-  }
-
-  if (!hasPremiumAccess) {
-    return (
-      <div className="p-4 md:p-6">
-        <div className="text-center py-12">
-          <Key className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            Premium Plan Required
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-            API key management is available exclusively for premium users.
-            Upgrade to manage your own OpenAI, Gemini, and Claude API keys.
-          </p>
-          <Button
-            onClick={() => (window.location.href = "/user/setting/payment")}
-            className="bg-amber-600 hover:bg-amber-700 text-white"
-          >
-            <Crown className="h-4 w-4 mr-2" />
-            Upgrade to Premium
-          </Button>
         </div>
       </div>
     );
@@ -480,7 +458,7 @@ export default function ApiKeysPage() {
                       />
                       <CardTitle className="text-lg">{provider.name}</CardTitle>
                     </div>
-                    <Badge className={provider.color} >
+                    <Badge className={provider.color}>
                       {apiKey.provider.toUpperCase()}
                     </Badge>
                   </div>

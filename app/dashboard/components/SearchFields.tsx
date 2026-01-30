@@ -40,13 +40,14 @@ import { Label } from "@/components/ui/label";
 import axiosInstance from "@/utils/axiosConfig";
 import { UserContext } from "@/context/UserContext";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { toast } from "sonner";
 
 const SearchFieldsContent = () => {
   const searchContext = useContext(SearchContext);
   const { setSearchData } = searchContext;
   const viewContext = useContext(ViewContext);
   const [tags, setTags] = useState<string[]>([]);
-  const { user } = useContext(UserContext);
+  const { user, isAuthenticated } = useContext(UserContext);
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -76,7 +77,7 @@ const SearchFieldsContent = () => {
   const { selectedFolderIds } = multiFolderSelectStore();
   if (!searchContext) {
     throw new Error(
-      "SearchContext must be used within a SearchContext.Provider"
+      "SearchContext must be used within a SearchContext.Provider",
     );
   }
 
@@ -103,7 +104,7 @@ const SearchFieldsContent = () => {
       const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
       router.push(newUrl, { scroll: false });
     },
-    [pathname, router]
+    [pathname, router],
   );
 
   // Initialize form data from URL on mount
@@ -193,7 +194,7 @@ const SearchFieldsContent = () => {
   const validateInput = (
     event: React.ChangeEvent<HTMLInputElement>,
     field: "current_salary" | "estimated_salary",
-    setFormData: React.Dispatch<React.SetStateAction<IFormInputData>>
+    setFormData: React.Dispatch<React.SetStateAction<IFormInputData>>,
   ) => {
     let value = event.target.value;
 
@@ -237,6 +238,14 @@ const SearchFieldsContent = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // Check if user is authenticated before allowing search
+    if (!user || !isAuthenticated) {
+      toast.error("Please log in to search candidates");
+      router.push("/auth/login");
+      return;
+    }
+
     await performSearch();
   };
 
@@ -288,7 +297,7 @@ const SearchFieldsContent = () => {
       try {
         const res = await axiosInstance.get("/folder/getAllFolders");
         const publicFolderIds: string[] = (res.data || []).map(
-          (f: any) => f.folder_id
+          (f: any) => f.folder_id,
         );
         return publicFolderIds;
       } catch (err) {
@@ -585,7 +594,7 @@ const SearchFieldsContent = () => {
                             validateInput(
                               event,
                               "estimated_salary",
-                              setFormData
+                              setFormData,
                             )
                           }
                           placeholder="e.g., 50000 - 80000"
