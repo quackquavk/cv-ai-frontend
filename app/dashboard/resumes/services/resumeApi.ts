@@ -312,7 +312,7 @@ export const getEmptyResumeData = (): ResumeData => ({
     theme: {
       background: "#ffffff",
       text: "#000000",
-      primary: "#3b82f6",
+      primary: "#000000",
     },
     typography: {
       font: {
