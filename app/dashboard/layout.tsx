@@ -114,14 +114,15 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         />
       </div>
 
-      <SidebarInset className="flex-grow overflow-hidden">
-        <div className="h-full overflow-auto">
-          {" "}
-          {/* 👈 This makes everything scroll together */}
-          <div className="px-6 flex flex-col w-full h-full min-h-full">
-            {/* Navigation Tabs at the very top */}
-            <NavigationTabs />
+      <SidebarInset className="flex-grow overflow-hidden flex flex-col">
+        {/* Navigation Tabs at the very top - Fixed */}
+        <div className="px-6 flex-shrink-0 z-30">
+          <NavigationTabs />
+        </div>
 
+        {/* Scrollable Content Area */}
+        <div className="flex-grow overflow-auto scrollbar-custom">
+          <div className="px-6 flex flex-col w-full min-h-full">
             {/* Search Fields - Only show for Recruiter tab (not on candidate pages) */}
             {activeTab === "recruiter" &&
               pathname !== "/dashboard/resumes" &&
