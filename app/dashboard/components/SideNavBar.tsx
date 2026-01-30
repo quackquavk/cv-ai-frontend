@@ -478,7 +478,7 @@ const SideNavBar = ({
         )}
 
         {/* Fixed Header */}
-        <SidebarHeader className="sticky top-0 z-10 pt-2">
+        <SidebarHeader className="sticky top-0 z-10 pt-1">
           {!isCollapsed ? (
             <div className="flex items-center px-4 justify-center w-full gap-3">
               <div className="w-14 rounded-full overflow-hidden">
@@ -516,9 +516,17 @@ const SideNavBar = ({
             isCollapsed && "hidden"
           } flex flex-col flex-1 overflow-y-auto overflow-x-hidden scrollbar-custom`}
         >
+          {/* Main Divider Top */}
+          <div className="h-px bg-gray-200 dark:bg-gray-800 mt-1 mb-3 mx-4" />
+
           {/* Recruiter Section - Upload and Folder Management */}
           {effectiveTab === "recruiter" && (
             <>
+              <div className="px-4 py-1 mt-1">
+                <p className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider px-3 mb-2">
+                  File Upload
+                </p>
+              </div>
               {/* Fixed Drop Files Section - Only show when expanded */}
               <div
                 className={`${
@@ -583,6 +591,11 @@ const SideNavBar = ({
                 }}
               />
 
+              <div className="px-4 pt-2 pb-1">
+                <p className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider px-3 mb-1">
+                  Folder Management
+                </p>
+              </div>
               <div
                 className={` ${
                   isCollapsed && "hidden"
@@ -685,71 +698,82 @@ const SideNavBar = ({
 
           {/* Candidate section - Navigation Links */}
           {effectiveTab === "candidate" && !isCollapsed && (
-            <div className="px-4 py-4 space-y-1">
-              {/* My Resume - Primary Action */}
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3 px-2">
-                Resume Management
-              </p>
-              <Link
-                href="/dashboard/my-resume"
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all duration-200 ${
-                  pathname === "/dashboard/my-resume"
-                    ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
-                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
-                }`}
-              >
-                <Upload className="h-4 w-4" />
-                My Resume
-              </Link>
-              <Link
-                href="/dashboard/resumes"
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all duration-200 ${
-                  pathname === "/dashboard/resumes"
-                    ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
-                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
-                }`}
-              >
-                <FileText className="h-4 w-4" />
-                Resume Builder
-              </Link>
+            <div className="px-4 py-1 space-y-3">
+              {/* Group 1: Resume Management */}
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider px-3 mb-1">
+                  Resume Management
+                </p>
+                <div className="space-y-0.5">
+                  <Link
+                    href="/dashboard/my-resume"
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-200 ${
+                      pathname === "/dashboard/my-resume"
+                        ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
+                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
+                    }`}
+                  >
+                    <Upload className="h-4 w-4" />
+                    My Resume
+                  </Link>
+                  <Link
+                    href="/dashboard/resumes"
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-200 ${
+                      pathname === "/dashboard/resumes"
+                        ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
+                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
+                    }`}
+                  >
+                    <FileText className="h-4 w-4" />
+                    Resume Builder
+                  </Link>
+                </div>
+              </div>
 
-              {/* LinkedIn Automation Section */}
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3 mt-6 px-2">
-                LinkedIn Automation
-              </p>
-              <Link
-                href="/dashboard/job-preferences"
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all duration-200 ${
-                  pathname === "/dashboard/job-preferences"
-                    ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
-                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
-                }`}
-              >
-                <Briefcase className="h-4 w-4" />
-                Job Preferences
-              </Link>
-              <Link
-                href="/dashboard/job-applications"
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all duration-200 ${
-                  pathname === "/dashboard/job-applications"
-                    ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
-                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
-                }`}
-              >
-                <Bot className="h-4 w-4" />
-                Job Applications
-              </Link>
-              <Link
-                href="/dashboard/ats-optimizer"
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all duration-200 ${
-                  pathname === "/dashboard/ats-optimizer"
-                    ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
-                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
-                }`}
-              >
-                <Target className="h-4 w-4" />
-                ATS Optimizer
-              </Link>
+              {/* Visible Divider */}
+              <div className="mx-2 border-t border-gray-200 dark:border-gray-800 my-1" />
+
+              {/* Group 2: LinkedIn Automation */}
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider px-3 mb-1">
+                  LinkedIn Automation
+                </p>
+                <div className="space-y-0.5">
+                  <Link
+                    href="/dashboard/job-preferences"
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-200 ${
+                      pathname === "/dashboard/job-preferences"
+                        ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
+                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
+                    }`}
+                  >
+                    <Briefcase className="h-4 w-4" />
+                    Job Preferences
+                  </Link>
+                  <Link
+                    href="/dashboard/job-applications"
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-200 ${
+                      pathname === "/dashboard/job-applications"
+                        ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
+                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
+                    }`}
+                  >
+                    <Bot className="h-4 w-4" />
+                    Job Applications
+                  </Link>
+                  <Link
+                    href="/dashboard/ats-optimizer"
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-200 ${
+                      pathname === "/dashboard/ats-optimizer"
+                        ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
+                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
+                    }`}
+                  >
+                    <Target className="h-4 w-4" />
+                    ATS Optimizer
+                  </Link>
+                </div>
+              </div>
             </div>
           )}
         </SidebarContent>
