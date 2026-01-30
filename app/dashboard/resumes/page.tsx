@@ -231,7 +231,7 @@ export default function ResumesPage() {
               ? exp.responsibilities.join("\n• ")
               : exp.description || exp.summary || "",
             url: { label: "", href: "" },
-          })
+          }),
         );
       }
 
@@ -267,7 +267,7 @@ export default function ResumesPage() {
             date: typeof cert === "string" ? "" : cert.date || "",
             summary: "",
             url: { label: "", href: "" },
-          })
+          }),
         );
       }
 
@@ -294,7 +294,7 @@ export default function ResumesPage() {
                   : `https://${proj.project_link}`
                 : "",
             },
-          })
+          }),
         );
       }
 
@@ -321,7 +321,7 @@ export default function ResumesPage() {
           data: resumeData,
           status: "draft",
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       toast.success("Resume imported from CV successfully!");
@@ -347,8 +347,8 @@ export default function ResumesPage() {
                   resumeLimit.current >= resumeLimit.max
                     ? "bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400"
                     : resumeLimit.current >= resumeLimit.max - 1
-                    ? "bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                    : "bg-muted text-muted-foreground"
+                      ? "bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                      : "bg-muted text-muted-foreground"
                 }`}
               >
                 {resumeLimit.current}/{resumeLimit.max} used
@@ -362,11 +362,9 @@ export default function ResumesPage() {
             )}
           </div>
           <p className="text-muted-foreground text-sm mt-0.5">
-            {resumeLimit &&
-            !resumeLimit.isPremium &&
-            resumeLimit.current >= resumeLimit.max
-              ? "Upgrade to premium for unlimited resumes"
-              : "Create and manage your professional resumes"}
+            Build and manage multiple professional resumes. Use our AI-powered
+            builder to create ATS-optimized resumes from scratch or by importing
+            your master CV.
           </p>
         </div>
         <div className="flex gap-2">

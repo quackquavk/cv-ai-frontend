@@ -253,7 +253,9 @@ export default function JobPreferencesPage() {
         <div>
           <h2 className="text-lg font-semibold">Job Preferences</h2>
           <p className="text-sm text-muted-foreground">
-            Configure your LinkedIn automation settings
+            Define your career goals. Customize your job search criteria,
+            including positions, locations, and salary expectations, to guide
+            our AI-powered automation.
           </p>
         </div>
         <div className="flex gap-2">

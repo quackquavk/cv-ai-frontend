@@ -169,11 +169,11 @@ export default function MyResumePage() {
   const displayedFolderName = () => {
     if (!selectedFolderId) return "Select a folder...";
     const publicName = folderListData.find(
-      (item: any) => item.folder_id === selectedFolderId
+      (item: any) => item.folder_id === selectedFolderId,
     )?.folder_name;
     if (publicName) return publicName;
     const privateName = privateSubfolders.find(
-      (pf) => pf.folder_id === selectedFolderId
+      (pf) => pf.folder_id === selectedFolderId,
     )?.name;
     return privateName || "Unknown Folder";
   };
@@ -222,7 +222,7 @@ export default function MyResumePage() {
           {
             headers: { "Content-Type": "multipart/form-data" },
             withCredentials: true,
-          }
+          },
         );
 
         const jobId = response.data.job_id;
@@ -238,11 +238,11 @@ export default function MyResumePage() {
         const pollInterval = setInterval(async () => {
           try {
             const statusResponse = await axiosInstance.get(
-              `/document/bulk_upload_status/${jobId}`
+              `/document/bulk_upload_status/${jobId}`,
             );
             const job = statusResponse.data;
             const progress = Math.round(
-              (job.processed_count / job.total_files) * 100
+              (job.processed_count / job.total_files) * 100,
             );
 
             updateUploadFile?.(fileId, {
@@ -299,7 +299,7 @@ export default function MyResumePage() {
           {
             headers: { "Content-Type": "multipart/form-data" },
             withCredentials: true,
-          }
+          },
         );
 
         const jobId = response.data.job_id;
@@ -315,11 +315,11 @@ export default function MyResumePage() {
         const pollInterval = setInterval(async () => {
           try {
             const statusResponse = await axiosInstance.get(
-              `/document/bulk_upload_status/${jobId}`
+              `/document/bulk_upload_status/${jobId}`,
             );
             const job = statusResponse.data;
             const progress = Math.round(
-              (job.processed_count / job.total_files) * 100
+              (job.processed_count / job.total_files) * 100,
             );
 
             updateUploadFile?.(fileId, {
@@ -365,7 +365,7 @@ export default function MyResumePage() {
 
       if (error.response?.status === 429) {
         toast.error(
-          "Upload limit reached! Please upgrade to premium for unlimited uploads."
+          "Upload limit reached! Please upgrade to premium for unlimited uploads.",
         );
       } else {
         toast.error(error.response?.data?.detail || "Failed to upload CV");
@@ -436,15 +436,12 @@ export default function MyResumePage() {
 
   return (
     <div className="container mx-auto py-6 px-4">
-     
-
       {/* Page Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-2">My Resume</h1>
         <p className="text-muted-foreground">
-          {hasClaimedAnyCV
-            ? "Manage and update your CV"
-            : "Upload your CV to get started with job applications"}
+          Manage your master resume. Upload or replace your current CV here to
+          keep your profile up-to-date for manual and automated applications.
         </p>
       </div>
 
@@ -518,7 +515,10 @@ export default function MyResumePage() {
                   ? "border-primary bg-primary/5"
                   : "border-gray-300 dark:border-gray-600 hover:border-primary/50"
               } ${cvUploadLoader ? "pointer-events-none" : "cursor-pointer"}`}
-              onClick={() => !cvUploadLoader && document.getElementById("cv-file-input")?.click()}
+              onClick={() =>
+                !cvUploadLoader &&
+                document.getElementById("cv-file-input")?.click()
+              }
             >
               {cvUploadLoader ? (
                 // Loading state
@@ -611,7 +611,9 @@ export default function MyResumePage() {
 
                   <div>
                     <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="font-medium">{currentCVData.email || "N/A"}</p>
+                    <p className="font-medium">
+                      {currentCVData.email || "N/A"}
+                    </p>
                   </div>
 
                   {currentCVData.skills && currentCVData.skills.length > 0 && (
@@ -620,14 +622,16 @@ export default function MyResumePage() {
                         Top Skills
                       </p>
                       <div className="flex flex-wrap gap-1">
-                        {currentCVData.skills.slice(0, 5).map((skill: string, idx: number) => (
-                          <span
-                            key={idx}
-                            className="px-2 py-1 bg-muted text-xs rounded capitalize"
-                          >
-                            {skill}
-                          </span>
-                        ))}
+                        {currentCVData.skills
+                          .slice(0, 5)
+                          .map((skill: string, idx: number) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-1 bg-muted text-xs rounded capitalize"
+                            >
+                              {skill}
+                            </span>
+                          ))}
                         {currentCVData.skills.length > 5 && (
                           <span className="px-2 py-1 text-xs text-muted-foreground">
                             +{currentCVData.skills.length - 5} more
@@ -753,4 +757,3 @@ export default function MyResumePage() {
     </div>
   );
 }
-

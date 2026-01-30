@@ -37,6 +37,9 @@ export default function ATSOptimizerPage() {
   const [scoreResult, setScoreResult] = useState<ATSScoreResult | null>(null);
   const [scoring, setScoring] = useState(false);
   const [optimizing, setOptimizing] = useState(false);
+  const [optimizedResumeId, setOptimizedResumeId] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     checkClaimedCV();
@@ -69,7 +72,7 @@ export default function ATSOptimizerPage() {
   const handleCalculateScore = async () => {
     if (!jobPosting.trim() || jobPosting.trim().length < 50) {
       toast.error(
-        "Please paste a complete job posting (at least 50 characters)"
+        "Please paste a complete job posting (at least 50 characters)",
       );
       return;
     }
@@ -86,7 +89,7 @@ export default function ATSOptimizerPage() {
             description: jobPosting,
           },
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       setScoreResult(response.data);
@@ -94,7 +97,7 @@ export default function ATSOptimizerPage() {
     } catch (error: any) {
       console.error("Error calculating score:", error);
       toast.error(
-        error.response?.data?.detail || "Failed to calculate ATS score"
+        error.response?.data?.detail || "Failed to calculate ATS score",
       );
     } finally {
       setScoring(false);
@@ -114,25 +117,26 @@ export default function ATSOptimizerPage() {
           },
           target_score: 80,
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       const result: OptimizeResult = response.data;
+      setOptimizedResumeId(result.resume_id);
       toast.success(
-        `Resume optimized! Score: ${result.original_score} → ${result.optimized_score_estimate}`
+        `Resume optimized! Score: ${result.original_score} → ${result.optimized_score_estimate}`,
       );
 
-      // Open in new tab
+      // Attempt to open in new tab
       window.open(`/dashboard/resumes/${result.resume_id}`, "_blank");
     } catch (error: any) {
       console.error("Error optimizing resume:", error);
       if (error.response?.status === 429) {
         toast.error(
-          "Resume limit reached. Please upgrade or delete an existing resume."
+          "Resume limit reached. Please upgrade or delete an existing resume.",
         );
       } else {
         toast.error(
-          error.response?.data?.detail || "Failed to optimize resume"
+          error.response?.data?.detail || "Failed to optimize resume",
         );
       }
     } finally {
@@ -181,7 +185,9 @@ export default function ATSOptimizerPage() {
             ATS Optimizer
           </h1>
           <p className="text-muted-foreground mt-1">
-            Optimize your resume for any job posting
+            Perfect your resume for any role. Paste a job description to analyze
+            how well your resume matches and get AI-driven improvements to boost
+            your ATS score.
           </p>
         </div>
 
@@ -242,7 +248,7 @@ export default function ATSOptimizerPage() {
               <h2 className="font-semibold">Your ATS Score</h2>
               <div
                 className={`${getScoreBg(
-                  scoreResult.overall_score
+                  scoreResult.overall_score,
                 )} text-white px-4 py-2 rounded-full font-bold`}
               >
                 {scoreResult.overall_score}/100
@@ -313,10 +319,29 @@ export default function ATSOptimizerPage() {
                 ) : (
                   <>
                     <Zap className="h-4 w-4 mr-2" />
-                    Create Optimized Resume
+                    Re-optimize Resume
                   </>
                 )}
               </Button>
+              {optimizedResumeId && (
+                <div className="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-md text-center">
+                  <p className="text-sm font-medium mb-2">
+                    Optimization complete!
+                  </p>
+                  <Button
+                    variant="link"
+                    className="h-auto p-0 text-primary font-semibold"
+                    onClick={() =>
+                      window.open(
+                        `/dashboard/resumes/${optimizedResumeId}`,
+                        "_blank",
+                      )
+                    }
+                  >
+                    If it didn't redirect, click here to view your resume
+                  </Button>
+                </div>
+              )}
               <p className="text-xs text-muted-foreground text-center mt-2">
                 AI will add missing keywords and improve your content
               </p>

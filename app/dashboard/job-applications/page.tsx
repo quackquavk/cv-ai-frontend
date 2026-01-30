@@ -34,7 +34,7 @@ export default function JobApplicationsPage() {
   const [starting, setStarting] = useState(false);
   const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(
-    null
+    null,
   );
   const [loading, setLoading] = useState(true);
 
@@ -56,7 +56,7 @@ export default function JobApplicationsPage() {
       try {
         const response = await axiosInstance.get(
           `/linkedin_bot/session/${activeSession.session_id}/status`,
-          { withCredentials: true }
+          { withCredentials: true },
         );
         setActiveSession(response.data);
 
@@ -97,7 +97,7 @@ export default function JobApplicationsPage() {
       });
       const sessions = response.data.sessions || [];
       const active = sessions.find(
-        (s: ActiveSession) => s.status === "running" || s.status === "pending"
+        (s: ActiveSession) => s.status === "running" || s.status === "pending",
       );
       setActiveSession(active || null);
     } catch (error) {
@@ -111,7 +111,7 @@ export default function JobApplicationsPage() {
       const response = await axiosInstance.post(
         "/linkedin_bot/session/start",
         {},
-        { withCredentials: true }
+        { withCredentials: true },
       );
       setActiveSession(response.data);
       toast.success("Job application session started!");
@@ -147,7 +147,9 @@ export default function JobApplicationsPage() {
         <div>
           <h2 className="text-lg font-semibold">Job Applications</h2>
           <p className="text-sm text-muted-foreground">
-            Track your automated LinkedIn applications
+            Monitor your job search progress. Track all automated applications
+            sent on your behalf, check daily limits, and view real-time status
+            updates.
           </p>
         </div>
 

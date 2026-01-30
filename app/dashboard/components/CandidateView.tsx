@@ -171,7 +171,7 @@ const CandidateView = () => {
   const fetchAvailabilityData = async (documentId: string) => {
     try {
       const response = await axiosInstance.get(
-        `/cv_document/getAvailability/${documentId}`
+        `/cv_document/getAvailability/${documentId}`,
       );
       setInputData((prev) => ({
         ...response.data,
@@ -190,7 +190,7 @@ const CandidateView = () => {
         {},
         {
           withCredentials: true,
-        }
+        },
       );
 
       toast.success("CV claimed successfully!");
@@ -211,7 +211,7 @@ const CandidateView = () => {
         {},
         {
           withCredentials: true,
-        }
+        },
       );
 
       toast.success("CV claimed successfully!");
@@ -246,7 +246,7 @@ const CandidateView = () => {
         toast.info("No claimable CV available at the moment");
       } else {
         toast.error(
-          error.response?.data?.detail || "Failed to get claimable CV"
+          error.response?.data?.detail || "Failed to get claimable CV",
         );
       }
     } finally {
@@ -275,7 +275,7 @@ const CandidateView = () => {
         {
           headers: { "Content-Type": "multipart/form-data" },
           withCredentials: true,
-        }
+        },
       );
 
       toast.success("CV uploaded successfully!");
@@ -379,7 +379,7 @@ const CandidateView = () => {
       setLoader(true);
       const response = await axiosInstance.put(
         `/cv_document/updateAvailability`,
-        body
+        body,
       );
 
       if (
@@ -549,11 +549,11 @@ const CandidateView = () => {
                 )}
               </Button>
               <Button
-              onClick={()=>{
-                router.push("/dashboard/resumes")
-              }}
-              disabled={loader}
-              className="w-full bg-black dark:bg-black dark:border-2 dark:border-gray-500 text-white dark:text-white"
+                onClick={() => {
+                  router.push("/dashboard/resumes");
+                }}
+                disabled={loader}
+                className="w-full bg-black dark:bg-black dark:border-2 dark:border-gray-500 text-white dark:text-white"
               >
                 {loader ? (
                   <LoaderCircle className="h-5 w-5 animate-spin " />
@@ -754,6 +754,18 @@ const CandidateView = () => {
       )} */}
 
       <Card className="h-full w-full rounded-lg flex flex-col">
+        {/* Page Header */}
+        <div className="px-6 pt-6 -mb-2">
+          <h1 className="text-2xl font-bold mb-1 font-sans">
+            Candidate Profile
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            View and manage your AI-parsed professional profile. This
+            information is used to match you with job opportunities and fill out
+            applications.
+          </p>
+        </div>
+
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto scrollbar-thin p-6 pb-0">
           <div className="flex flex-col gap-4">
@@ -951,7 +963,7 @@ const CandidateView = () => {
                                   {resp}
                                 </span>
                               </span>
-                            )
+                            ),
                           )}
                         </div>
                       )}
@@ -1008,7 +1020,7 @@ const CandidateView = () => {
                                 >
                                   {lang}
                                 </Card>
-                              )
+                              ),
                             )}
                           </div>
                         )}
@@ -1018,7 +1030,7 @@ const CandidateView = () => {
                           </p>
                         )}
                       </div>
-                    )
+                    ),
                   )}
                 </div>
               </div>
