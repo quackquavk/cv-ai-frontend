@@ -522,11 +522,6 @@ const SideNavBar = ({
           {/* Recruiter Section - Upload and Folder Management */}
           {effectiveTab === "recruiter" && (
             <>
-              <div className="px-4 py-1 mt-1">
-                <p className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider px-3 mb-2">
-                  File Upload
-                </p>
-              </div>
               {/* Fixed Drop Files Section - Only show when expanded */}
               <div
                 className={`${
@@ -590,12 +585,7 @@ const SideNavBar = ({
                   toast.success("Folder refreshed");
                 }}
               />
-
-              <div className="px-4 pt-2 pb-1">
-                <p className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider px-3 mb-1">
-                  Folder Management
-                </p>
-              </div>
+             
               <div
                 className={` ${
                   isCollapsed && "hidden"
