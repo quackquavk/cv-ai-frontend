@@ -17,6 +17,17 @@ const isUrl = (href: string | undefined): boolean => {
   return href.startsWith("http://") || href.startsWith("https://");
 };
 
+// Helper: Normalize URL to ensure it has a protocol
+const normalizeUrl = (href: string | undefined): string => {
+  if (!href) return "";
+  const trimmed = href.trim();
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed;
+  }
+  // Add https:// prefix if missing
+  return `https://${trimmed}`;
+};
+
 // Onyx Template: Clean single-column layout - no sidebar
 export function OnyxTemplate({ data }: TemplateProps) {
   const { basics, sections, metadata } = data;
@@ -62,7 +73,7 @@ export function OnyxTemplate({ data }: TemplateProps) {
             <span>
               •{" "}
               <a
-                href={basics.url.href}
+                href={normalizeUrl(basics.url.href)}
                 className="hover:underline"
                 style={{ color: primaryColor }}
               >
@@ -80,7 +91,7 @@ export function OnyxTemplate({ data }: TemplateProps) {
               .map((profile) => (
                 <a
                   key={profile.id}
-                  href={profile.url?.href || "#"}
+                  href={normalizeUrl(profile.url?.href)}
                   className="text-sm hover:underline"
                   style={{ color: primaryColor }}
                 >
@@ -235,7 +246,7 @@ export function OnyxTemplate({ data }: TemplateProps) {
                       <span className="font-bold">
                         {isUrl(project.url?.href) ? (
                           <a
-                            href={project.url?.href}
+                            href={normalizeUrl(project.url?.href)}
                             className="hover:underline"
                             style={{ color: primaryColor }}
                           >

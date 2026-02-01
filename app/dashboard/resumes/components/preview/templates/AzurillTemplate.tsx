@@ -50,6 +50,17 @@ const isUrl = (href: string | undefined): boolean => {
   }
 };
 
+// Helper: Normalize URL to ensure it has a protocol
+const normalizeUrl = (href: string | undefined): string => {
+  if (!href) return "";
+  const trimmed = href.trim();
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed;
+  }
+  // Add https:// prefix if missing
+  return `https://${trimmed}`;
+};
+
 // Helper: Check if string is empty
 const isEmptyString = (str: string | undefined): boolean => {
   return !str || str.trim().length === 0;
@@ -92,9 +103,11 @@ const Link = ({
 }) => {
   if (!isUrl(href)) return null;
 
+  const normalizedHref = normalizeUrl(href);
+
   return (
     <a
-      href={href}
+      href={normalizedHref}
       target="_blank"
       rel="noreferrer noopener nofollow"
       className={cn("hover:underline", className)}

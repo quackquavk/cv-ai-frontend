@@ -12,6 +12,17 @@ const isEmptyString = (str: string | undefined): boolean =>
 const isUrl = (href: string | undefined): boolean =>
   href?.startsWith("http") || false;
 
+// Helper: Normalize URL to ensure it has a protocol
+const normalizeUrl = (href: string | undefined): string => {
+  if (!href) return "";
+  const trimmed = href.trim();
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed;
+  }
+  // Add https:// prefix if missing
+  return `https://${trimmed}`;
+};
+
 // Pikachu Template: Photo in sidebar, header in main column
 export function PikachuTemplate({ data }: TemplateProps) {
   const { basics, sections, metadata } = data;
@@ -84,7 +95,7 @@ export function PikachuTemplate({ data }: TemplateProps) {
           {basics.url?.href && (
             <div className="flex items-center gap-2">
               <span style={{ color: primaryColor }}>🔗</span>
-              <a href={basics.url.href} className="break-all hover:underline">
+              <a href={normalizeUrl(basics.url.href)} className="break-all hover:underline">
                 {basics.url.label || "Website"}
               </a>
             </div>
@@ -188,7 +199,7 @@ export function PikachuTemplate({ data }: TemplateProps) {
                   <div key={profile.id}>
                     <span className="font-medium">{profile.network}:</span>{" "}
                     <a
-                      href={profile.url?.href || "#"}
+                      href={normalizeUrl(profile.url?.href)}
                       className="hover:underline"
                     >
                       {profile.username}
@@ -325,7 +336,7 @@ export function PikachuTemplate({ data }: TemplateProps) {
                       <div className="font-bold">
                         {isUrl(project.url?.href) ? (
                           <a
-                            href={project.url?.href}
+                            href={normalizeUrl(project.url?.href)}
                             className="hover:underline"
                             style={{ color: primaryColor }}
                           >

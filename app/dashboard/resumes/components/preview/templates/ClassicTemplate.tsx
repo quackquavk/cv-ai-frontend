@@ -6,6 +6,18 @@ interface ClassicTemplateProps {
   data: ResumeData;
 }
 
+// Helper: Normalize URL to ensure it has a protocol
+const normalizeUrl = (href: string | undefined): string => {
+  if (!href) return "";
+  const trimmed = href.trim();
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed;
+  }
+  // Add https:// prefix if missing
+  return `https://${trimmed}`;
+};
+
+
 export function ClassicTemplate({ data }: ClassicTemplateProps) {
   const { basics, sections, metadata } = data;
 
@@ -60,7 +72,7 @@ export function ClassicTemplate({ data }: ClassicTemplateProps) {
             <span>
               •{" "}
               <a
-                href={basics.url.href}
+                href={normalizeUrl(basics.url.href)}
                 style={{
                   textDecoration: underlineLinks ? "underline" : "none",
                 }}
@@ -78,7 +90,7 @@ export function ClassicTemplate({ data }: ClassicTemplateProps) {
               .map((profile) => (
                 <a
                   key={profile.id}
-                  href={profile.url.href}
+                  href={normalizeUrl(profile.url.href)}
                   style={{
                     color: primaryColor,
                     textDecoration: underlineLinks ? "underline" : "none",
