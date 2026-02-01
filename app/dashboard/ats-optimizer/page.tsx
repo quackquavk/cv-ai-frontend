@@ -126,8 +126,8 @@ export default function ATSOptimizerPage() {
         `Resume optimized! Score: ${result.original_score} → ${result.optimized_score_estimate}`,
       );
 
-      // Attempt to open in new tab
-      window.open(`/dashboard/resumes/${result.resume_id}`, "_blank");
+      // Redirect to the optimized resume
+      router.push(`/dashboard/resumes/${result.resume_id}`);
     } catch (error: any) {
       console.error("Error optimizing resume:", error);
       if (error.response?.status === 429) {
@@ -332,13 +332,10 @@ export default function ATSOptimizerPage() {
                     variant="link"
                     className="h-auto p-0 text-primary font-semibold"
                     onClick={() =>
-                      window.open(
-                        `/dashboard/resumes/${optimizedResumeId}`,
-                        "_blank",
-                      )
+                      router.push(`/dashboard/resumes/${optimizedResumeId}`)
                     }
                   >
-                    If it didn't redirect, click here to view your resume
+                    Click here to view your optimized resume
                   </Button>
                 </div>
               )}

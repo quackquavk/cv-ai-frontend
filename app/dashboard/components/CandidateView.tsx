@@ -455,7 +455,7 @@ const CandidateView = () => {
 
   if (!hasClaimed || !data) {
     return (
-      <div className="flex items-center justify-center h-full relative">
+      <div className="flex items-center justify-center min-h-full relative">
         {/* Sidebar Toggle Button */}
         {/* <Button
           variant="outline"
@@ -492,9 +492,8 @@ const CandidateView = () => {
                   onDragLeave={handleDragLeave}
                   onDragOver={handleDragOver}
                   onClick={() => fileInputRef.current?.click()}
-                  className={`relative flex flex-col cursor-pointer items-center justify-center h-28 border-2 border-dashed border-gray-300 dark:border-gray-600 p-3 rounded-md transition-all duration-300 ${
-                    isDragging ? "opacity-50 bg-gray-100 dark:bg-gray-800" : ""
-                  }`}
+                  className={`relative flex flex-col cursor-pointer items-center justify-center h-28 border-2 border-dashed border-gray-300 dark:border-gray-600 p-3 rounded-md transition-all duration-300 ${isDragging ? "opacity-50 bg-gray-100 dark:bg-gray-800" : ""
+                    }`}
                 >
                   <Upload className="h-5 w-5 text-gray-400 mb-1" />
                   <p className="text-xs text-center text-gray-600 dark:text-gray-400">
@@ -521,7 +520,7 @@ const CandidateView = () => {
         )}
 
         {!claimableCV ? (
-          <Card className="p-8 max-w-md text-center">
+          <Card className="p-8 max-w-md mx-auto text-center">
             <h2 className="text-2xl font-bold mb-4">Claim Your CV</h2>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
               You haven't claimed a CV yet. Find a claimable CV below or upload
@@ -564,7 +563,7 @@ const CandidateView = () => {
             </div>
           </Card>
         ) : (
-          <Card className="p-8 max-w-lg">
+          <Card className="p-8 max-w-lg mx-auto">
             <h2 className="text-2xl font-bold mb-4 text-center">
               Claimable CV Found
             </h2>
@@ -870,9 +869,8 @@ const CandidateView = () => {
                 <ContactQRCode
                   contact={{
                     fullName: data?.name
-                      ? `${toTitleCase(data.name)} (${
-                          toTitleCase(data?.position) || ""
-                        })`
+                      ? `${toTitleCase(data.name)} (${toTitleCase(data?.position) || ""
+                      })`
                       : "",
                     phone: data?.phone_number || "",
                     address: data?.address || "",
@@ -997,11 +995,10 @@ const CandidateView = () => {
                                   ? Array.isArray(project.project_link)
                                     ? project.project_link[0]
                                     : project.project_link
-                                  : `https://${
-                                      Array.isArray(project.project_link)
-                                        ? project.project_link[0]
-                                        : project.project_link
-                                    }`
+                                  : `https://${Array.isArray(project.project_link)
+                                    ? project.project_link[0]
+                                    : project.project_link
+                                  }`
                               }
                               target="_blank"
                               className="hover:opacity-50"
@@ -1181,11 +1178,10 @@ const CandidateView = () => {
                 <div className="w-20 relative">
                   <Label
                     htmlFor="currentSalary"
-                    className={`absolute left-2 px-1 text-xs font-medium transition-all duration-200 ${
-                      inputData.current_salary !== null
-                        ? "-top-1.5 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300"
-                        : "top-2 text-gray-500 dark:text-gray-400"
-                    }`}
+                    className={`absolute left-2 px-1 text-xs font-medium transition-all duration-200 ${inputData.current_salary !== null
+                      ? "-top-1.5 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300"
+                      : "top-2 text-gray-500 dark:text-gray-400"
+                      }`}
                   >
                     Current
                   </Label>
@@ -1208,11 +1204,10 @@ const CandidateView = () => {
                 <div className="w-20 relative">
                   <Label
                     htmlFor="estimatedSalary"
-                    className={`absolute left-2 px-1 text-xs font-medium transition-all duration-200 ${
-                      inputData.estimated_salary !== null
-                        ? "-top-1.5 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300"
-                        : "top-2 text-gray-500 dark:text-gray-400"
-                    }`}
+                    className={`absolute left-2 px-1 text-xs font-medium transition-all duration-200 ${inputData.estimated_salary !== null
+                      ? "-top-1.5 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300"
+                      : "top-2 text-gray-500 dark:text-gray-400"
+                      }`}
                   >
                     Expected
                   </Label>

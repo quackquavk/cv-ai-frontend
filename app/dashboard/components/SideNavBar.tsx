@@ -76,7 +76,7 @@ const SideNavBar = ({
   isCollapsed,
   onCollapsedChange,
   isMobile = false,
-  onMobileClose = () => {},
+  onMobileClose = () => { },
   width: externalWidth,
   onWidthChange,
   onResizingChange,
@@ -512,9 +512,8 @@ const SideNavBar = ({
         </SidebarHeader>
 
         <SidebarContent
-          className={` ${
-            isCollapsed && "hidden"
-          } flex flex-col flex-1 overflow-y-auto overflow-x-hidden scrollbar-custom`}
+          className={` ${isCollapsed && "hidden"
+            } flex flex-col flex-1 overflow-y-auto overflow-x-hidden scrollbar-custom`}
         >
           {/* Main Divider Top */}
           <div className="h-px bg-gray-200 dark:bg-gray-800 mt-1 mb-3 mx-4" />
@@ -524,18 +523,16 @@ const SideNavBar = ({
             <>
               {/* Fixed Drop Files Section - Only show when expanded */}
               <div
-                className={`${
-                  isCollapsed && "hidden"
-                } w-full px-4 pt-0 sticky top-0 z-10`}
+                className={`${isCollapsed && "hidden"
+                  } w-full px-4 pt-0 sticky top-0 z-10`}
               >
                 <div
                   onDrop={handleDrop}
                   onDragEnter={handleDragEnter}
                   onDragLeave={handleDragLeave}
                   onDragOver={handleDragOver}
-                  className={`relative flex flex-col items-center justify-center border-2 border-dashed border-gray-800 dark:border-white p-4 pb-6 rounded-md transition-all duration-300 ease-in-out ${
-                    isDragging ? "opacity-50 backdrop-blur-sm" : "opacity-100"
-                  }`}
+                  className={`relative flex flex-col items-center justify-center border-2 border-dashed border-gray-800 dark:border-white p-4 pb-6 rounded-md transition-all duration-300 ease-in-out ${isDragging ? "opacity-50 backdrop-blur-sm" : "opacity-100"
+                    }`}
                 >
                   <div
                     onClick={() =>
@@ -585,11 +582,10 @@ const SideNavBar = ({
                   toast.success("Folder refreshed");
                 }}
               />
-             
+
               <div
-                className={` ${
-                  isCollapsed && "hidden"
-                } w-full px-4 py-4 sticky top-[120px] z-10 flex items-center gap-2`}
+                className={` ${isCollapsed && "hidden"
+                  } w-full px-4 py-4 sticky top-[120px] z-10 flex items-center gap-2`}
               >
                 <Select
                   value={localFolderId || ""}
@@ -649,9 +645,8 @@ const SideNavBar = ({
 
               {/* Fixed Folder Creation - Only show for recruiter when expanded */}
               <div
-                className={`${
-                  isCollapsed && "hidden"
-                } w-full px-4 sticky top-[180px] z-10`}
+                className={`${isCollapsed && "hidden"
+                  } w-full px-4 sticky top-[180px] z-10`}
               >
                 <FolderCreation
                   onFolderCreated={handleFolderCreated}
@@ -661,9 +656,8 @@ const SideNavBar = ({
 
               {/* Scrollable Folder List - Only show for recruiter when expanded */}
               <div
-                className={`${
-                  isCollapsed && "hidden"
-                } w-full px-4 flex-1 overflow-y-auto overflow-x-hidden mt-4 scrollbar-custom`}
+                className={`${isCollapsed && "hidden"
+                  } w-full px-4 flex-1 overflow-y-auto overflow-x-hidden mt-4 scrollbar-custom`}
               >
                 {isFolderListOpen && displayFolder && (
                   <div className="flex flex-col">
@@ -697,22 +691,20 @@ const SideNavBar = ({
                 <div className="space-y-0.5">
                   <Link
                     href="/dashboard/my-resume"
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-200 ${
-                      pathname === "/dashboard/my-resume"
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-200 ${pathname === "/dashboard/my-resume"
                         ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
                         : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
-                    }`}
+                      }`}
                   >
                     <Upload className="h-4 w-4" />
                     My Resume
                   </Link>
                   <Link
                     href="/dashboard/resumes"
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-200 ${
-                      pathname === "/dashboard/resumes"
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-200 ${pathname === "/dashboard/resumes"
                         ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
                         : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
-                    }`}
+                      }`}
                   >
                     <FileText className="h-4 w-4" />
                     Resume Builder
@@ -731,33 +723,30 @@ const SideNavBar = ({
                 <div className="space-y-0.5">
                   <Link
                     href="/dashboard/job-preferences"
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-200 ${
-                      pathname === "/dashboard/job-preferences"
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-200 ${pathname === "/dashboard/job-preferences"
                         ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
                         : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
-                    }`}
+                      }`}
                   >
                     <Briefcase className="h-4 w-4" />
                     Job Preferences
                   </Link>
                   <Link
                     href="/dashboard/job-applications"
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-200 ${
-                      pathname === "/dashboard/job-applications"
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-200 ${pathname === "/dashboard/job-applications"
                         ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
                         : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
-                    }`}
+                      }`}
                   >
                     <Bot className="h-4 w-4" />
                     Job Applications
                   </Link>
                   <Link
                     href="/dashboard/ats-optimizer"
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-200 ${
-                      pathname === "/dashboard/ats-optimizer"
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-200 ${pathname === "/dashboard/ats-optimizer"
                         ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
                         : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
-                    }`}
+                      }`}
                   >
                     <Target className="h-4 w-4" />
                     ATS Optimizer
@@ -783,18 +772,16 @@ const SideNavBar = ({
         {/* Fixed Profile and Settings Section */}
         <SidebarFooter className="sticky bottom-0 z-10 pb-6 pt-2 px-4 p-3 w-full">
           <Card
-            className={`w-full flex items-center px-2 justify-between ${
-              isCollapsed && " border-none"
-            }`}
+            className={`w-full flex items-center px-2 justify-between ${isCollapsed && " border-none"
+              }`}
           >
             {/* Profile Section - Click to go to settings */}
             {isAuthenticated ? (
               <Link
                 href="../../user/setting"
                 onClick={() => setIsPageLoading(true)}
-                className={`flex items-center w-[80%] ${
-                  isCollapsed ? "justify-center" : "space-x-3 md:rounded-md"
-                } cursor-pointer p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md`}
+                className={`flex items-center w-[80%] ${isCollapsed ? "justify-center" : "space-x-3 md:rounded-md"
+                  } cursor-pointer p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md`}
               >
                 <Avatar>
                   {loading ? (
@@ -857,11 +844,10 @@ const SideNavBar = ({
       {!isCollapsed && !isMobile && (
         <div
           onMouseDown={handleMouseDown}
-          className={`absolute top-0 -right-0.5 w-1.5 h-full cursor-col-resize z-50 transition-all duration-300 ${
-            isResizing
+          className={`absolute top-0 -right-0.5 w-1.5 h-full cursor-col-resize z-50 transition-all duration-300 ${isResizing
               ? "bg-primary/40"
               : "bg-transparent hover:bg-primary/20 hover:w-2"
-          }`}
+            }`}
           title="Drag to resize"
         />
       )}
