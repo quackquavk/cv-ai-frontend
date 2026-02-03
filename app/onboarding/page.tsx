@@ -108,7 +108,9 @@ const OnboardingPage = () => {
     note: "",
   });
 
-  const totalSteps = 4; // 0: Referral, 1: Role, 2: Upload/Plan, 3: Availability (Candidate only)
+  // Recruiters have 3 steps (0: Referral, 1: Role, 2: Plan)
+  // Candidates have 4 steps (0: Referral, 1: Role, 2: Upload, 3: Availability)
+  const totalSteps = onboardingData.userRole === "recruiter" ? 3 : 4;
 
   // Redirect if not authenticated or already onboarded
   useEffect(() => {
@@ -153,7 +155,7 @@ const OnboardingPage = () => {
             "/cv-claim/get_claimable_cv",
             {
               withCredentials: true,
-            }
+            },
           );
           if (response.data && response.data._id) {
             setClaimableCV(response.data);
@@ -187,7 +189,7 @@ const OnboardingPage = () => {
           user_role: onboardingData.userRole,
           referral_source: onboardingData.referralSource || null,
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       const response = await axiosInstance.post(
@@ -198,7 +200,7 @@ const OnboardingPage = () => {
           success_url: window.location.origin + "/dashboard",
           cancel_url: window.location.origin + "/onboarding",
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       if (response.data.checkout_url) {
@@ -207,7 +209,7 @@ const OnboardingPage = () => {
     } catch (error: any) {
       console.error("Purchase error:", error);
       toast.error(
-        error.response?.data?.detail || "Failed to initiate purchase"
+        error.response?.data?.detail || "Failed to initiate purchase",
       );
     }
   };
@@ -262,7 +264,7 @@ const OnboardingPage = () => {
         {
           headers: { "Content-Type": "multipart/form-data" },
           withCredentials: true,
-        }
+        },
       );
 
       if (response.data.document_ids && response.data.document_ids.length > 0) {
@@ -288,7 +290,7 @@ const OnboardingPage = () => {
       await axiosInstance.post(
         `/cv-claim/claim?document_id=${claimableCV._id}`,
         {},
-        { withCredentials: true }
+        { withCredentials: true },
       );
       setHasClaimed(true);
       setDocumentId(claimableCV._id);
@@ -321,7 +323,7 @@ const OnboardingPage = () => {
               : Number(availabilityData.estimated_salary),
           star_rating: null, // Not setting rating here
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
       // Proceed to complete onboarding
       await completeOnboarding();
@@ -366,7 +368,7 @@ const OnboardingPage = () => {
           user_role: onboardingData.userRole,
           referral_source: onboardingData.referralSource || null,
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       if (refreshUser) {
@@ -407,9 +409,9 @@ const OnboardingPage = () => {
       // logic: if claimed or file uploaded, move to 3. If nothing, can we skip?
       // Original code said "You can skip this and upload later".
       setCurrentStep(3);
-    } else {
-      // Recruiter flow - shouldn't happen here as Recruiter UI is different
-      handleNext();
+    } else if (onboardingData.userRole === "recruiter") {
+      // Recruiter flow ends at step 2 (plan selection) - complete onboarding
+      await completeOnboarding();
     }
   };
 
@@ -456,7 +458,7 @@ const OnboardingPage = () => {
         {/* Progress */}
         <div className="mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
-            {[0, 1, 2].map((step) => (
+            {Array.from({ length: totalSteps }, (_, step) => (
               <div key={step} className="flex items-center">
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
@@ -473,7 +475,7 @@ const OnboardingPage = () => {
                     step + 1
                   )}
                 </div>
-                {step < 2 && (
+                {step < totalSteps - 1 && (
                   <div
                     className={`w-12 h-0.5 mx-1 ${
                       step < currentStep ? "bg-primary" : "bg-muted"
