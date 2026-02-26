@@ -80,6 +80,7 @@ interface IAvailability {
     count: number;
   };
   has_rated: boolean;
+  ready_to_work: boolean;
 }
 
 const CandidateView = () => {
@@ -113,6 +114,7 @@ const CandidateView = () => {
       count: 0,
     },
     has_rated: false,
+    ready_to_work: false,
   });
 
   useEffect(() => {
@@ -373,6 +375,7 @@ const CandidateView = () => {
       },
       has_rated: inputData.has_rated,
       note: inputData.note,
+      ready_to_work: inputData.ready_to_work,
     };
 
     try {
@@ -429,6 +432,7 @@ const CandidateView = () => {
           count: 0,
         },
         has_rated: false,
+        ready_to_work: false,
       });
     } catch (error: any) {
       console.error("Error deleting CV:", error);
@@ -492,8 +496,9 @@ const CandidateView = () => {
                   onDragLeave={handleDragLeave}
                   onDragOver={handleDragOver}
                   onClick={() => fileInputRef.current?.click()}
-                  className={`relative flex flex-col cursor-pointer items-center justify-center h-28 border-2 border-dashed border-gray-300 dark:border-gray-600 p-3 rounded-md transition-all duration-300 ${isDragging ? "opacity-50 bg-gray-100 dark:bg-gray-800" : ""
-                    }`}
+                  className={`relative flex flex-col cursor-pointer items-center justify-center h-28 border-2 border-dashed border-gray-300 dark:border-gray-600 p-3 rounded-md transition-all duration-300 ${
+                    isDragging ? "opacity-50 bg-gray-100 dark:bg-gray-800" : ""
+                  }`}
                 >
                   <Upload className="h-5 w-5 text-gray-400 mb-1" />
                   <p className="text-xs text-center text-gray-600 dark:text-gray-400">
@@ -869,8 +874,9 @@ const CandidateView = () => {
                 <ContactQRCode
                   contact={{
                     fullName: data?.name
-                      ? `${toTitleCase(data.name)} (${toTitleCase(data?.position) || ""
-                      })`
+                      ? `${toTitleCase(data.name)} (${
+                          toTitleCase(data?.position) || ""
+                        })`
                       : "",
                     phone: data?.phone_number || "",
                     address: data?.address || "",
@@ -995,10 +1001,11 @@ const CandidateView = () => {
                                   ? Array.isArray(project.project_link)
                                     ? project.project_link[0]
                                     : project.project_link
-                                  : `https://${Array.isArray(project.project_link)
-                                    ? project.project_link[0]
-                                    : project.project_link
-                                  }`
+                                  : `https://${
+                                      Array.isArray(project.project_link)
+                                        ? project.project_link[0]
+                                        : project.project_link
+                                    }`
                               }
                               target="_blank"
                               className="hover:opacity-50"
@@ -1077,7 +1084,29 @@ const CandidateView = () => {
 
         {/* Availability Section - Fixed at bottom */}
         <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-3 sticky bottom-0 z-10 shadow-md">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            {/* Status */}
+            <div className="flex items-center justify-between sm:justify-start sm:flex-col sm:items-start gap-2">
+              <span className="text-xs text-gray-500 uppercase tracking-wide">
+                Status
+              </span>
+              <div className="flex items-center gap-2 h-[36px]">
+                <Switch
+                  id="ready-to-work"
+                  checked={inputData.ready_to_work || false}
+                  onCheckedChange={(checked) =>
+                    setInputData({ ...inputData, ready_to_work: checked })
+                  }
+                />
+                <Label
+                  htmlFor="ready-to-work"
+                  className="text-xs font-medium cursor-pointer whitespace-nowrap"
+                >
+                  Ready to Work
+                </Label>
+              </div>
+            </div>
+
             {/* Rating */}
             <div className="flex items-center justify-between sm:justify-start sm:flex-col sm:items-start gap-2">
               <span className="text-xs text-gray-500 uppercase tracking-wide">
@@ -1178,10 +1207,11 @@ const CandidateView = () => {
                 <div className="w-20 relative">
                   <Label
                     htmlFor="currentSalary"
-                    className={`absolute left-2 px-1 text-xs font-medium transition-all duration-200 ${inputData.current_salary !== null
-                      ? "-top-1.5 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300"
-                      : "top-2 text-gray-500 dark:text-gray-400"
-                      }`}
+                    className={`absolute left-2 px-1 text-xs font-medium transition-all duration-200 ${
+                      inputData.current_salary !== null
+                        ? "-top-1.5 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300"
+                        : "top-2 text-gray-500 dark:text-gray-400"
+                    }`}
                   >
                     Current
                   </Label>
@@ -1204,10 +1234,11 @@ const CandidateView = () => {
                 <div className="w-20 relative">
                   <Label
                     htmlFor="estimatedSalary"
-                    className={`absolute left-2 px-1 text-xs font-medium transition-all duration-200 ${inputData.estimated_salary !== null
-                      ? "-top-1.5 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300"
-                      : "top-2 text-gray-500 dark:text-gray-400"
-                      }`}
+                    className={`absolute left-2 px-1 text-xs font-medium transition-all duration-200 ${
+                      inputData.estimated_salary !== null
+                        ? "-top-1.5 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300"
+                        : "top-2 text-gray-500 dark:text-gray-400"
+                    }`}
                   >
                     Expected
                   </Label>
