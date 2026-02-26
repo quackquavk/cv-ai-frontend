@@ -108,7 +108,7 @@ export async function generateMetadata({
         locale: 'en_US',
         images: [
           {
-            url: `${baseUrl}/assets/logo.png`,
+            url: `${baseUrl}/assets/logo.webp`,
             width: 1200,
             height: 630,
             alt: `${formattedName} - Professional CV`,
@@ -121,7 +121,7 @@ export async function generateMetadata({
         title,
         description,
         creator: '@cvai',
-        images: [`${baseUrl}/assets/logo.png`],
+        images: [`${baseUrl}/assets/logo.webp`],
       },
       
       alternates: {

@@ -237,7 +237,7 @@ export const FonePayPayment = ({ subscriptionData }: FonePayPaymentProps) => {
             <div className="text-center">
               <Image
                 className="h-10 w-32 mx-auto"
-                src={`/assets/fonePay.png`}
+                src={`/assets/fonePay.webp`}
                 alt="fonePayImg"
                 height={40}
                 width={128}

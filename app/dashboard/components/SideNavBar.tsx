@@ -483,14 +483,14 @@ const SideNavBar = ({
             <div className="flex items-center px-4 justify-center w-full">
               <div className="w-40">
                 <Image
-                  src="/assets/resumeai_logo_black.png"
+                  src="/assets/resumeai_logo_black.webp"
                   alt="logo"
                   width={600}
                   height={800}
                   className="block dark:hidden w-full h-auto"
                 />
                 <Image
-                  src="/assets/resumeai_logo.png"
+                  src="/assets/resumeai_logo.webp"
                   alt="logo"
                   width={600}
                   height={800}
@@ -502,7 +502,7 @@ const SideNavBar = ({
             <div className="w-full flex flex-col items-center justify-center pt-2">
               <div className="w-14">
                 <Image
-                  src="/assets/resumeai_logo_square.png"
+                  src="/assets/resumeai_logo_square.webp"
                   alt="logo"
                   width={600}
                   height={800}

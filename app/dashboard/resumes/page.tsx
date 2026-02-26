@@ -530,7 +530,7 @@ export default function ResumesPage() {
           <div className="py-4 space-y-4">
             <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50">
               <Image
-                src="/assets/logo.png"
+                src="/assets/logo.webp"
                 alt="Resume AI Logo"
                 width={48}
                 height={48}

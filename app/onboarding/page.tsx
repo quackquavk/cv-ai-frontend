@@ -445,7 +445,7 @@ const OnboardingPage = () => {
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl overflow-hidden">
               <Image
-                src="/assets/logo.png"
+                src="/assets/logo.webp"
                 alt="Resume AI"
                 width={40}
                 height={40}

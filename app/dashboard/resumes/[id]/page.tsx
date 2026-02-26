@@ -208,7 +208,7 @@ export default function ResumeEditorPage() {
           {/* Resume AI Branding */}
           <div className="flex items-center gap-2 pr-4 border-r">
             <Image
-              src="/assets/logo.png"
+              src="/assets/logo.webp"
               alt="Resume AI"
               width={28}
               height={28}
