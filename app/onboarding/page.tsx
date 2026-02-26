@@ -41,6 +41,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { freeFeatures, premiumFeatures } from "@/app/user/setting/constants";
 
 export type UserRole = "recruiter" | "candidate";
@@ -71,6 +72,7 @@ interface AvailabilityState {
   estimated_salary: number | "";
   paid_by: string;
   note: string;
+  ready_to_work: boolean;
 }
 
 const OnboardingPage = () => {
@@ -106,6 +108,7 @@ const OnboardingPage = () => {
     estimated_salary: "",
     paid_by: "",
     note: "",
+    ready_to_work: false,
   });
 
   // Recruiters have 3 steps (0: Referral, 1: Role, 2: Plan)
@@ -1014,6 +1017,25 @@ const OnboardingPage = () => {
                 </div>
 
                 <div className="grid gap-4">
+                  {/* Status */}
+                  <div className="flex items-center justify-between border rounded-lg p-4">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">Ready to Work</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Let recruiters know you are actively looking for jobs
+                      </p>
+                    </div>
+                    <Switch
+                      checked={availabilityData.ready_to_work}
+                      onCheckedChange={(val) =>
+                        setAvailabilityData((prev) => ({
+                          ...prev,
+                          ready_to_work: val,
+                        }))
+                      }
+                    />
+                  </div>
+
                   {/* Availability */}
                   <div className="space-y-2">
                     <Label>Where would you like to work?</Label>

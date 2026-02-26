@@ -478,34 +478,36 @@ const SideNavBar = ({
         )}
 
         {/* Fixed Header */}
-        <SidebarHeader className="sticky top-0 z-10 pt-1">
+        <SidebarHeader className="sticky top-0 z-10 pt-4 pb-2">
           {!isCollapsed ? (
-            <div className="flex items-center px-4 justify-center w-full gap-3">
-              <div className="w-14 rounded-full overflow-hidden">
+            <div className="flex items-center px-4 justify-center w-full">
+              <div className="w-40">
                 <Image
-                  src="/assets/logo.png"
+                  src="/assets/resumeai_logo_black.png"
                   alt="logo"
                   width={600}
                   height={800}
+                  className="block dark:hidden w-full h-auto"
+                />
+                <Image
+                  src="/assets/resumeai_logo.png"
+                  alt="logo"
+                  width={600}
+                  height={800}
+                  className="hidden dark:block w-full h-auto"
                 />
               </div>
-              <h1 className="text-2xl text-black dark:text-white font-semibold font-sans truncate min-w-0">
-                Resume AI
-              </h1>
             </div>
           ) : (
-            <div className="w-full flex flex-col gap-2 items-center justify-center">
-              <div className="w-14 rounded-full overflow-hidden">
+            <div className="w-full flex flex-col items-center justify-center pt-2">
+              <div className="w-14">
                 <Image
-                  src="/assets/logo.png"
+                  src="/assets/resumeai_logo_square.png"
                   alt="logo"
                   width={600}
                   height={800}
+                  className="w-full h-auto"
                 />
-              </div>
-              <div className="text-xl text-center text-black dark:text-white font-sans font-semibold">
-                <h1>CV</h1>
-                <h1>AI</h1>
               </div>
             </div>
           )}
