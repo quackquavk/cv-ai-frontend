@@ -2,7 +2,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Card } from "./ui/card";
 import { FaUser, FaPhoneAlt, FaLinkedin, FaGithub } from "react-icons/fa";
-import { Dot } from "lucide-react";
+import { Dot, Star } from "lucide-react";
 import { MdEmail } from "react-icons/md";
 import { IoLocation } from "react-icons/io5";
 import { IDocumentData } from "@/interfaces/DocumentData";
@@ -49,11 +49,11 @@ const ListView = ({ data, searchData }: ListViewProps) => {
   const hasMounted = useRef(false);
 
   const shouldRefetchDocuments = useDocumentStore(
-    (state) => state.shouldRefetchDocuments
+    (state) => state.shouldRefetchDocuments,
   );
 
   const setShouldRefetchDocuments = useDocumentStore(
-    (state) => state.setShouldRefetchDocuments
+    (state) => state.setShouldRefetchDocuments,
   );
 
   const fetchDocumentsByIds = async (docIds: string[]) => {
@@ -88,12 +88,12 @@ const ListView = ({ data, searchData }: ListViewProps) => {
         if (searchData) {
           const searchResponse = await axiosInstance.post(
             "/document/search_by_query",
-            searchData
+            searchData,
           );
           documentsToFetch = searchResponse.data.map((item) => item.doc_id);
         } else if (!searchData && selectFolderId) {
           const folderResponse = await axiosInstance.get(
-            `/folder/getFiles/${selectFolderId}`
+            `/folder/getFiles/${selectFolderId}`,
           );
           documentsToFetch = folderResponse.data.map((folder) => folder.doc_id);
         } else {
@@ -126,14 +126,14 @@ const ListView = ({ data, searchData }: ListViewProps) => {
             "Search limit reached! Free users can perform 5 searches per day. Please upgrade to premium for unlimited searches.",
             {
               duration: 5000,
-            }
+            },
           );
         } else if (
           error.response?.data?.detail ||
           error.response?.data?.message
         ) {
           toast.error(
-            error.response.data.detail || error.response.data.message
+            error.response.data.detail || error.response.data.message,
           );
         } else {
           toast.error("Failed to fetch documents. Please try again.");
@@ -278,7 +278,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
               legacyBehavior={false}
               key={item._id}
               href={`/cv-detail/${item._id}/${formatName(
-                item?.parsed_cv?.name
+                item?.parsed_cv?.name,
               )}/${formatLanguages(item?.parsed_cv?.programming_languages)}`}
               target="_blank"
               className="transform mb-3 sm:hover:scale-x-[1.01] sm:hover:scale-y-[1.02] cursor-pointer transition duration-500 ease-in-out w-full overflow-hidden"
@@ -298,11 +298,21 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                     {/* Basic Information */}
                     <div className="flex flex-col gap-1 w-full lg:w-[25%] overflow-clip ">
                       {/* <div className="flex mb-0 flex-col"> */}
-                      <h1 className="mb-2 sm:mb-3 text-sm sm:text-base underline underline-offset-4 font-bold">
-                        {item?.parsed_cv?.position
-                          ? item?.parsed_cv.position.toUpperCase()
-                          : ""}
-                      </h1>
+                      <div className="flex justify-between items-center mb-2 sm:mb-3">
+                        <h1 className="text-sm sm:text-base underline underline-offset-4 font-bold flex-1">
+                          {item?.parsed_cv?.position
+                            ? item?.parsed_cv.position.toUpperCase()
+                            : ""}
+                        </h1>
+                        {item?.parsed_cv?.ratings?.average ? (
+                          <div className="flex items-center gap-1">
+                            <span className="font-semibold text-sm">
+                              {item.parsed_cv.ratings.average.toFixed(1)}
+                            </span>
+                            <Star size={16} fill="currentColor" />
+                          </div>
+                        ) : null}
+                      </div>
 
                       {item?.parsed_cv?.name && (
                         <div className="flex items-center gap-2 mt-0 capitalize">
@@ -355,7 +365,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                             onClick={(event) =>
                               handleLinkedin(
                                 event,
-                                item?.parsed_cv.linkedin_url
+                                item?.parsed_cv.linkedin_url,
                               )
                             }
                             className="text-xs sm:text-sm text-[#0000FF] dark:text-[#0070E0] underline underline-offset-2 hover:opacity-80 truncate"
