@@ -298,20 +298,26 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                     {/* Basic Information */}
                     <div className="flex flex-col gap-1 w-full lg:w-[25%] overflow-clip ">
                       {/* <div className="flex mb-0 flex-col"> */}
-                      <div className="flex justify-between items-center mb-2 sm:mb-3">
-                        <h1 className="text-sm sm:text-base underline underline-offset-4 font-bold flex-1">
-                          {item?.parsed_cv?.position
-                            ? item?.parsed_cv.position.toUpperCase()
-                            : ""}
-                        </h1>
-                        {item?.parsed_cv?.ratings?.average ? (
-                          <div className="flex items-center gap-1">
-                            <span className="font-semibold text-sm">
-                              {item.parsed_cv.ratings.average.toFixed(1)}
-                            </span>
-                            <Star size={16} fill="currentColor" />
-                          </div>
-                        ) : null}
+                      <div className="flex flex-col mb-2 sm:mb-3">
+                        <div className="flex items-center gap-2">
+                          <h1 className="text-sm sm:text-base underline underline-offset-4 font-bold">
+                            {item?.parsed_cv?.position
+                              ? item?.parsed_cv.position.toUpperCase()
+                              : ""}
+                          </h1>
+                          {item?.parsed_cv?.ratings?.average ? (
+                            <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-xs font-medium text-gray-700 dark:text-gray-300">
+                              <span>
+                                {item.parsed_cv.ratings.average.toFixed(1)}
+                              </span>
+                              <Star
+                                size={12}
+                                fill="currentColor"
+                                className="text-yellow-500"
+                              />
+                            </div>
+                          ) : null}
+                        </div>
                       </div>
 
                       {item?.parsed_cv?.name && (
