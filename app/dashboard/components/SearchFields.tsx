@@ -68,6 +68,7 @@ const SearchFieldsContent = () => {
     current_salary: [],
     estimated_salary: [],
     paid_by: "",
+    ready_to_work: false,
   });
 
   const { selectFolderId } = folderSelectStore();
@@ -184,6 +185,7 @@ const SearchFieldsContent = () => {
       current_salary: [],
       estimated_salary: [],
       paid_by: "",
+      ready_to_work: false,
     });
     setTags([]);
     // Clear URL query parameter
@@ -345,6 +347,7 @@ const SearchFieldsContent = () => {
     formData.estimated_salary.length > 0,
     formData.current_salary.length > 0,
     formData.sort_order,
+    formData.ready_to_work,
   ].filter(Boolean).length;
 
   return (
@@ -599,6 +602,40 @@ const SearchFieldsContent = () => {
                           }
                           placeholder="e.g., 50000 - 80000"
                         />
+                      </div>
+
+                      {/* Ready to Work */}
+                      <div className="space-y-2 flex items-center justify-between mt-6 border p-3 rounded-md">
+                        <Label htmlFor="readyToWork" className="cursor-pointer">
+                          Ready to Work Immediately
+                        </Label>
+                        <div className="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                          <input
+                            type="checkbox"
+                            name="readyToWork"
+                            id="readyToWork"
+                            checked={formData.ready_to_work || false}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                ready_to_work: e.target.checked,
+                              })
+                            }
+                            className="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer transition-transform duration-200 ease-in-out"
+                            style={{
+                              transform: formData.ready_to_work
+                                ? "translateX(100%)"
+                                : "translateX(0)",
+                              borderColor: formData.ready_to_work
+                                ? "#4caf50"
+                                : "#e5e7eb",
+                            }}
+                          />
+                          <label
+                            htmlFor="readyToWork"
+                            className={`toggle-label block overflow-hidden h-5 rounded-full cursor-pointer transition-colors duration-200 ease-in-out ${formData.ready_to_work ? "bg-[#4caf50]" : "bg-gray-300"}`}
+                          ></label>
+                        </div>
                       </div>
 
                       {/* Current Salary */}

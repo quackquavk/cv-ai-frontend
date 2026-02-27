@@ -10,4 +10,5 @@ export interface IFormInputData {
   current_salary: string[];
   estimated_salary: string[];
   paid_by: string;
+  ready_to_work?: boolean;
 }
