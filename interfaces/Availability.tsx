@@ -12,4 +12,5 @@ export interface IAvailability {
     count: number;
   };
   has_rated: boolean;
+  can_edit?: boolean;
 }

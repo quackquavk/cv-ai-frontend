@@ -54,7 +54,9 @@ const CVDetailPage = ({ params }: { params: any }) => {
   const [loader, setLoader] = useState<boolean>(false);
   const [closeParsedData, setCloseParsedData] = useState<boolean>(false);
   const [hoveredRating, setHoveredRating] = useState(0);
-  const [isAuthenticatedState, setIsAuthenticatedState] = useState<string | null>(null);
+  const [isAuthenticatedState, setIsAuthenticatedState] = useState<
+    string | null
+  >(null);
 
   // State for API data and user input
   const [inputData, setInputData] = useState<IAvailability>({
@@ -71,6 +73,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
       count: 0,
     },
     has_rated: false,
+    can_edit: false,
   });
 
   const { id }: any = use(params);
@@ -81,7 +84,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
   useEffect(() => {
     // Initialize authentication state on client side only
     setIsAuthenticatedState(localStorage.getItem("isAuthenticated"));
-    
+
     const handleStorageChange = () => {
       setIsAuthenticatedState(localStorage.getItem("isAuthenticated"));
     };
@@ -104,7 +107,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
     const fetchData = async () => {
       try {
         const response = await axiosInstance.get(
-          `/cv_document/getAvailability/${id}`
+          `/cv_document/getAvailability/${id}`,
         );
         setInputData(response.data);
         // Set the userChoice based on the 'votes' value from the API response
@@ -209,9 +212,12 @@ const CVDetailPage = ({ params }: { params: any }) => {
       setLoader(true);
       const response = await axiosInstance.put(
         `/cv_document/updateAvailability`,
-        body
+        body,
       );
-      if (response.data.detail && response.data.detail.includes("Nothing to change in document")) {
+      if (
+        response.data.detail &&
+        response.data.detail.includes("Nothing to change in document")
+      ) {
         toast.info("Nothing to change in document", { duration: 1000 });
         return;
       }
@@ -454,7 +460,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                     {item}
                                   </Card>
                                 </div>
-                              )
+                              ),
                             )}
                           </div>
                         </div>
@@ -541,11 +547,11 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                               {el}
                                             </span>
                                           </span>
-                                        )
+                                        ),
                                       )}
                                   </span>
                                 </div>
-                              )
+                              ),
                             )}
                         </div>
                       </div>
@@ -576,13 +582,13 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                                 : data.project_link
                                               ).startsWith("http")
                                                 ? Array.isArray(
-                                                    data.project_link
+                                                    data.project_link,
                                                   )
                                                   ? data.project_link[0]
                                                   : data.project_link
                                                 : `https://${
                                                     Array.isArray(
-                                                      data.project_link
+                                                      data.project_link,
                                                     )
                                                       ? data.project_link[0]
                                                       : data.project_link
@@ -605,7 +611,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                                   {el}
                                                 </Card>
                                               </div>
-                                            )
+                                            ),
                                           )}
                                         </div>
                                       )}
@@ -616,7 +622,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                       )}
                                     </div>
                                   </div>
-                                )
+                                ),
                               )}
                           </div>
                         </div>
@@ -671,7 +677,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                               >
                                 {index + 1 + ". " + el?.certification_name}
                               </p>
-                            )
+                            ),
                           )}
                         </div>
                       </div>
@@ -679,7 +685,6 @@ const CVDetailPage = ({ params }: { params: any }) => {
                   </div>
                 </div>
 
-                {/* Availability Section - Fixed */}
                 <div className="relative mb-6">
                   <div
                     className={`sticky bottom-0 z-10 border-t-2 border-slate-700 py-3 flex flex-col gap-3 ${
@@ -732,6 +737,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                           onValueChange={(value) =>
                             setInputData({ ...inputData, availability: value })
                           }
+                          disabled={!inputData.can_edit || !isAuthenticated}
                         >
                           <SelectTrigger className="w-[120px] h-[34px] text-xs">
                             <SelectValue
@@ -761,6 +767,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                           onValueChange={(value) =>
                             setInputData({ ...inputData, time_of_day: value })
                           }
+                          disabled={!inputData.can_edit || !isAuthenticated}
                         >
                           <SelectTrigger className="w-[120px] text-xs h-[34px]">
                             <SelectValue
@@ -804,8 +811,10 @@ const CVDetailPage = ({ params }: { params: any }) => {
                         <Input
                           type="text"
                           id="currentSalary"
+                          disabled={!inputData.can_edit || !isAuthenticated}
                           className={`peer block rounded-md py-2 px-3 text-[10px] w-full focus:ring-black focus:ring-1 gap-2 focus:outline-none focus:ring-opacity-75 ${
-                            !isAuthenticated && "cursor-not-allowed"
+                            (!inputData.can_edit || !isAuthenticated) &&
+                            "cursor-not-allowed"
                           }`}
                           value={
                             inputData.current_salary !== null
@@ -835,8 +844,10 @@ const CVDetailPage = ({ params }: { params: any }) => {
                         <Input
                           type="text"
                           id="estimatedSalary"
+                          disabled={!inputData.can_edit || !isAuthenticated}
                           className={`block w-full rounded-md py-2 px-3 text-[10px] focus:border-black focus:outline-none focus:ring-1 focus:ring-black focus:ring-opacity-75 ${
-                            !isAuthenticated && "cursor-not-allowed"
+                            (!inputData.can_edit || !isAuthenticated) &&
+                            "cursor-not-allowed"
                           } `}
                           value={
                             inputData.estimated_salary !== null
@@ -856,6 +867,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                           onValueChange={(value) =>
                             setInputData({ ...inputData, paid_by: value })
                           }
+                          disabled={!inputData.can_edit || !isAuthenticated}
                         >
                           <SelectTrigger className="w-[120px] h-[39px] text-xs">
                             <SelectValue
@@ -886,7 +898,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       <div>
                         <Button
                           className="flex flex-wrap sm-w-auto h-8 text-center items-center"
-                          disabled={!isAuthenticated}
+                          disabled={!inputData.can_edit || !isAuthenticated}
                         >
                           <span className="flex gap-1 items-center w-auto text-xs">
                             <span>
@@ -901,21 +913,31 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       <div>
                         <Sheet>
                           <SheetTrigger
-                            disabled={!isAuthenticated}
+                            disabled={!inputData.can_edit || !isAuthenticated}
                             className={`${
-                              !isAuthenticated && "cursor-not-allowed"
+                              (!inputData.can_edit || !isAuthenticated) &&
+                              "cursor-not-allowed"
                             }`}
                           >
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger
+                                  disabled={
+                                    !inputData.can_edit || !isAuthenticated
+                                  }
                                   className={`cursor-pointer transition-transform rounded-md duration-300 ease-in-out ${
-                                    !isAuthenticated && "cursor-not-allowed"
+                                    (!inputData.can_edit || !isAuthenticated) &&
+                                    "cursor-not-allowed"
                                   }`}
                                 >
                                   <Button
+                                    disabled={
+                                      !inputData.can_edit || !isAuthenticated
+                                    }
                                     className={`flex gap-1 items-center w-22 h-8 px-2 text-xs ${
-                                      !isAuthenticated && "pointer-events-none"
+                                      (!inputData.can_edit ||
+                                        !isAuthenticated) &&
+                                      "pointer-events-none"
                                     }`}
                                   >
                                     <span>
@@ -938,6 +960,9 @@ const CVDetailPage = ({ params }: { params: any }) => {
                               <Textarea
                                 className="h-48"
                                 placeholder="Add notes..."
+                                disabled={
+                                  !inputData.can_edit || !isAuthenticated
+                                }
                                 value={inputData.note}
                                 onChange={(e) =>
                                   setInputData({
@@ -1229,7 +1254,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                               {item}
                             </Card>
                           </div>
-                        )
+                        ),
                       )}
                     </div>
                   </div>
@@ -1309,7 +1334,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                       {el}
                                     </span>
                                   </span>
-                                )
+                                ),
                               )}
                           </span>
                         </div>
@@ -1367,7 +1392,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                             {el}
                                           </Card>
                                         </div>
-                                      )
+                                      ),
                                     )}
                                   </div>
                                 )}
@@ -1378,7 +1403,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                                 )}
                               </div>
                             </div>
-                          )
+                          ),
                         )}
                     </div>
                   </div>
@@ -1490,10 +1515,11 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       onValueChange={(value) =>
                         setInputData({ ...inputData, availability: value })
                       }
+                      disabled={!inputData.can_edit || !isAuthenticated}
                     >
                       <SelectTrigger
                         className="w-full sm:w-[120px] h-[34px] text-xs"
-                        disabled={!isAuthenticated}
+                        disabled={!inputData.can_edit || !isAuthenticated}
                       >
                         <SelectValue
                           className="text-xs"
@@ -1522,7 +1548,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       onValueChange={(value) =>
                         setInputData({ ...inputData, time_of_day: value })
                       }
-                      disabled={!isAuthenticated}
+                      disabled={!inputData.can_edit || !isAuthenticated}
                     >
                       <SelectTrigger className="w-full sm:w-[120px] text-xs h-[34px]">
                         <SelectValue placeholder="Time" className="text-xs" />
@@ -1559,7 +1585,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                         inputData.current_salary !== null
                           ? "-top-2 bg-white"
                           : "top-2.5 text-gray-500"
-                      } ${!isAuthenticated && "cursor-not-allowed"} `}
+                      } ${(!inputData.can_edit || !isAuthenticated) && "cursor-not-allowed"} `}
                     >
                       Current Salary(USD)
                     </Label>
@@ -1567,8 +1593,10 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     <Input
                       type="text"
                       id="currentSalary"
+                      disabled={!inputData.can_edit || !isAuthenticated}
                       className={`peer block w-full rounded-md py-2 px-3 text-xs focus:ring-1 gap-2 focus:outline-none focus:ring-black focus:ring-opacity-75 ${
-                        !isAuthenticated && "cursor-not-allowed"
+                        (!inputData.can_edit || !isAuthenticated) &&
+                        "cursor-not-allowed"
                       } `}
                       value={
                         inputData.current_salary !== null
@@ -1598,8 +1626,10 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     <Input
                       type="text"
                       id="estimatedSalary"
+                      disabled={!inputData.can_edit || !isAuthenticated}
                       className={`block w-full rounded-md py-2 px-3 text-xs   focus:outline-none focus:ring-1 gap-2 focus:ring-black focus:ring-opacity-75 ${
-                        !isAuthenticated && "cursor-not-allowed"
+                        (!inputData.can_edit || !isAuthenticated) &&
+                        "cursor-not-allowed"
                       } `}
                       value={
                         inputData.estimated_salary !== null
@@ -1619,10 +1649,11 @@ const CVDetailPage = ({ params }: { params: any }) => {
                       onValueChange={(value) =>
                         setInputData({ ...inputData, paid_by: value })
                       }
+                      disabled={!inputData.can_edit || !isAuthenticated}
                     >
                       <SelectTrigger
                         className="w-full sm:w-[120px] h-[39px] text-xs"
-                        disabled={!isAuthenticated}
+                        disabled={!inputData.can_edit || !isAuthenticated}
                       >
                         <SelectValue
                           className="text-xs"
@@ -1652,7 +1683,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                   <div>
                     <Button
                       className="flex flex-wrap sm-w-auto h-8 text-center items-center"
-                      disabled={!isAuthenticated}
+                      disabled={!inputData.can_edit || !isAuthenticated}
                     >
                       <span className="flex gap-1 items-center w-auto text-xs">
                         <span>
@@ -1667,21 +1698,28 @@ const CVDetailPage = ({ params }: { params: any }) => {
                   <div className="">
                     <Sheet>
                       <SheetTrigger
-                        disabled={!isAuthenticated}
+                        disabled={!inputData.can_edit || !isAuthenticated}
                         className={`${
-                          !isAuthenticated && "cursor-not-allowed"
+                          (!inputData.can_edit || !isAuthenticated) &&
+                          "cursor-not-allowed"
                         }`}
                       >
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger
+                              disabled={!inputData.can_edit || !isAuthenticated}
                               className={`cursor-pointer transition-transform rounded-md duration-300 ease-in-out ${
-                                !isAuthenticated && "cursor-not-allowed"
+                                (!inputData.can_edit || !isAuthenticated) &&
+                                "cursor-not-allowed"
                               }`}
                             >
                               <Button
+                                disabled={
+                                  !inputData.can_edit || !isAuthenticated
+                                }
                                 className={`flex gap-1 items-center w-22 h-8 px-2 text-xs ${
-                                  !isAuthenticated && "pointer-events-none"
+                                  (!inputData.can_edit || !isAuthenticated) &&
+                                  "pointer-events-none"
                                 }`}
                               >
                                 <span>
@@ -1704,6 +1742,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                           <Textarea
                             className="h-48"
                             placeholder="Add notes..."
+                            disabled={!inputData.can_edit || !isAuthenticated}
                             value={inputData.note}
                             onChange={(e) =>
                               setInputData({

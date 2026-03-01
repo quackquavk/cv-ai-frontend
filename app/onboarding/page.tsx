@@ -438,24 +438,18 @@ const OnboardingPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-2xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
+      <Card className="w-full max-w-2xl p-8 shadow-xl border-border">
         {/* Logo */}
         <div className="flex justify-center mb-8">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl overflow-hidden">
-              <Image
-                src="/assets/logo.webp"
-                alt="Resume AI"
-                width={40}
-                height={40}
-                className="object-cover"
-              />
-            </div>
-            <span className="text-xl font-semibold text-foreground">
-              Resume AI
-            </span>
-          </div>
+          <Image
+            src="/assets/resumeai_logo_black.png"
+            alt="Resume AI"
+            width={180}
+            height={45}
+            className="object-contain"
+            priority
+          />
         </div>
 
         {/* Progress */}
@@ -1271,7 +1265,7 @@ const OnboardingPage = () => {
             )}
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };
