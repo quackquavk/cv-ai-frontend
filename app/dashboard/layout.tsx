@@ -45,7 +45,8 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const isLinkedInPage =
     pathname === "/dashboard/job-preferences" ||
     pathname === "/dashboard/job-applications" ||
-    pathname === "/dashboard/ats-optimizer";
+    pathname === "/dashboard/ats-optimizer" ||
+    pathname === "/dashboard/browser-extension";
 
   const handleCollapsedChange = (collapsed: boolean) => {
     setIsCollapsed(collapsed);

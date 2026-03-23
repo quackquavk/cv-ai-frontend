@@ -37,6 +37,13 @@ interface JobPreferences {
   apply_interval_from: number | null;
   apply_interval_to: number | null;
   time_to_start: string;
+  // Extension-synced settings
+  max_years_required: number;
+  visa_sponsorship: string;
+  legally_authorized: string;
+  willing_to_relocate: string;
+  drivers_license: string;
+  auto_next_page: boolean;
 }
 
 const EXPERIENCE_LEVELS = [
@@ -122,6 +129,12 @@ const LinkedInJobPreferences: React.FC<LinkedInJobPreferencesProps> = ({
         apply_interval_from: null,
         apply_interval_to: null,
         time_to_start: "immediate",
+        max_years_required: 3,
+        visa_sponsorship: "no",
+        legally_authorized: "yes",
+        willing_to_relocate: "yes",
+        drivers_license: "yes",
+        auto_next_page: true,
       });
     } finally {
       setLoading(false);
@@ -149,7 +162,7 @@ const LinkedInJobPreferences: React.FC<LinkedInJobPreferencesProps> = ({
   const addTag = (
     field: keyof JobPreferences,
     value: string,
-    setter: (val: string) => void
+    setter: (val: string) => void,
   ) => {
     if (!value.trim() || !preferences) return;
     const currentArray = preferences[field] as string[];
@@ -379,7 +392,7 @@ const LinkedInJobPreferences: React.FC<LinkedInJobPreferencesProps> = ({
               ...preferences,
               max_applications_per_session: Math.min(
                 10,
-                Math.max(1, parseInt(e.target.value) || 1)
+                Math.max(1, parseInt(e.target.value) || 1),
               ),
             })
           }
@@ -571,7 +584,7 @@ const LinkedInJobPreferences: React.FC<LinkedInJobPreferencesProps> = ({
               addTag(
                 "blacklist_companies",
                 newBlacklistCompany,
-                setNewBlacklistCompany
+                setNewBlacklistCompany,
               )
             }
           />
@@ -582,7 +595,7 @@ const LinkedInJobPreferences: React.FC<LinkedInJobPreferencesProps> = ({
               addTag(
                 "blacklist_companies",
                 newBlacklistCompany,
-                setNewBlacklistCompany
+                setNewBlacklistCompany,
               )
             }
           >
@@ -617,7 +630,7 @@ const LinkedInJobPreferences: React.FC<LinkedInJobPreferencesProps> = ({
               addTag(
                 "blacklist_titles",
                 newBlacklistTitle,
-                setNewBlacklistTitle
+                setNewBlacklistTitle,
               )
             }
           />
@@ -628,7 +641,7 @@ const LinkedInJobPreferences: React.FC<LinkedInJobPreferencesProps> = ({
               addTag(
                 "blacklist_titles",
                 newBlacklistTitle,
-                setNewBlacklistTitle
+                setNewBlacklistTitle,
               )
             }
           >
@@ -652,6 +665,127 @@ const LinkedInJobPreferences: React.FC<LinkedInJobPreferencesProps> = ({
               setPreferences({ ...preferences, llm_enabled: checked })
             }
           />
+        </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <Label className="text-base">Auto Next Page</Label>
+            <p className="text-sm text-gray-500">
+              Automatically navigate to the next page of job results
+            </p>
+          </div>
+          <Switch
+            checked={preferences.auto_next_page}
+            onCheckedChange={(checked) =>
+              setPreferences({ ...preferences, auto_next_page: checked })
+            }
+          />
+        </div>
+      </div>
+
+      {/* Common Application Questions */}
+      <div className="space-y-4 pt-4 border-t">
+        <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100">
+          Common Application Questions
+        </h4>
+        <p className="text-xs text-gray-500">
+          Default answers used by the extension for common LinkedIn application
+          questions.
+        </p>
+
+        <div className="space-y-2">
+          <Label>Max Years of Experience Required</Label>
+          <Input
+            type="number"
+            min={0}
+            max={20}
+            value={preferences.max_years_required}
+            onChange={(e) =>
+              setPreferences({
+                ...preferences,
+                max_years_required: Math.min(
+                  20,
+                  Math.max(0, parseInt(e.target.value) || 3),
+                ),
+              })
+            }
+          />
+          <p className="text-xs text-gray-500">
+            Skip jobs requiring more years than this
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Visa Sponsorship Required?</Label>
+            <Select
+              value={preferences.visa_sponsorship}
+              onValueChange={(value) =>
+                setPreferences({ ...preferences, visa_sponsorship: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="yes">Yes</SelectItem>
+                <SelectItem value="no">No</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Legally Authorized to Work?</Label>
+            <Select
+              value={preferences.legally_authorized}
+              onValueChange={(value) =>
+                setPreferences({ ...preferences, legally_authorized: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="yes">Yes</SelectItem>
+                <SelectItem value="no">No</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Willing to Relocate?</Label>
+            <Select
+              value={preferences.willing_to_relocate}
+              onValueChange={(value) =>
+                setPreferences({ ...preferences, willing_to_relocate: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="yes">Yes</SelectItem>
+                <SelectItem value="no">No</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Have Driver&apos;s License?</Label>
+            <Select
+              value={preferences.drivers_license}
+              onValueChange={(value) =>
+                setPreferences({ ...preferences, drivers_license: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="yes">Yes</SelectItem>
+                <SelectItem value="no">No</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
     </div>

@@ -50,42 +50,34 @@ const LinkedInApplicationsTable: React.FC<LinkedInApplicationsTableProps> = ({
     try {
       setLoading(true);
 
-      // First get sessions
-      const sessionsResponse = await axiosInstance.get(
-        "/linkedin_bot/sessions",
-        {
-          params: { page_size: 10 },
-          withCredentials: true,
-        }
-      );
-      const sessions = sessionsResponse.data.sessions || [];
+      // Extension-only history (Chrome extension reports applied jobs)
+      const extResponse = await axiosInstance.get("/extension/applied-jobs", {
+        params: { page: 1, page_size: 50 },
+        withCredentials: true,
+      });
 
-      const allApps: JobApplication[] = [];
+      const apps: JobApplication[] = (extResponse.data.applications || [])
+        .map((job: any) => ({
+          ...job,
+          // Ensure consistent field names
+          session_id: "extension",
+          job_id: job.application_id,
+        }))
+        // Filter to only show successful applications
+        .filter((app: JobApplication) => app.result === true)
+        // Sort by applied_at descending
+        .sort(
+          (a: JobApplication, b: JobApplication) =>
+            new Date(b.applied_at).getTime() - new Date(a.applied_at).getTime(),
+        );
 
-      // Fetch from sessions
-      for (const session of sessions.slice(0, 5)) {
-        try {
-          const response = await axiosInstance.get(
-            `/linkedin_bot/sessions/${session.session_id}/applications`,
-            {
-              params: { page: 1, page_size: 20 },
-              withCredentials: true,
-            }
-          );
-          allApps.push(...(response.data.applications || []));
-        } catch (error) {
-          // Ignore individual session errors
-        }
-      }
-
-      // Sort by applied_at descending
-      allApps.sort(
-        (a, b) =>
-          new Date(b.applied_at).getTime() - new Date(a.applied_at).getTime()
-      );
-
-      // Filter to only show successful applications
-      const successfulApps = allApps.filter((app) => app.result === true);
+      // Deduplicate by application_id (defensive)
+      const seen = new Set<string>();
+      const successfulApps = apps.filter((app) => {
+        if (seen.has(app.application_id)) return false;
+        seen.add(app.application_id);
+        return true;
+      });
       setApplications(successfulApps.slice(0, 50));
       setTotal(successfulApps.length);
     } catch (error) {
@@ -130,7 +122,7 @@ const LinkedInApplicationsTable: React.FC<LinkedInApplicationsTableProps> = ({
         </div>
         <p className="text-gray-500 font-medium">No applications yet</p>
         <p className="text-sm text-gray-400 mt-1">
-          Click "Apply to Jobs" to start applying automatically
+          Use the Chrome extension to apply—history will appear here.
         </p>
       </div>
     );

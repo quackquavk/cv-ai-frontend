@@ -29,6 +29,7 @@ import {
   Target,
   Upload,
   GripVertical,
+  Puzzle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -154,6 +155,7 @@ const SideNavBar = ({
     pathname === "/dashboard/job-preferences" ||
     pathname === "/dashboard/job-applications" ||
     pathname === "/dashboard/ats-optimizer" ||
+    pathname === "/dashboard/browser-extension" ||
     pathname === "/dashboard/my-resume" ||
     pathname === "/dashboard/resumes" ||
     pathname?.startsWith("/dashboard/resumes/");
@@ -764,6 +766,17 @@ const SideNavBar = ({
                     <Target className="h-4 w-4" />
                     ATS Optimizer
                   </Link>
+                  <Link
+                    href="/dashboard/browser-extension"
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-200 ${
+                      pathname === "/dashboard/browser-extension"
+                        ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium"
+                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white"
+                    }`}
+                  >
+                    <Puzzle className="h-4 w-4" />
+                    Chrome Extension
+                  </Link>
                 </div>
               </div>
             </div>
@@ -832,6 +845,17 @@ const SideNavBar = ({
                 title="ATS Optimizer"
               >
                 <Target className="h-5 w-5" />
+              </Link>
+              <Link
+                href="/dashboard/browser-extension"
+                className={`p-2.5 rounded-lg transition-all duration-200 ${
+                  pathname === "/dashboard/browser-extension"
+                    ? "bg-gray-100 dark:bg-gray-800 text-black dark:text-white"
+                    : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-black dark:hover:text-white"
+                }`}
+                title="Chrome Extension"
+              >
+                <Puzzle className="h-5 w-5" />
               </Link>
             </div>
           )}

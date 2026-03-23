@@ -1,7 +1,7 @@
 "use client";
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { LoaderCircle, Save, RefreshCw, Info } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import axiosInstance from "@/utils/axiosConfig";
 import { Label } from "@/components/ui/label";
@@ -13,13 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import LinkedInBot from "@/app/dashboard/components/LinkedInBot";
 
 interface JobPreferences {
   positions: string[];
@@ -65,20 +58,6 @@ const JOB_TYPES = [
   { value: "internship", label: "Internship" },
 ];
 
-const DATE_POSTED_OPTIONS = [
-  { value: "any", label: "Any time" },
-  { value: "past_day", label: "Past 24 hours" },
-  { value: "past_week", label: "Past week" },
-  { value: "past_month", label: "Past month" },
-];
-
-const TIME_TO_START_OPTIONS = [
-  { value: "immediate", label: "Immediately" },
-  { value: "morning", label: "Morning (6am-12pm)" },
-  { value: "afternoon", label: "Afternoon (12pm-6pm)" },
-  { value: "evening", label: "Evening (6pm-12am)" },
-];
-
 const DEFAULT_PREFERENCES: JobPreferences = {
   positions: [""],
   locations: [""],
@@ -105,12 +84,9 @@ export default function JobPreferencesPage() {
   const [preferences, setPreferences] = useState<JobPreferences | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [cvList, setCvList] = useState<{ id: string; name: string }[]>([]);
-  const [selectedCv, setSelectedCv] = useState<string>("");
 
   useEffect(() => {
     fetchPreferences();
-    fetchUserCVs();
   }, []);
 
   const fetchPreferences = async () => {
@@ -165,48 +141,20 @@ export default function JobPreferencesPage() {
     }
   };
 
-  const fetchUserCVs = async () => {
-    try {
-      const response = await axiosInstance.get("/cv-claim/my_cv", {
-        withCredentials: true,
-      });
-      if (response.data) {
-        setCvList([
-          {
-            id: response.data.doc_id,
-            name: response.data.doc_name || "My Resume",
-          },
-        ]);
-        setSelectedCv(response.data.doc_id);
-      }
-    } catch (error) {
-      console.error("Error fetching CVs:", error);
-    }
-  };
-
   const handleApply = async () => {
     if (!preferences) return;
 
     try {
       setSaving(true);
-      // Save preferences first
-      await axiosInstance.put("/linkedin_bot/preferences", preferences, {
+      // Save preferences without touching LinkedIn credentials (extension-driven flow)
+      const { email, password, ...payload } = preferences;
+      await axiosInstance.put("/linkedin_bot/preferences", payload, {
         withCredentials: true,
       });
-
-      // Start the bot session
-      await axiosInstance.post(
-        "/linkedin_bot/session/start",
-        {},
-        {
-          withCredentials: true,
-        },
-      );
-
-      toast.success("Job application session started!");
+      toast.success("Job preferences saved!");
     } catch (error: any) {
       console.error("Error:", error);
-      toast.error(error.response?.data?.detail || "Failed to start session");
+      toast.error(error.response?.data?.detail || "Failed to save preferences");
     } finally {
       setSaving(false);
     }
@@ -264,7 +212,7 @@ export default function JobPreferencesPage() {
           </Button>
           <Button onClick={handleApply} disabled={saving}>
             {saving && <LoaderCircle className="h-4 w-4 mr-2 animate-spin" />}
-            Save & Apply
+            Save Preferences
           </Button>
         </div>
       </div>
@@ -351,7 +299,7 @@ export default function JobPreferencesPage() {
               }
             >
               <SelectTrigger className="bg-gray-100 dark:bg-gray-800 border-0">
-                <SelectValue placeholder="check below" />
+                <SelectValue placeholder="Select Experience" />
               </SelectTrigger>
               <SelectContent>
                 {EXPERIENCE_LEVELS.map((level) => (
@@ -376,7 +324,7 @@ export default function JobPreferencesPage() {
               }
             >
               <SelectTrigger className="bg-gray-100 dark:bg-gray-800 border-0">
-                <SelectValue placeholder="Select..." />
+                <SelectValue placeholder="Select Work Type" />
               </SelectTrigger>
               <SelectContent>
                 {WORK_TYPES.map((type) => (
@@ -393,7 +341,7 @@ export default function JobPreferencesPage() {
             </Label>
             <Select>
               <SelectTrigger className="bg-gray-100 dark:bg-gray-800 border-0">
-                <SelectValue placeholder="Select..." />
+                <SelectValue placeholder="Select Job Type" />
               </SelectTrigger>
               <SelectContent>
                 {JOB_TYPES.map((type) => (
@@ -406,202 +354,7 @@ export default function JobPreferencesPage() {
           </div>
         </div>
 
-        {/* Row 3: Time to Start, Apply Interval, No of Apply */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Time to Start
-            </Label>
-            <Select
-              value={preferences.time_to_start}
-              onValueChange={(value) =>
-                setPreferences({ ...preferences, time_to_start: value })
-              }
-            >
-              <SelectTrigger className="bg-gray-100 dark:bg-gray-800 border-0">
-                <SelectValue placeholder="Start Time" />
-              </SelectTrigger>
-              <SelectContent>
-                {TIME_TO_START_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center gap-1">
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Apply Interval
-              </Label>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-3 w-3 text-gray-400" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Time range (hours) when bot should apply</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <Input
-                placeholder="From"
-                type="number"
-                min={0}
-                max={23}
-                value={preferences.apply_interval_from ?? ""}
-                onChange={(e) =>
-                  setPreferences({
-                    ...preferences,
-                    apply_interval_from: e.target.value
-                      ? parseInt(e.target.value)
-                      : null,
-                  })
-                }
-                className="bg-gray-100 dark:bg-gray-800 border-0"
-              />
-              <Input
-                placeholder="To"
-                type="number"
-                min={0}
-                max={23}
-                value={preferences.apply_interval_to ?? ""}
-                onChange={(e) =>
-                  setPreferences({
-                    ...preferences,
-                    apply_interval_to: e.target.value
-                      ? parseInt(e.target.value)
-                      : null,
-                  })
-                }
-                className="bg-gray-100 dark:bg-gray-800 border-0"
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center gap-1">
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Applications per Session
-              </Label>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-3 w-3 text-gray-400" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Max 10 applications per day (free tier limit)</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            <Input
-              type="number"
-              min={1}
-              max={10}
-              value={preferences.max_applications_per_session}
-              onChange={(e) =>
-                setPreferences({
-                  ...preferences,
-                  max_applications_per_session: Math.min(
-                    10,
-                    Math.max(1, parseInt(e.target.value) || 1),
-                  ),
-                })
-              }
-              className="bg-gray-100 dark:bg-gray-800 border-0"
-            />
-            <p className="text-xs text-gray-500">Free: 10/day max</p>
-          </div>
-        </div>
-
-        {/* Row 4: Date Posted, Language */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Date Posted
-            </Label>
-            <Select
-              value={preferences.date_posted}
-              onValueChange={(value) =>
-                setPreferences({ ...preferences, date_posted: value })
-              }
-            >
-              <SelectTrigger className="bg-gray-100 dark:bg-gray-800 border-0">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {DATE_POSTED_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Language
-            </Label>
-            <Input
-              placeholder="English"
-              value={preferences.language || ""}
-              onChange={(e) =>
-                setPreferences({
-                  ...preferences,
-                  language: e.target.value || null,
-                })
-              }
-              className="bg-gray-100 dark:bg-gray-800 border-0"
-            />
-          </div>
-          <div></div>
-        </div>
-
-        {/* LinkedIn Credentials */}
-        <div className="space-y-4 pt-2 border-t mt-4">
-          <Label className="text-base font-semibold">
-            LinkedIn Credentials
-          </Label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Email
-              </Label>
-              <Input
-                type="email"
-                placeholder="linkedin@email.com"
-                value={preferences.email || ""}
-                onChange={(e) =>
-                  setPreferences({
-                    ...preferences,
-                    email: e.target.value || null,
-                  })
-                }
-                className="bg-gray-100 dark:bg-gray-800 border-0"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Password
-              </Label>
-              <Input
-                type="password"
-                placeholder="••••••••"
-                value={preferences.password || ""}
-                onChange={(e) =>
-                  setPreferences({
-                    ...preferences,
-                    password: e.target.value || null,
-                  })
-                }
-                className="bg-gray-100 dark:bg-gray-800 border-0"
-              />
-            </div>
-          </div>
-        </div>
+        {/* LinkedIn credentials removed (extension-driven flow) */}
       </div>
     </div>
   );

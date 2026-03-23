@@ -207,16 +207,23 @@ export default function ResumeEditorPage() {
 
           {/* Resume AI Branding */}
           <div className="flex items-center gap-2 pr-4 border-r">
-            <Image
-              src="/assets/logo.webp"
-              alt="Resume AI"
-              width={28}
-              height={28}
-              className="rounded"
-            />
-            <span className="text-sm font-semibold hidden sm:inline">
-              Resume AI
-            </span>
+            {/* Rectangular logo asset: 2286x642 (aspect ~3.56) */}
+            <div className="relative w-[140px] h-[40px]">
+              <Image
+                src="/assets/resumeai_logo_black.webp"
+                alt="Resume AI"
+                width={2286}
+                height={642}
+                className="absolute top-0 left-0 w-full h-full object-contain block dark:hidden"
+              />
+              <Image
+                src="/assets/resumeai_logo.webp"
+                alt="Resume AI"
+                width={2286}
+                height={642}
+                className="absolute top-0 left-0 w-full h-full object-contain hidden dark:block"
+              />
+            </div>
             <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium text-white rounded-full">
               <FileText className="h-2.5 w-2.5" />
             </span>
