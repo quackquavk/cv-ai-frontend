@@ -4,7 +4,6 @@ import { Card } from "@/components/ui/card";
 import LinkedInApplicationsTable from "@/app/dashboard/components/LinkedInApplicationsTable";
 import {
   LoaderCircle,
-  CheckCircle,
   AlertCircle,
   TrendingUp,
   Target,
@@ -28,7 +27,7 @@ export default function JobApplicationsPage() {
 
   const fetchData = async () => {
     setLoading(true);
-    await Promise.all([fetchUsageStats()]);
+    await fetchUsageStats();
     setLoading(false);
   };
 
@@ -86,10 +85,6 @@ export default function JobApplicationsPage() {
           <span>
             Remaining: <span className="font-semibold">{remaining}</span>
           </span>
-        </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-md">
-          <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          <span className="text-muted-foreground">Extension ready</span>
         </div>
       </div>
 

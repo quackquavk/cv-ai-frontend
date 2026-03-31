@@ -17,6 +17,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+// Keep the full interface intact so the backend PUT round-trip doesn't lose any stored data.
+// We only expose the extension-relevant fields in the UI.
 interface JobPreferences {
   positions: string[];
   locations: string[];
@@ -46,35 +48,6 @@ interface JobPreferences {
   auto_next_page: boolean;
 }
 
-const EXPERIENCE_LEVELS = [
-  { value: 1, label: "Entry Level" },
-  { value: 2, label: "Associate" },
-  { value: 3, label: "Mid-Senior" },
-  { value: 4, label: "Director" },
-  { value: 5, label: "Executive" },
-  { value: 6, label: "Internship" },
-];
-
-const JOB_TYPES = [
-  { value: "remote", label: "Remote" },
-  { value: "on_site", label: "On-site" },
-  { value: "hybrid", label: "Hybrid" },
-];
-
-const DATE_POSTED_OPTIONS = [
-  { value: "any", label: "Any time" },
-  { value: "past_day", label: "Past 24 hours" },
-  { value: "past_week", label: "Past week" },
-  { value: "past_month", label: "Past month" },
-];
-
-const TIME_TO_START_OPTIONS = [
-  { value: "immediate", label: "Immediately" },
-  { value: "morning", label: "Morning (6am-12pm)" },
-  { value: "afternoon", label: "Afternoon (12pm-6pm)" },
-  { value: "evening", label: "Evening (6pm-12am)" },
-];
-
 interface LinkedInJobPreferencesProps {
   className?: string;
   onPreferencesSaved?: () => void;
@@ -87,8 +60,6 @@ const LinkedInJobPreferences: React.FC<LinkedInJobPreferencesProps> = ({
   const [preferences, setPreferences] = useState<JobPreferences | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [newPosition, setNewPosition] = useState("");
-  const [newLocation, setNewLocation] = useState("");
   const [newBlacklistCompany, setNewBlacklistCompany] = useState("");
   const [newBlacklistTitle, setNewBlacklistTitle] = useState("");
 
@@ -108,10 +79,10 @@ const LinkedInJobPreferences: React.FC<LinkedInJobPreferencesProps> = ({
       if (error.response?.status !== 404) {
         toast.error("Failed to load job preferences");
       }
-      // Set defaults if not found
+      // Defaults — only extension-relevant defaults matter here
       setPreferences({
-        positions: ["Software Engineer"],
-        locations: ["Remote"],
+        positions: [],
+        locations: [],
         experience_level: [],
         job_type: [],
         date_posted: "any",
@@ -143,13 +114,14 @@ const LinkedInJobPreferences: React.FC<LinkedInJobPreferencesProps> = ({
 
   const savePreferences = async () => {
     if (!preferences) return;
-
     try {
       setSaving(true);
       await axiosInstance.put("/linkedin_bot/preferences", preferences, {
         withCredentials: true,
       });
-      toast.success("Job preferences saved successfully!");
+      toast.success(
+        "Preferences saved — the extension will pick these up on next sync.",
+      );
       onPreferencesSaved?.();
     } catch (error: any) {
       console.error("Error saving preferences:", error);
@@ -184,24 +156,6 @@ const LinkedInJobPreferences: React.FC<LinkedInJobPreferencesProps> = ({
     });
   };
 
-  const toggleExperience = (level: number) => {
-    if (!preferences) return;
-    const current = preferences.experience_level;
-    const updated = current.includes(level)
-      ? current.filter((l) => l !== level)
-      : [...current, level];
-    setPreferences({ ...preferences, experience_level: updated });
-  };
-
-  const toggleJobType = (type: string) => {
-    if (!preferences) return;
-    const current = preferences.job_type;
-    const updated = current.includes(type)
-      ? current.filter((t) => t !== type)
-      : [...current, type];
-    setPreferences({ ...preferences, job_type: updated });
-  };
-
   if (loading) {
     return (
       <div className={`flex items-center justify-center p-8 ${className}`}>
@@ -218,7 +172,12 @@ const LinkedInJobPreferences: React.FC<LinkedInJobPreferencesProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Settings className="h-5 w-5 text-blue-600" />
-          <h3 className="text-lg font-semibold">Job Preferences</h3>
+          <div>
+            <h3 className="text-lg font-semibold">Extension Preferences</h3>
+            <p className="text-xs text-gray-500">
+              Synced automatically to your Chrome extension.
+            </p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button
@@ -243,241 +202,24 @@ const LinkedInJobPreferences: React.FC<LinkedInJobPreferencesProps> = ({
         </div>
       </div>
 
-      {/* Positions */}
-      <div className="space-y-2">
-        <Label>Job Positions</Label>
-        <div className="flex flex-wrap gap-2 mb-2">
-          {preferences.positions.map((pos) => (
-            <Badge key={pos} variant="secondary" className="pr-1">
-              {pos}
-              <button
-                onClick={() => removeTag("positions", pos)}
-                className="ml-1 hover:bg-gray-300 rounded-full p-0.5"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          <Input
-            placeholder="Add position (e.g., Frontend Developer)"
-            value={newPosition}
-            onChange={(e) => setNewPosition(e.target.value)}
-            onKeyPress={(e) =>
-              e.key === "Enter" &&
-              addTag("positions", newPosition, setNewPosition)
-            }
-          />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => addTag("positions", newPosition, setNewPosition)}
-          >
-            Add
-          </Button>
-        </div>
-      </div>
-
-      {/* Locations */}
-      <div className="space-y-2">
-        <Label>Locations</Label>
-        <div className="flex flex-wrap gap-2 mb-2">
-          {preferences.locations.map((loc) => (
-            <Badge key={loc} variant="secondary" className="pr-1">
-              {loc}
-              <button
-                onClick={() => removeTag("locations", loc)}
-                className="ml-1 hover:bg-gray-300 rounded-full p-0.5"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          <Input
-            placeholder="Add location (e.g., New York, Remote)"
-            value={newLocation}
-            onChange={(e) => setNewLocation(e.target.value)}
-            onKeyPress={(e) =>
-              e.key === "Enter" &&
-              addTag("locations", newLocation, setNewLocation)
-            }
-          />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => addTag("locations", newLocation, setNewLocation)}
-          >
-            Add
-          </Button>
-        </div>
-      </div>
-
-      {/* Experience Level */}
-      <div className="space-y-2">
-        <Label>Experience Level</Label>
-        <div className="flex flex-wrap gap-2">
-          {EXPERIENCE_LEVELS.map((level) => (
-            <Badge
-              key={level.value}
-              variant={
-                preferences.experience_level.includes(level.value)
-                  ? "default"
-                  : "outline"
-              }
-              className="cursor-pointer"
-              onClick={() => toggleExperience(level.value)}
-            >
-              {level.label}
-            </Badge>
-          ))}
-        </div>
-      </div>
-
-      {/* Job Type */}
-      <div className="space-y-2">
-        <Label>Job Type</Label>
-        <div className="flex flex-wrap gap-2">
-          {JOB_TYPES.map((type) => (
-            <Badge
-              key={type.value}
-              variant={
-                preferences.job_type.includes(type.value)
-                  ? "default"
-                  : "outline"
-              }
-              className="cursor-pointer"
-              onClick={() => toggleJobType(type.value)}
-            >
-              {type.label}
-            </Badge>
-          ))}
-        </div>
-      </div>
-
-      {/* Date Posted */}
-      <div className="space-y-2">
-        <Label>Date Posted</Label>
-        <Select
-          value={preferences.date_posted}
-          onValueChange={(value) =>
-            setPreferences({ ...preferences, date_posted: value })
-          }
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {DATE_POSTED_OPTIONS.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Max Applications */}
-      <div className="space-y-2">
-        <Label>Max Applications (per day, capped at 10)</Label>
-        <Input
-          type="number"
-          min={1}
-          max={10}
-          value={preferences.max_applications_per_session}
-          onChange={(e) =>
-            setPreferences({
-              ...preferences,
-              max_applications_per_session: Math.min(
-                10,
-                Math.max(1, parseInt(e.target.value) || 1),
-              ),
-            })
-          }
-        />
-      </div>
-
-      {/* Time to Start */}
-      <div className="space-y-2">
-        <Label>Preferred Time to Apply</Label>
-        <Select
-          value={preferences.time_to_start}
-          onValueChange={(value) =>
-            setPreferences({ ...preferences, time_to_start: value })
-          }
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {TIME_TO_START_OPTIONS.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Apply Interval */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* Phone & Salary */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>Apply From (Hour)</Label>
+          <Label>Phone Number</Label>
           <Input
-            type="number"
-            min={0}
-            max={23}
-            placeholder="e.g., 9"
-            value={preferences.apply_interval_from ?? ""}
+            placeholder="e.g., +1 555 123 4567"
+            value={preferences.phone_number || ""}
             onChange={(e) =>
               setPreferences({
                 ...preferences,
-                apply_interval_from: e.target.value
-                  ? parseInt(e.target.value)
-                  : null,
+                phone_number: e.target.value || null,
               })
             }
           />
+          <p className="text-xs text-gray-500">
+            Used to fill phone fields in applications
+          </p>
         </div>
-        <div className="space-y-2">
-          <Label>Apply To (Hour)</Label>
-          <Input
-            type="number"
-            min={0}
-            max={23}
-            placeholder="e.g., 17"
-            value={preferences.apply_interval_to ?? ""}
-            onChange={(e) =>
-              setPreferences({
-                ...preferences,
-                apply_interval_to: e.target.value
-                  ? parseInt(e.target.value)
-                  : null,
-              })
-            }
-          />
-        </div>
-      </div>
-
-      {/* Language */}
-      <div className="space-y-2">
-        <Label>Job Listing Language (optional)</Label>
-        <Input
-          placeholder="e.g., English"
-          value={preferences.language || ""}
-          onChange={(e) =>
-            setPreferences({
-              ...preferences,
-              language: e.target.value || null,
-            })
-          }
-        />
-      </div>
-
-      {/* Salary & Rate */}
-      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Salary Expectation</Label>
           <Input
@@ -490,77 +232,15 @@ const LinkedInJobPreferences: React.FC<LinkedInJobPreferencesProps> = ({
               })
             }
           />
-        </div>
-        <div className="space-y-2">
-          <Label>Hourly Rate</Label>
-          <Input
-            placeholder="e.g., $50/hr"
-            value={preferences.hourly_rate || ""}
-            onChange={(e) =>
-              setPreferences({
-                ...preferences,
-                hourly_rate: e.target.value || null,
-              })
-            }
-          />
-        </div>
-      </div>
-
-      {/* Phone Number */}
-      <div className="space-y-2">
-        <Label>Phone Number</Label>
-        <Input
-          placeholder="e.g., +1 555 123 4567"
-          value={preferences.phone_number || ""}
-          onChange={(e) =>
-            setPreferences({
-              ...preferences,
-              phone_number: e.target.value || null,
-            })
-          }
-        />
-      </div>
-
-      {/* LinkedIn Credentials */}
-      <div className="space-y-2 pt-2 border-t mt-4">
-        <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100 mb-3">
-          LinkedIn Credentials
-        </h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Email</Label>
-            <Input
-              type="email"
-              placeholder="linkedin@email.com"
-              value={preferences.email || ""}
-              onChange={(e) =>
-                setPreferences({
-                  ...preferences,
-                  email: e.target.value || null,
-                })
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Password</Label>
-            <Input
-              type="password"
-              placeholder="••••••••"
-              value={preferences.password || ""}
-              onChange={(e) =>
-                setPreferences({
-                  ...preferences,
-                  password: e.target.value || null,
-                })
-              }
-            />
-          </div>
+          <p className="text-xs text-gray-500">
+            Used to fill salary fields in applications
+          </p>
         </div>
       </div>
 
       {/* Blacklist Companies */}
       <div className="space-y-2">
-        <Label>Blacklist Companies</Label>
+        <Label>Skip These Companies</Label>
         <div className="flex flex-wrap gap-2 mb-2">
           {preferences.blacklist_companies.map((company) => (
             <Badge key={company} variant="destructive" className="pr-1">
@@ -576,7 +256,7 @@ const LinkedInJobPreferences: React.FC<LinkedInJobPreferencesProps> = ({
         </div>
         <div className="flex gap-2">
           <Input
-            placeholder="Add company to avoid"
+            placeholder="Company name to skip"
             value={newBlacklistCompany}
             onChange={(e) => setNewBlacklistCompany(e.target.value)}
             onKeyPress={(e) =>
@@ -606,7 +286,7 @@ const LinkedInJobPreferences: React.FC<LinkedInJobPreferencesProps> = ({
 
       {/* Blacklist Titles */}
       <div className="space-y-2">
-        <Label>Blacklist Job Titles</Label>
+        <Label>Skip These Job Titles</Label>
         <div className="flex flex-wrap gap-2 mb-2">
           {preferences.blacklist_titles.map((title) => (
             <Badge key={title} variant="destructive" className="pr-1">
@@ -622,7 +302,7 @@ const LinkedInJobPreferences: React.FC<LinkedInJobPreferencesProps> = ({
         </div>
         <div className="flex gap-2">
           <Input
-            placeholder="Add title to avoid (e.g., Manager)"
+            placeholder="Job title to skip (e.g., Manager)"
             value={newBlacklistTitle}
             onChange={(e) => setNewBlacklistTitle(e.target.value)}
             onKeyPress={(e) =>
@@ -648,52 +328,25 @@ const LinkedInJobPreferences: React.FC<LinkedInJobPreferencesProps> = ({
             Add
           </Button>
         </div>
-      </div>
-
-      {/* Toggles */}
-      <div className="space-y-4 pt-4 border-t">
-        <div className="flex items-center justify-between">
-          <div>
-            <Label className="text-base">AI-Powered Form Filling</Label>
-            <p className="text-sm text-gray-500">
-              Use AI to intelligently answer application questions
-            </p>
-          </div>
-          <Switch
-            checked={preferences.llm_enabled}
-            onCheckedChange={(checked) =>
-              setPreferences({ ...preferences, llm_enabled: checked })
-            }
-          />
-        </div>
-        <div className="flex items-center justify-between">
-          <div>
-            <Label className="text-base">Auto Next Page</Label>
-            <p className="text-sm text-gray-500">
-              Automatically navigate to the next page of job results
-            </p>
-          </div>
-          <Switch
-            checked={preferences.auto_next_page}
-            onCheckedChange={(checked) =>
-              setPreferences({ ...preferences, auto_next_page: checked })
-            }
-          />
-        </div>
-      </div>
-
-      {/* Common Application Questions */}
-      <div className="space-y-4 pt-4 border-t">
-        <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100">
-          Common Application Questions
-        </h4>
         <p className="text-xs text-gray-500">
-          Default answers used by the extension for common LinkedIn application
-          questions.
+          The extension skips any job whose title or company matches these
+          keywords
         </p>
+      </div>
+
+      {/* Extension Behaviour */}
+      <div className="space-y-4 pt-4 border-t">
+        <div>
+          <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100">
+            Extension Behaviour
+          </h4>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Controls how the extension navigates and filters jobs on the page
+          </p>
+        </div>
 
         <div className="space-y-2">
-          <Label>Max Years of Experience Required</Label>
+          <Label>Max Experience Required (years)</Label>
           <Input
             type="number"
             min={0}
@@ -710,7 +363,36 @@ const LinkedInJobPreferences: React.FC<LinkedInJobPreferencesProps> = ({
             }
           />
           <p className="text-xs text-gray-500">
-            Skip jobs requiring more years than this
+            Skip jobs that require more years than this
+          </p>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div>
+            <Label className="text-base">Auto Next Page</Label>
+            <p className="text-sm text-gray-500">
+              Automatically go to the next page when all jobs on this page are
+              processed
+            </p>
+          </div>
+          <Switch
+            checked={preferences.auto_next_page}
+            onCheckedChange={(checked) =>
+              setPreferences({ ...preferences, auto_next_page: checked })
+            }
+          />
+        </div>
+      </div>
+
+      {/* Common Application Questions */}
+      <div className="space-y-4 pt-4 border-t">
+        <div>
+          <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100">
+            Common Application Questions
+          </h4>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Default answers the extension uses when LinkedIn asks these standard
+            questions
           </p>
         </div>
 

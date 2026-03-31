@@ -18,6 +18,7 @@ interface JobApplication {
   job_id: string;
   job_title: string;
   company_name: string;
+  company_logo_url?: string | null;
   job_url?: string;
   status: string;
   result: boolean;
@@ -79,7 +80,11 @@ const LinkedInApplicationsTable: React.FC<LinkedInApplicationsTableProps> = ({
         return true;
       });
       setApplications(successfulApps.slice(0, 50));
-      setTotal(successfulApps.length);
+      const apiTotal =
+        typeof extResponse.data?.total === "number"
+          ? extResponse.data.total
+          : successfulApps.length;
+      setTotal(apiTotal);
     } catch (error) {
       console.error("Error fetching applications:", error);
     } finally {
@@ -133,7 +138,10 @@ const LinkedInApplicationsTable: React.FC<LinkedInApplicationsTableProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-500">
-          Showing {applications.length} successful applications
+          Showing {applications.length}
+          {total > applications.length ? ` of ${total}` : ""} successful
+          application
+          {total !== 1 ? "s" : ""}
         </p>
         <Button
           variant="outline"
@@ -157,8 +165,23 @@ const LinkedInApplicationsTable: React.FC<LinkedInApplicationsTableProps> = ({
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-start gap-3 flex-1 min-w-0">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg shrink-0">
-                  <Building2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <div className="w-10 h-10 shrink-0 rounded-lg overflow-hidden border bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+                  {app.company_logo_url ? (
+                    <img
+                      src={app.company_logo_url}
+                      alt={`${app.company_name} logo`}
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        // Fallback to icon if image fails to load
+                        (e.currentTarget as HTMLImageElement).style.display = "none";
+                        (e.currentTarget.nextElementSibling as HTMLElement)?.style.removeProperty("display");
+                      }}
+                    />
+                  ) : null}
+                  <Building2
+                    className="h-5 w-5 text-blue-600 dark:text-blue-400"
+                    style={{ display: app.company_logo_url ? "none" : undefined }}
+                  />
                 </div>
                 <div className="min-w-0 flex-1">
                   <h4 className="font-medium text-gray-900 dark:text-gray-100 truncate">
@@ -171,7 +194,7 @@ const LinkedInApplicationsTable: React.FC<LinkedInApplicationsTableProps> = ({
               </div>
 
               <div className="flex items-center gap-3 shrink-0">
-                <Badge className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+                <Badge className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800">
                   <CheckCircle className="h-3 w-3 mr-1" />
                   Applied
                 </Badge>
