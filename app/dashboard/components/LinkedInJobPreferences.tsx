@@ -70,7 +70,7 @@ const LinkedInJobPreferences: React.FC<LinkedInJobPreferencesProps> = ({
   const fetchPreferences = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get("/linkedin_bot/preferences", {
+      const response = await axiosInstance.get("/extension/preferences", {
         withCredentials: true,
       });
       setPreferences(response.data);
@@ -116,7 +116,7 @@ const LinkedInJobPreferences: React.FC<LinkedInJobPreferencesProps> = ({
     if (!preferences) return;
     try {
       setSaving(true);
-      await axiosInstance.put("/linkedin_bot/preferences", preferences, {
+      await axiosInstance.put("/extension/preferences", preferences, {
         withCredentials: true,
       });
       toast.success(
