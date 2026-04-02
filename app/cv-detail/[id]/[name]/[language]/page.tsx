@@ -1,5 +1,14 @@
 "use client";
-import React, { use, useRef, useState, useEffect } from "react";
+import React, {
+  use,
+  useCallback,
+  useContext,
+  useRef,
+  useState,
+  useEffect,
+} from "react";
+import { UserContext } from "@/context/UserContext";
+import { useCanViewResumeContact } from "@/hooks/useCanViewResumeContact";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import { GoDotFill } from "react-icons/go";
@@ -49,14 +58,19 @@ import { Input } from "@/components/ui/input";
 import { Save } from "lucide-react";
 
 const CVDetailPage = ({ params }: { params: any }) => {
+  const userCtx = useContext(UserContext);
+  const canViewResumeContact = useCanViewResumeContact();
+  const isAuthenticated = !!(
+    userCtx &&
+    !userCtx.loading &&
+    userCtx.isAuthenticated
+  );
   const [data, setData] = useState<any>();
+  const [accessError, setAccessError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [loader, setLoader] = useState<boolean>(false);
   const [closeParsedData, setCloseParsedData] = useState<boolean>(false);
   const [hoveredRating, setHoveredRating] = useState(0);
-  const [isAuthenticatedState, setIsAuthenticatedState] = useState<
-    string | null
-  >(null);
 
   // State for API data and user input
   const [inputData, setInputData] = useState<IAvailability>({
@@ -81,29 +95,45 @@ const CVDetailPage = ({ params }: { params: any }) => {
   const closeButtonRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false); // Use state for reactivity
 
-  useEffect(() => {
-    // Initialize authentication state on client side only
-    setIsAuthenticatedState(localStorage.getItem("isAuthenticated"));
-
-    const handleStorageChange = () => {
-      setIsAuthenticatedState(localStorage.getItem("isAuthenticated"));
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
-  }, []);
-
-  const isAuthenticated = isAuthenticatedState === "true";
-
-  useEffect(() => {
-    fetchFullCV();
+  const fetchFullCV = useCallback(async () => {
+    if (!id) return;
+    try {
+      setAccessError(null);
+      setLoading(true);
+      const response = await axiosInstance.get(`/document/cv/${id}`);
+      setData(response.data.parsed_cv);
+      setLoading(false);
+    } catch (error: any) {
+      console.error("Error fetching Data", error);
+      const status = error.response?.status;
+      const detail =
+        error.response?.data?.detail || error.response?.data?.message;
+      if (status === 403) {
+        setAccessError(
+          typeof detail === "string"
+            ? detail
+            : "You do not have permission to view this resume.",
+        );
+      } else if (status === 404) {
+        setAccessError(
+          typeof detail === "string" ? detail : "Resume not found.",
+        );
+      } else {
+        setAccessError("Could not load this resume. Please try again.");
+      }
+      setLoading(false);
+    }
   }, [id]);
+
+  // Wait for auth to resolve so /document/cv receives credentials (owner / claimed profile checks).
+  useEffect(() => {
+    if (!userCtx || userCtx.loading) return;
+    fetchFullCV();
+  }, [userCtx?.loading, userCtx?.isAuthenticated, fetchFullCV]);
 
   // For displaying initial availability
   useEffect(() => {
+    if (!id) return;
     const fetchData = async () => {
       try {
         const response = await axiosInstance.get(
@@ -116,18 +146,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
       }
     };
     fetchData();
-  }, []);
-
-  const fetchFullCV = async () => {
-    try {
-      const response = await axiosInstance.get(`/document/cv/${id}`);
-      setData(response.data.parsed_cv);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching Data", error);
-      setLoading(false);
-    }
-  };
+  }, [id]);
 
   function validatePositiveNumber(event, field) {
     const value = event.target.value;
@@ -248,34 +267,60 @@ const CVDetailPage = ({ params }: { params: any }) => {
       ?.join(" ");
   }
 
+  if (accessError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4 px-6 text-center">
+        <p className="text-base text-muted-foreground max-w-md">{accessError}</p>
+        <div className="flex flex-wrap gap-3 justify-center">
+          {!isAuthenticated ? (
+            <Link href="/auth/login">
+              <Button variant="default">Sign in</Button>
+            </Link>
+          ) : null}
+          <Link href="/dashboard">
+            <Button variant={!isAuthenticated ? "outline" : "default"}>
+              Back to dashboard
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-full relative w-full overflow-y-hidden">
       {/* Mobile View */}
       <div className="md:hidden w-full  flex flex-col h-screen">
-        <Tabs defaultValue="pdfcv" className="w-full h-full">
-          {/* Fixed TabsTrigger heading */}
-          <TabsList className="sticky rounded-none top-0 z-10 grid w-full bg-black opacity-85 grid-cols-2">
-            <TabsTrigger value="pdfcv" className=" text-white">
-              RESUME.PDF
-            </TabsTrigger>
+        <Tabs
+          defaultValue={canViewResumeContact ? "pdfcv" : "parsedcv"}
+          className="w-full h-full"
+        >
+          <TabsList
+            className={`sticky rounded-none top-0 z-10 grid w-full bg-black opacity-85 ${canViewResumeContact ? "grid-cols-2" : "grid-cols-1"}`}
+          >
+            {canViewResumeContact ? (
+              <TabsTrigger value="pdfcv" className=" text-white">
+                RESUME.PDF
+              </TabsTrigger>
+            ) : null}
             <TabsTrigger value="parsedcv" className=" text-white">
               AI PARSED
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="pdfcv" className="h-full mt-[-2px]">
-            <Card className="w-full h-full">
-              <div className="h-[100vh]">
-                {/* Embed PDF viewer */}
-                <iframe
-                  src={pdfUrl}
-                  width="100%"
-                  height="100%"
-                  // style={{ border: "none", borderRadius: "0.375rem" }}
-                ></iframe>
-              </div>
-            </Card>
-          </TabsContent>
+          {canViewResumeContact ? (
+            <TabsContent value="pdfcv" className="h-full mt-[-2px]">
+              <Card className="w-full h-full">
+                <div className="h-[100vh]">
+                  <iframe
+                    src={pdfUrl}
+                    width="100%"
+                    height="100%"
+                  ></iframe>
+                </div>
+              </Card>
+            </TabsContent>
+          ) : null}
 
           <TabsContent
             value="parsedcv"
@@ -372,7 +417,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                           </p>
 
                           <p className="flex gap-2 items-center">
-                            {data?.email && (
+                            {canViewResumeContact && data?.email && (
                               <>
                                 <span>
                                   <MdEmail />
@@ -392,7 +437,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                           </p>
 
                           <p className="flex gap-2 items-center">
-                            {data?.phone_number && (
+                            {canViewResumeContact && data?.phone_number && (
                               <>
                                 <span>
                                   <FaPhoneAlt size={14} />
@@ -420,25 +465,27 @@ const CVDetailPage = ({ params }: { params: any }) => {
                           </p>
                         </div>
 
-                        {/* QR Code */}
-                        <div className="mr-4">
-                          <ContactQRCode
-                            contact={{
-                              fullName: data?.name
-                                ? `${toTitleCase(data.name)} (${
-                                    toTitleCase(data?.position) || ""
-                                  })`
-                                : "",
-                              phone: data?.phone_number || "",
-                              address: data?.address || "",
-                              email: data?.email || "",
-                              linkedin: data?.linkedin_url || "",
-                              github: data?.git_url || "",
-                              website: data?.website || "",
-                              skills: data?.skills?.slice(0, 4) || [],
-                            }}
-                          />
-                        </div>
+                        {/* QR Code — contact details; signed-in only */}
+                        {canViewResumeContact ? (
+                          <div className="mr-4">
+                            <ContactQRCode
+                              contact={{
+                                fullName: data?.name
+                                  ? `${toTitleCase(data.name)} (${
+                                      toTitleCase(data?.position) || ""
+                                    })`
+                                  : "",
+                                phone: data?.phone_number || "",
+                                address: data?.address || "",
+                                email: data?.email || "",
+                                linkedin: data?.linkedin_url || "",
+                                github: data?.git_url || "",
+                                website: data?.website || "",
+                                skills: data?.skills?.slice(0, 4) || [],
+                              }}
+                            />
+                          </div>
+                        ) : null}
                       </div>
                     </div>
 
@@ -1049,13 +1096,23 @@ const CVDetailPage = ({ params }: { params: any }) => {
                 <RxHamburgerMenu />
               </Card>
             )}
-            {/* Embed PDF viewer */}
-            <iframe
-              src={pdfUrl}
-              width="100%"
-              height="100%"
-              // style={{ border: "none", borderRadius: "0.375rem" }}
-            ></iframe>
+            {canViewResumeContact ? (
+              <iframe
+                src={pdfUrl}
+                width="100%"
+                height="100%"
+              ></iframe>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full gap-4 px-8 bg-muted/30 text-center">
+                <p className="text-sm text-muted-foreground max-w-md">
+                  The original resume PDF is only visible to signed-in users. It
+                  may include phone numbers and email addresses.
+                </p>
+                <Link href="/auth/login">
+                  <Button>Sign in</Button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
 
@@ -1155,7 +1212,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     </p>
 
                     <p className="flex gap-2 items-center">
-                      {data?.email && (
+                      {canViewResumeContact && data?.email && (
                         <>
                           <span>
                             <MdEmail />
@@ -1175,7 +1232,7 @@ const CVDetailPage = ({ params }: { params: any }) => {
                     </p>
 
                     <p className="flex gap-2 items-center">
-                      {data?.phone_number && (
+                      {canViewResumeContact && data?.phone_number && (
                         <>
                           <span>
                             <FaPhoneAlt size={14} />
@@ -1204,25 +1261,26 @@ const CVDetailPage = ({ params }: { params: any }) => {
                   </div>
 
                   <div className="flex gap-4">
-                    {/* QR Code */}
-                    <div>
-                      <ContactQRCode
-                        contact={{
-                          fullName: data?.name
-                            ? `${toTitleCase(data.name)} (${
-                                toTitleCase(data?.position) || ""
-                              })`
-                            : "",
-                          phone: data?.phone_number || "",
-                          address: data?.address || "",
-                          email: data?.email || "",
-                          linkedin: data?.linkedin_url || "",
-                          github: data?.git_url || "",
-                          website: data?.website || "",
-                          skills: data?.skills?.slice(0, 4) || [],
-                        }}
-                      />
-                    </div>
+                    {canViewResumeContact ? (
+                      <div>
+                        <ContactQRCode
+                          contact={{
+                            fullName: data?.name
+                              ? `${toTitleCase(data.name)} (${
+                                  toTitleCase(data?.position) || ""
+                                })`
+                              : "",
+                            phone: data?.phone_number || "",
+                            address: data?.address || "",
+                            email: data?.email || "",
+                            linkedin: data?.linkedin_url || "",
+                            github: data?.git_url || "",
+                            website: data?.website || "",
+                            skills: data?.skills?.slice(0, 4) || [],
+                          }}
+                        />
+                      </div>
+                    ) : null}
                     {/* Close / Open Button */}
                     <Card
                       className="flex w-max-[40%] h-8 mr-4 flex-wrap flex-col gap-2 justify-end cursor-pointer bg-gray-200 dark:bg-[#2C2C2C] dark:text-white  p-2 rounded-md"

@@ -13,6 +13,9 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useDocumentStore } from "@/app/dashboard/store";
 import Breadcrumb from "./ui/breadcrumb";
 import { toast } from "sonner";
+import { FileText } from "lucide-react";
+import Link from "next/link";
+import { useCanViewResumeContact } from "@/hooks/useCanViewResumeContact";
 
 interface GridViewProps {
   data: IDocumentData[];
@@ -20,6 +23,7 @@ interface GridViewProps {
 }
 
 function GridView({ data, searchData }: GridViewProps) {
+  const canViewResumeContact = useCanViewResumeContact();
   const [searchResultsGridView, setSearchResultsGridView] = useState<
     IDocumentData[]
   >([]);
@@ -169,15 +173,32 @@ function GridView({ data, searchData }: GridViewProps) {
               className="masonry-item mb-6 cursor-pointer relative hover:border-black dark:hover:border-white border-2 transition duration-500 ease-in-out group"
               onClick={() => handleCardClick(item.doc_id)}
             >
-              <Image
-                src={`${process.env.NEXT_PUBLIC_API_BASE_URL}/cv_images/${item.image_id}.webp`}
-                alt={`Image ${index + 1}`}
-                height={500}
-                width={700}
-                className="rounded-lg object-cover w-full h-auto"
-                loading="lazy"
-                layout="responsive"
-              />
+              {canViewResumeContact ? (
+                <Image
+                  src={`${process.env.NEXT_PUBLIC_API_BASE_URL}/cv_images/${item.image_id}.webp`}
+                  alt={`Image ${index + 1}`}
+                  height={500}
+                  width={700}
+                  className="rounded-lg object-cover w-full h-auto"
+                  loading="lazy"
+                  layout="responsive"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-3 min-h-[200px] px-6 py-10 rounded-lg bg-muted/60 border border-dashed border-muted-foreground/30">
+                  <FileText className="h-10 w-10 text-muted-foreground" />
+                  <p className="text-sm text-center text-muted-foreground max-w-[240px]">
+                    Resume preview is available after sign-in (original files may
+                    include contact details).
+                  </p>
+                  <Link
+                    href="/auth/login"
+                    className="text-sm font-medium text-primary underline underline-offset-2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Sign in
+                  </Link>
+                </div>
+              )}
 
               {/* Breadcrumb overlay */}
               {item?.folder_name && (

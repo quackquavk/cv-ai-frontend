@@ -30,6 +30,7 @@ import { useDocumentStore } from "@/app/dashboard/store";
 import MoveCV from "@/app/dashboard/components/MoveCV";
 import Breadcrumb from "./ui/breadcrumb";
 import { toast } from "sonner";
+import { useCanViewResumeContact } from "@/hooks/useCanViewResumeContact";
 
 interface ListViewProps {
   data: IDocumentData[] | any;
@@ -39,6 +40,7 @@ interface ListViewProps {
 const ITEMS_PER_PAGE: number = 10;
 
 const ListView = ({ data, searchData }: ListViewProps) => {
+  const canViewResumeContact = useCanViewResumeContact();
   const { ref, inView } = useInView();
   const { resetSearch } = useSearchContext();
   const { selectFolderId } = folderSelectStore();
@@ -339,8 +341,8 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                         )}
                       </p>
 
-                      {/* Contact Information */}
-                      {item?.parsed_cv?.phone_number && (
+                      {/* Contact Information — signed-in users only */}
+                      {canViewResumeContact && item?.parsed_cv?.phone_number && (
                         <div className="flex items-center gap-2">
                           <FaPhoneAlt className="text-sm" />
                           <span className="text-gray-500 text-sm dark:text-gray-400">
@@ -349,7 +351,7 @@ const ListView = ({ data, searchData }: ListViewProps) => {
                         </div>
                       )}
 
-                      {item?.parsed_cv?.email && (
+                      {canViewResumeContact && item?.parsed_cv?.email && (
                         <div className="flex items-center gap-2">
                           <MdEmail className="text-sm" />
                           <span

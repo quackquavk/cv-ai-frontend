@@ -95,7 +95,7 @@ export default function ExtensionPage() {
                 Install the Extension
               </h3>
               <p className="text-sm text-muted-foreground mb-3">
-                Install the AutoApplyMax Chrome extension from the Chrome Web
+                Install the ResumeAI Chrome extension from the Chrome Web
                 Store or load it manually.
               </p>
               <Button

@@ -72,7 +72,7 @@ export async function generateMetadata({
       : defaultTitle;
     
     const description = cvData.name
-      ? `View ${formattedName}'s professional CV and resume. ${experienceSummary}. Discover skills, experience, education, and contact information through our AI-powered CV analysis platform.`
+      ? `View ${formattedName}'s professional CV and resume. ${experienceSummary}. Discover skills, experience, and education through our AI-powered CV analysis platform.`
       : defaultDescription;
     
     const keywords = [
@@ -146,7 +146,6 @@ export async function generateMetadata({
           '@type': 'Person',
           name: formattedName,
           jobTitle: cvData.position,
-          email: cvData.email,
           address: cvData.address,
           worksFor: currentCompany ? {
             '@type': 'Organization',
@@ -167,7 +166,7 @@ export async function generateMetadata({
     };
     
   } catch (error: any) {
-    console.error('Error generating metadata for CV detail page:', error.response.data);
+    console.error('Error generating metadata for CV detail page:', error.response?.data);
     
     // For 401 errors (unauthorized), still allow indexing but use default metadata
     if (error?.response?.status === 401) {
