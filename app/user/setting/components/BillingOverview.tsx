@@ -4,6 +4,8 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button";
 import { useSubscription, SubscriptionData } from "../hooks/useSubscription";
 import { CancelSubscriptionModal } from "./CancelSubscriptionModal";
+import { InvoiceHistoryCard } from "./InvoiceHistoryCard";
+import { PaymentMethodCard } from "./PaymentMethodCard";
 
 export function BillingOverview() {
   const { subscriptionData, loading, refetch } = useSubscription();
@@ -109,53 +111,11 @@ export function BillingOverview() {
           </CardFooter>
         </Card>
 
-        {/* Card 2: Invoice History (stub for Wave 3) */}
-        <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-          <CardHeader>
-            <CardTitle className="text-lg text-black dark:text-white">Invoice History</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              View your past invoices and payment history.
-            </p>
-            <div className="text-sm text-gray-400 dark:text-gray-500">
-              Invoice history coming soon
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button variant="outline" className="w-full" disabled>
-              View Invoices
-            </Button>
-          </CardFooter>
-        </Card>
+        {/* Card 2: Invoice History */}
+        <InvoiceHistoryCard />
 
-        {/* Card 3: Payment Method (stub for Wave 3) */}
-        <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-          <CardHeader>
-            <CardTitle className="text-lg text-black dark:text-white">Payment Method</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              Manage your payment method and billing information.
-            </p>
-            {isFonePay ? (
-              <div className="text-sm text-green-700 dark:text-green-400 font-medium">
-                FonePay - One-time payment
-              </div>
-            ) : (
-              <div className="text-sm text-gray-400 dark:text-gray-500">
-                Payment method management coming soon
-              </div>
-            )}
-          </CardContent>
-          <CardFooter>
-            {!isFonePay && (
-              <Button variant="outline" className="w-full" disabled>
-                Update Payment Method
-              </Button>
-            )}
-          </CardFooter>
-        </Card>
+        {/* Card 3: Payment Method */}
+        <PaymentMethodCard subscriptionData={subscriptionData} />
       </div>
 
       <CancelSubscriptionModal
