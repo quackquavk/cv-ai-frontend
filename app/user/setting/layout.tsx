@@ -76,6 +76,16 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
         },
       ],
     },
+    {
+      category: "Account",
+      items: [
+        {
+          name: "Danger Zone",
+          href: "/user/setting/account/danger-zone",
+          icon: Shield,
+        },
+      ],
+    },
     ...(user?.is_admin
       ? [
           {
