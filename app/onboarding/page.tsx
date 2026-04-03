@@ -324,7 +324,6 @@ const OnboardingPage = () => {
             availabilityData.estimated_salary === ""
               ? null
               : Number(availabilityData.estimated_salary),
-          star_rating: null, // Not setting rating here
         },
         { withCredentials: true },
       );

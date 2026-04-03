@@ -211,24 +211,47 @@ const CVDetailPage = ({ params }: { params: any }) => {
     if (isSubmitting) return; // Prevent multiple API calls
     setIsSubmitting(true); // Mark as submitting
 
-    const body = {
-      document_id: id,
-      availability: inputData.availability || "",
-      time_of_day: inputData.time_of_day || "",
-      star_rating: inputData.star_rating,
-      current_salary: inputData.current_salary,
-      estimated_salary: inputData.estimated_salary,
-      paid_by: inputData.paid_by || "",
-      rating_info: {
-        average: inputData.rating_info.average,
-        count: inputData.rating_info.count,
-      },
-      has_rated: inputData.has_rated,
-      note: inputData.note,
-    };
-
     try {
       setLoader(true);
+
+      // Handle star_rating separately via updateRating endpoint
+      if (inputData.star_rating !== null) {
+        try {
+          const ratingResponse = await axiosInstance.put(
+            `/cv_document/updateRating`,
+            {
+              document_id: id,
+              rating: inputData.star_rating,
+            },
+          );
+          // Update local state with rating info from response
+          if (ratingResponse.data.rating_info) {
+            setInputData((prev) => ({
+              ...prev,
+              rating_info: ratingResponse.data.rating_info,
+              has_rated: true,
+            }));
+          }
+        } catch (ratingError) {
+          console.error("Error updating rating", ratingError);
+          toast.error("Failed to update rating", { duration: 1000 });
+          setLoader(false);
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // Handle other availability fields via updateAvailability endpoint
+      const body = {
+        document_id: id,
+        availability: inputData.availability || "",
+        time_of_day: inputData.time_of_day || "",
+        current_salary: inputData.current_salary,
+        estimated_salary: inputData.estimated_salary,
+        paid_by: inputData.paid_by || "",
+        note: inputData.note,
+      };
+
       const response = await axiosInstance.put(
         `/cv_document/updateAvailability`,
         body,
@@ -238,16 +261,16 @@ const CVDetailPage = ({ params }: { params: any }) => {
         response.data.detail.includes("Nothing to change in document")
       ) {
         toast.info("Nothing to change in document", { duration: 1000 });
-        return;
+      } else {
+        setInputData(response.data);
+        toast("Successfully Updated Data", {
+          style: {
+            background: "black",
+            color: "white",
+          },
+          duration: 1000,
+        });
       }
-      setInputData(response.data);
-      toast("Successfully Updated Data", {
-        style: {
-          background: "black",
-          color: "white",
-        },
-        duration: 1000,
-      });
       closeButtonRef.current?.click();
     } catch (error) {
       console.error("Error saving data", error);

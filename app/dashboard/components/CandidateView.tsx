@@ -367,11 +367,6 @@ const CandidateView = () => {
       current_salary: inputData.current_salary,
       estimated_salary: inputData.estimated_salary,
       paid_by: inputData.paid_by || "",
-      rating_info: {
-        average: inputData.rating_info.average,
-        count: inputData.rating_info.count,
-      },
-      has_rated: inputData.has_rated,
       note: inputData.note,
       ready_to_work: inputData.ready_to_work,
     };
