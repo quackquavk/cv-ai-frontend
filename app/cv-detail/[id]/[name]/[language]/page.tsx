@@ -71,6 +71,8 @@ const CVDetailPage = ({ params }: { params: any }) => {
   const [loader, setLoader] = useState<boolean>(false);
   const [closeParsedData, setCloseParsedData] = useState<boolean>(false);
   const [hoveredRating, setHoveredRating] = useState(0);
+  const [originalStarRating, setOriginalStarRating] = useState<number | null>(null);
+  const [originalData, setOriginalData] = useState<IAvailability | null>(null);
 
   // State for API data and user input
   const [inputData, setInputData] = useState<IAvailability>({
@@ -140,7 +142,8 @@ const CVDetailPage = ({ params }: { params: any }) => {
           `/cv_document/getAvailability/${id}`,
         );
         setInputData(response.data);
-        // Set the userChoice based on the 'votes' value from the API response
+        setOriginalStarRating(response.data.star_rating);
+        setOriginalData(response.data);
       } catch (error) {
         console.error("Error fetching data", error);
       }
@@ -215,7 +218,9 @@ const CVDetailPage = ({ params }: { params: any }) => {
       setLoader(true);
 
       // Handle star_rating separately via updateRating endpoint
-      if (inputData.star_rating !== null) {
+      // Only call if rating actually changed from original value
+      const ratingChanged = inputData.star_rating !== null && inputData.star_rating !== originalStarRating;
+      if (ratingChanged) {
         try {
           const ratingResponse = await axiosInstance.put(
             `/cv_document/updateRating`,
@@ -232,6 +237,8 @@ const CVDetailPage = ({ params }: { params: any }) => {
               has_rated: true,
             }));
           }
+          // Update original rating after successful save
+          setOriginalStarRating(inputData.star_rating);
         } catch (ratingError) {
           console.error("Error updating rating", ratingError);
           toast.error("Failed to update rating", { duration: 1000 });
@@ -241,28 +248,58 @@ const CVDetailPage = ({ params }: { params: any }) => {
         }
       }
 
-      // Handle other availability fields via updateAvailability endpoint
-      const body = {
-        document_id: id,
-        availability: inputData.availability || "",
-        time_of_day: inputData.time_of_day || "",
-        current_salary: inputData.current_salary,
-        estimated_salary: inputData.estimated_salary,
-        paid_by: inputData.paid_by || "",
-        note: inputData.note,
-      };
+      // Check if availability fields actually changed
+      const availabilityChanged =
+        inputData.availability !== (originalData?.availability ?? null) ||
+        inputData.time_of_day !== (originalData?.time_of_day ?? null) ||
+        inputData.current_salary !== originalData?.current_salary ||
+        inputData.estimated_salary !== originalData?.estimated_salary ||
+        inputData.paid_by !== (originalData?.paid_by ?? null) ||
+        inputData.note !== (originalData?.note ?? null);
 
-      const response = await axiosInstance.put(
-        `/cv_document/updateAvailability`,
-        body,
-      );
-      if (
-        response.data.detail &&
-        response.data.detail.includes("Nothing to change in document")
-      ) {
-        toast.info("Nothing to change in document", { duration: 1000 });
+      // Only call updateAvailability if something changed
+      if (availabilityChanged) {
+        const body = {
+          document_id: id,
+          availability: inputData.availability || "",
+          time_of_day: inputData.time_of_day || "",
+          current_salary: inputData.current_salary,
+          estimated_salary: inputData.estimated_salary,
+          paid_by: inputData.paid_by || "",
+          note: inputData.note,
+        };
+
+        const response = await axiosInstance.put(
+          `/cv_document/updateAvailability`,
+          body,
+        );
+        if (
+          response.data.detail &&
+          response.data.detail.includes("Nothing to change in document")
+        ) {
+          // Show success even when nothing actually changed
+          toast("Successfully Updated Data", {
+            style: {
+              background: "black",
+              color: "white",
+            },
+            duration: 1000,
+          });
+        } else {
+          setInputData(response.data);
+          // Update original data after successful save
+          setOriginalData(response.data);
+          setOriginalStarRating(response.data.star_rating);
+          toast("Successfully Updated Data", {
+            style: {
+              background: "black",
+              color: "white",
+            },
+            duration: 1000,
+          });
+        }
       } else {
-        setInputData(response.data);
+        // Still show success even if no changes
         toast("Successfully Updated Data", {
           style: {
             background: "black",
