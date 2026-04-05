@@ -26,7 +26,7 @@ export default function NavigationTabs() {
     if (pathname === "/dashboard" || pathname === "/dashboard/") {
       setActiveTab("recruiter");
     } else {
-      // Any other path under /dashboard (like /dashboard/candidate, /dashboard/my-resume)
+      // Any other path under /dashboard (like /dashboard/my-resume, /dashboard/resumes)
       setActiveTab("candidate");
     }
   }, [pathname, setActiveTab]);
@@ -38,7 +38,7 @@ export default function NavigationTabs() {
     // Default candidates to the candidate dashboard, but only on the first visit to /dashboard
     if (pathname === "/dashboard" || pathname === "/dashboard/") {
       if (user.user_role === "candidate") {
-        router.replace("/dashboard/candidate");
+        router.replace("/dashboard/my-resume");
       }
     }
 
@@ -49,7 +49,7 @@ export default function NavigationTabs() {
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     if (value === "candidate") {
-      router.push("/dashboard/candidate");
+      router.push("/dashboard/my-resume");
     } else {
       router.push("/dashboard");
     }

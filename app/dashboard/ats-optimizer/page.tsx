@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import AuthGuard from "../components/AuthGuard";
 import {
   LoaderCircle,
   Target,
@@ -10,6 +11,7 @@ import {
   XCircle,
   FileText,
   Zap,
+  Upload,
 } from "lucide-react";
 import { toast } from "sonner";
 import axiosInstance from "@/utils/axiosConfig";
@@ -30,6 +32,33 @@ interface OptimizeResult {
 }
 
 export default function ATSOptimizerPage() {
+  return (
+    <AuthGuard requireCV fallback={<ATSNoCVFallback />}>
+      <ATSOptimizerContent />
+    </AuthGuard>
+  );
+}
+
+function ATSNoCVFallback() {
+  const router = useRouter();
+  return (
+    <div className="h-full w-full flex items-center justify-center">
+      <Card className="p-8 max-w-md text-center">
+        <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+        <h2 className="text-xl font-semibold mb-2">No Resume Found</h2>
+        <p className="text-muted-foreground mb-4">
+          Please upload and claim your CV first to use the ATS optimizer.
+        </p>
+        <Button onClick={() => router.push("/dashboard/my-resume")}>
+          <Upload className="mr-2 h-4 w-4" />
+          Upload Resume
+        </Button>
+      </Card>
+    </div>
+  );
+}
+
+function ATSOptimizerContent() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [hasClaimedCV, setHasClaimedCV] = useState(false);
@@ -154,23 +183,6 @@ export default function ATSOptimizerPage() {
     return (
       <div className="h-full w-full flex items-center justify-center">
         <LoaderCircle className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  if (!hasClaimedCV) {
-    return (
-      <div className="h-full w-full flex items-center justify-center">
-        <Card className="p-8 max-w-md text-center">
-          <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h2 className="text-xl font-semibold mb-2">No Resume Found</h2>
-          <p className="text-muted-foreground mb-4">
-            Please upload and claim your CV first to use the ATS optimizer.
-          </p>
-          <Button onClick={() => router.push("/dashboard")}>
-            Go to Dashboard
-          </Button>
-        </Card>
       </div>
     );
   }

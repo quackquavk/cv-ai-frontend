@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
+import AuthGuard from "../components/AuthGuard";
 import LinkedInApplicationsTable from "@/app/dashboard/components/LinkedInApplicationsTable";
 import {
   LoaderCircle,
@@ -18,6 +19,14 @@ interface UsageStats {
 }
 
 export default function JobApplicationsPage() {
+  return (
+    <AuthGuard requireCV>
+      <JobApplicationsContent />
+    </AuthGuard>
+  );
+}
+
+function JobApplicationsContent() {
   const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
   const [loading, setLoading] = useState(true);
 
